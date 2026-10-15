@@ -9,13 +9,12 @@ from rationai.mlkit.lightning.loggers import MLFlowLogger
 from ml.data import DataModule
 from ml.meta_arch import MetaArch
 
-
 OmegaConf.register_new_resolver(
     "random_seed", lambda: randint(0, 2**31), use_cache=True
 )
 
 
-@hydra.main(config_path="../configs", config_name="project_name", version_base=None)
+@hydra.main(config_path="../configs", config_name="default", version_base=None)
 @autolog
 def main(config: DictConfig, logger: MLFlowLogger) -> None:
     seed_everything(config.seed, workers=True)
