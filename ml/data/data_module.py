@@ -5,8 +5,6 @@ from lightning import LightningDataModule
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 
-from ml.typing import Input
-
 
 class DataModule(LightningDataModule):
     def __init__(
@@ -27,7 +25,7 @@ class DataModule(LightningDataModule):
             case "test":
                 self.test = instantiate(self.datasets["test"])
 
-    def train_dataloader(self) -> Iterable[Input]:
+    def train_dataloader(self) -> Iterable:
         return DataLoader(
             self.train,
             batch_size=self.batch_size,
@@ -37,7 +35,7 @@ class DataModule(LightningDataModule):
             persistent_workers=self.num_workers > 0,
         )
 
-    def val_dataloader(self) -> Iterable[Input]:
+    def val_dataloader(self) -> Iterable:
         return DataLoader(
             self.val,
             batch_size=self.batch_size,
@@ -45,7 +43,7 @@ class DataModule(LightningDataModule):
             persistent_workers=self.num_workers > 0,
         )
 
-    def test_dataloader(self) -> Iterable[Input]:
+    def test_dataloader(self) -> Iterable:
         return DataLoader(
             self.test, batch_size=self.batch_size, num_workers=self.num_workers
         )
