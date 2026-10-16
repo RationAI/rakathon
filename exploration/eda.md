@@ -1468,7 +1468,7 @@ dup[["PERSON_ID", "INVITATION_DATE", "INVITATION_SEQUENCE", "PRIOR_INVITATION_CO
 
 These are not true duplicates. The two rows of a pair are always about 3–4 years apart. `PRIOR_INVITATION_COUNT` keeps increasing and `MONTHS_LAST_INVITATION` shows the gap, but `INVITATION_SEQUENCE` **restarts at 1** after the break.
 
-So `INVITATION_SEQUENCE` appears to count invitations within an unbroken run of yearly reminders, while `PRIOR_INVITATION_COUNT` is the overall running count. This explains why the two agree on only 88% of rows, and it should be confirmed with the organisers. With the date split the two rows always fall into different splits, so there is no leakage.
+So `INVITATION_SEQUENCE` appears to count invitations within an unbroken run of yearly reminders, while `PRIOR_INVITATION_COUNT` is the overall running count. This explains why the two agree on only 88% of rows, and it should be confirmed with the organisers. With the patient-level split both rows of a pair always land in the same split, so there is no leakage.
 
 ## 6. Response rate by feature
 
@@ -1896,7 +1896,7 @@ corr["SCREEN_12M"].drop("SCREEN_12M").sort_values(key=abs, ascending=False).to_f
 - Insurance duration and GP prevention counts are weak.
 
 **Baseline**
-- An untuned HistGradientBoosting model (see [`baseline/`](../baseline/train.py)), trained on 2020–2021 and tested on 2023–2024, reaches **ROC AUC ≈ 0.83** for all three horizons. PR AUC is 0.28 / 0.43 / 0.58 against base rates of 0.07 / 0.13 / 0.20.
+- An untuned HistGradientBoosting model (see [`training/baseline/`](../training/baseline/compare.py)), evaluated on a patient-level split (70/15/15 of women, no woman in two splits), reaches **ROC AUC ≈ 0.84** on test for all three horizons. PR AUC is 0.29 / 0.44 / 0.58 against base rates of 0.07 / 0.13 / 0.19. Logistic regression is close behind (ROC AUC ≈ 0.83).
 
 **Next steps**
 - Sequence features built from earlier rows of the same woman: previous response, number of past non-responses.

@@ -1,8 +1,8 @@
 """Validate the train / validation / test files written by ``split.py``.
 
-Checks that the files exist, carry the source values unchanged, respect the date
-boundaries and the embargo, do not share invitations, and match a fresh split of the
-current source CSV row for row. Exits with status 1 if any check fails.
+Checks that the files exist, carry the source values unchanged, keep every woman in
+exactly one split, cover every source row, and match a fresh split of the current
+source CSV row for row. Exits with status 1 if any check fails.
 
 Usage:
     uv run python validate_split.py
@@ -12,27 +12,18 @@ import sys
 
 import pandas as pd
 
-from split import (
-    EMBARGO,
-    INPUT,
-    OUTPUT,
-    TEST_START,
-    VAL_START,
-    invitation_date,
-    load,
-    split,
-)
+from split import FRACTIONS, INPUT, OUTPUT, load, split
 
 
-NAMES = ["train", "val", "test"]
+NAMES = list(FRACTIONS)
 LABELS = ["SCREENING_3M_FLAG", "SCREENING_6M_FLAG", "SCREENING_12M_FLAG"]
-BOUNDS = {
-    "train": (None, VAL_START - EMBARGO),
-    "val": (VAL_START, TEST_START),
-    "test": (TEST_START, None),
-}
+TOLERANCE = 0.01  # allowed gap between actual and target share of women
 
 failures: list[str] = []
+
+
+def invitation_date(df: pd.DataFrame) -> pd.Series:
+    return pd.to_datetime(df["INVITATION_DATE"], format="%d.%m.%Y")
 
 
 def check(name: str, ok: bool, detail: str = "") -> None:
@@ -53,24 +44,29 @@ def main() -> None:
         n: pd.read_csv(OUTPUT / f"{n}.csv", dtype=str, keep_default_na=False)
         for n in NAMES
     }
+    n_women = source["PERSON_ID"].nunique()
 
     for n, part in splits.items():
         print(f"\n{n}: {len(part):,} rows")
         check(f"{n}: columns match source", list(part.columns) == list(source.columns))
-
-        t0 = invitation_date(part)
-        lo, hi = BOUNDS[n]
-        in_bounds = (lo is None or (t0 >= lo).all()) and (hi is None or (t0 < hi).all())
-        check(
-            f"{n}: dates within bounds",
-            in_bounds,
-            f"{t0.min().date()} - {t0.max().date()}",
-        )
-
         check(f"{n}: INVITATION_ID unique", part["INVITATION_ID"].is_unique)
         check(
             f"{n}: PERSON_ID keeps 15 digits",
             part["PERSON_ID"].str.fullmatch(r"\d{15}").all(),
+        )
+
+        share = part["PERSON_ID"].nunique() / n_women
+        check(
+            f"{n}: share of women close to target",
+            abs(share - FRACTIONS[n]) <= TOLERANCE,
+            f"{share:.1%} vs {FRACTIONS[n]:.0%}",
+        )
+
+        years = invitation_date(part).dt.year.value_counts().sort_index()
+        check(
+            f"{n}: covers all years",
+            years.index.tolist() == sorted(invitation_date(source).dt.year.unique()),
+            ", ".join(f"{y}: {c:,}" for y, c in years.items()),
         )
 
         flags = part[LABELS].eq("A")
@@ -90,18 +86,18 @@ def main() -> None:
         )
 
     print("\nacross splits")
+    women = {n: set(part["PERSON_ID"]) for n, part in splits.items()}
+    shared = sum(
+        len(women[a] & women[b]) for i, a in enumerate(NAMES) for b in NAMES[i + 1 :]
+    )
+    check("no woman in more than one split", shared == 0, f"{shared:,} shared")
+
     ids = pd.concat([splits[n]["INVITATION_ID"] for n in NAMES])
     check("no invitation in more than one split", ids.is_unique)
-
-    gap = (VAL_START - invitation_date(splits["train"]).max()).days
-    check("embargo between train and val", gap > EMBARGO.days, f"{gap} days")
-
-    covered = source["INVITATION_ID"].isin(ids)
-    dropped_t0 = invitation_date(source[~covered])
     check(
-        "only embargoed invitations dropped",
-        ((dropped_t0 >= VAL_START - EMBARGO) & (dropped_t0 < VAL_START)).all(),
-        f"{(~covered).sum():,} dropped",
+        "every source invitation is in a split",
+        len(ids) == len(source) and source["INVITATION_ID"].isin(ids).all(),
+        f"{len(ids):,} of {len(source):,}",
     )
 
     print(f"\n{len(failures)} check(s) failed" if failures else "\nAll checks passed")
