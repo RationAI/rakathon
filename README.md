@@ -34,6 +34,7 @@ rakathon/
 │   ├── eda.ipynb               main EDA (committed with outputs)
 │   ├── eda.md, eda_files/      markdown export of eda.ipynb
 │   ├── FINDINGS.md             summary of the EDA
+│   ├── label_correlations.ipynb  correlation of every attribute with the 3 labels (+ .md export)
 │   └── playground.ipynb        personal scratch notebook (gitignored)
 ├── features/                   feature engineering and feature experiments
 │   ├── prepare_data.py         raw CSV -> data/Rakhaton2026_prepared.csv (102 columns)

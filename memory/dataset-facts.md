@@ -32,4 +32,6 @@ Source: `data/Rakhaton2026.csv` (183 MB, UTF-8, gitignored) + spec `data/Rakatho
 - `PRIOR_SCREEN_COUNT_5Y` is mostly 2. This is CORRECT: women screen every 2 years, so 2 screenings in 5 years is normal (confirmed by Adam Kukučka). An earlier claim-code hypothesis in `exploration/FINDINGS.md` is wrong.
 - 3,354 rows have NEVER_SCREENED=N but count 0 (60-month window edge); 193 rows have `MONTHS_SINCE_LAST_SCREEN` > 60.
 
+**Correlations with 12M label** (`exploration/label_correlations.ipynb`): strongest are invitation history (PRIOR_INVITATION_COUNT / INVITATION_SEQUENCE −0.39, FIRST_INVITATION +0.36), prevention (GYN_PREVENTION +0.33, OTHER_SCREENING +0.25), age (Cramér's V 0.29). MONTHS_SINCE_LAST_SCREEN has ~0 Spearman but is the top model feature (non-monotonic). Spatial and date attributes ≈ 0; most engineered features duplicate originals.
+
 Full analysis: `exploration/eda.ipynb`, summary `exploration/FINDINGS.md`. Related: [[project-task-definition]], [[feature-engineering]], [[split-decision]].
