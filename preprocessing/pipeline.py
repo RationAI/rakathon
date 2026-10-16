@@ -3,6 +3,8 @@
 1. spatial 01-03  screening centres, area coordinates, area spatial features
                   (web scraping / geocoding: run only if their output is missing,
                   so the first snapshot is kept; delete the file to refresh it)
+   external_data  ČSÚ population / foreigner statistics -> data/population/,
+                  data/foreigners/ (download; also skipped once present)
 2. prepare_data   fixes + engineered features -> data/Rakhaton2026_prepared.csv
 3. split          patient-level stratified split -> data/splits/{train,val,test}.csv
 4. validate_split checks the split files
@@ -28,6 +30,11 @@ STEPS = [
     (SPATIAL, "01_scrape_centers.py", DATA / "mamo_centers.csv"),
     (SPATIAL, "02_geocode_areas.py", DATA / "area_coordinates.csv"),
     (SPATIAL, "03_add_spatial_features.py", DATA / "area_spatial_features.csv"),
+    (
+        ROOT / "features",
+        "external_data.py",
+        DATA / "foreigners" / "foreign_women_by_citizenship_2024.csv",
+    ),
     (ROOT / "features", "prepare_data.py", None),
     (ROOT / "preprocessing", "split.py", None),
     (ROOT / "preprocessing", "validate_split.py", None),
