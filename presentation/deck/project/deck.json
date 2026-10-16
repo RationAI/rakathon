@@ -1,0 +1,39 @@
+{
+  "v": 4,
+  "createdOnFiles": {"v": 1, "at": "2026-10-16T23:30:00Z"},
+  "lists": "css",
+  "title": "Rakathon 2026 – Kdo nedorazí na screening",
+  "order": [
+    "cover",
+    "shrnuti",
+    "data",
+    "kdo-skore",
+    "kdo-modely",
+    "kdo-strop",
+    "proc-faktory",
+    "proc-efekty",
+    "proc-strom",
+    "proc-segmenty",
+    "co-intervence",
+    "co-dopisy",
+    "co-region",
+    "jak-overit",
+    "jak-velikost",
+    "zaver"
+  ],
+  "sections": {
+    "s1": {"description": "Úvod, shrnutí a data", "start": "cover"},
+    "s2": {"description": "01 KDO: skóre rizika neúčasti a jeho strop", "start": "kdo-skore"},
+    "s3": {"description": "02 PROČ: faktory a srozumitelné segmenty", "start": "proc-faktory"},
+    "s4": {"description": "03 CO: intervence pro jednotlivé segmenty", "start": "co-intervence"},
+    "s5": {"description": "04 JAK OVĚŘIT: návrh experimentu", "start": "jak-overit"},
+    "s6": {"description": "Závěr", "start": "zaver"}
+  },
+  "faces": {
+    "public-sans": {
+      "family": "Public Sans",
+      "href": "https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..800&display=swap"
+    }
+  },
+  "designSystems": []
+}

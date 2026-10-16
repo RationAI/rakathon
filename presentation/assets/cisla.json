@@ -1,0 +1,187 @@
+{
+  "data": {
+    "invitations": 1344556,
+    "women": 508527,
+    "rate_12m": 0.193
+  },
+  "model": {
+    "test_roc_auc": 0.8411895195255829,
+    "decile_rates": [
+      0.015,
+      0.0272,
+      0.0392,
+      0.0589,
+      0.0853,
+      0.1234,
+      0.1796,
+      0.2793,
+      0.4398,
+      0.6816
+    ]
+  },
+  "models": {
+    "8 pravidel (segmenty)": 0.7932,
+    "Naivní Bayes": 0.7998,
+    "k nejbližších sousedů": 0.8314,
+    "Logistická regrese": 0.8319,
+    "Logistická regrese se splajny": 0.8346,
+    "Rozhodovací strom": 0.8364,
+    "Neuronová síť (MLP)": 0.8397,
+    "Náhodný les": 0.84,
+    "Gradient boosting": 0.8412
+  },
+  "learning_curve_gb": {
+    "0.01": 0.8151,
+    "0.03": 0.8279,
+    "0.1": 0.8356,
+    "0.3": 0.8391,
+    "1.0": 0.8412
+  },
+  "drivers_share": {
+    "MONTHS_SINCE_LAST_SCREEN": 0.297,
+    "INVITATION_SEQUENCE": 0.237,
+    "PRIOR_INVITATION_COUNT": 0.127,
+    "GYN_PREVENTION_24M_CNT": 0.108,
+    "OTHER_SCREENING_36M_CNT": 0.054,
+    "MONTHS_LAST_INVITATION": 0.047,
+    "HEALTHCARE_CONTACT_12M_CNT": 0.041,
+    "DENTAL_PREVENTION_24M_CNT": 0.021
+  },
+  "effects": {
+    "PRIOR_INVITATION_COUNT": {
+      "1": 0.227,
+      "2": 0.227,
+      "3": 0.191,
+      "4": 0.157,
+      "5": 0.145,
+      "6": 0.138,
+      "7": 0.138,
+      "8": 0.136,
+      "9": 0.136,
+      "10": 0.131,
+      "11": 0.131
+    },
+    "MONTHS_SINCE_LAST_SCREEN": {
+      "0.0": 0.029,
+      "1.0": 0.02,
+      "36.0": 0.416,
+      "37.0": 0.397,
+      "38.0": 0.385,
+      "40.0": 0.38,
+      "41.0": 0.371,
+      "42.0": 0.363,
+      "44.0": 0.364,
+      "45.0": 0.364,
+      "46.0": 0.36,
+      "47.0": 0.356,
+      "49.0": 0.35,
+      "51.0": 0.335,
+      "53.0": 0.327,
+      "55.0": 0.325,
+      "57.0": 0.319,
+      "59.0": 0.312
+    },
+    "GYN_PREVENTION_24M_CNT": {
+      "0": 0.157,
+      "1": 0.227,
+      "2": 0.236,
+      "3": 0.234,
+      "4": 0.234,
+      "5": 0.234
+    }
+  },
+  "segments": {
+    "Zatím není na řadě": {
+      "letter": "A",
+      "rate": 0.0236,
+      "share": 0.0271,
+      "invitations": 36490
+    },
+    "První pozvánka": {
+      "letter": "B",
+      "rate": 0.5305,
+      "share": 0.1623,
+      "invitations": 218177
+    },
+    "Pravidelná v prodlení, s gynekologem": {
+      "letter": "C",
+      "rate": 0.4123,
+      "share": 0.0485,
+      "invitations": 65256
+    },
+    "Pravidelná v prodlení, bez gynekologa": {
+      "letter": "D",
+      "rate": 0.2334,
+      "share": 0.0726,
+      "invitations": 97647
+    },
+    "Bez screeningu, chodí ke gynekologovi": {
+      "letter": "E",
+      "rate": 0.2108,
+      "share": 0.1791,
+      "invitations": 240849
+    },
+    "Bez screeningu, jiné screeningy": {
+      "letter": "F",
+      "rate": 0.0884,
+      "share": 0.1266,
+      "invitations": 170195
+    },
+    "Bez screeningu, jen běžná péče": {
+      "letter": "G",
+      "rate": 0.0583,
+      "share": 0.3296,
+      "invitations": 443099
+    },
+    "Mimo zdravotní systém": {
+      "letter": "H",
+      "rate": 0.0219,
+      "share": 0.0542,
+      "invitations": 72843
+    }
+  },
+  "decay_E": {
+    "2.": 0.411,
+    "3.": 0.266,
+    "4.": 0.195,
+    "5.–6.": 0.153,
+    "7.–8.": 0.095,
+    "9.–11.": 0.08
+  },
+  "districts": {
+    "min": 0.1281,
+    "max": 0.2383
+  },
+  "experiment": {
+    "Pravidelná v prodlení, s gynekologem": {
+      "baseline": 0.4123,
+      "per_arm": 9570,
+      "invitations_2024": 12819
+    },
+    "Pravidelná v prodlení, bez gynekologa": {
+      "baseline": 0.2334,
+      "per_arm": 7225,
+      "invitations_2024": 15758
+    },
+    "Bez screeningu, chodí ke gynekologovi": {
+      "baseline": 0.2108,
+      "per_arm": 6748,
+      "invitations_2024": 51047
+    },
+    "Bez screeningu, jiné screeningy": {
+      "baseline": 0.0884,
+      "per_arm": 3478,
+      "invitations_2024": 33852
+    },
+    "Bez screeningu, jen běžná péče": {
+      "baseline": 0.0583,
+      "per_arm": 2493,
+      "invitations_2024": 81123
+    },
+    "Mimo zdravotní systém": {
+      "baseline": 0.0219,
+      "per_arm": 1208,
+      "invitations_2024": 16807
+    }
+  }
+}

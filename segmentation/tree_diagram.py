@@ -93,24 +93,52 @@ EDGES = [
 ]  # fmt: skip
 
 
-def node_text(node: str, n: int, total: int, rate: float) -> str:
-    stats = f"{n:,} invitations ({n / total:.0%}){NL}{rate:.1%} screened within 12 m"
+# Every text and colour of the drawing; pass another dict (e.g. a translation) to
+# draw_segment_tree to restyle it without touching the layout.
+TEXTS_EN = {
+    "questions": QUESTIONS,
+    "names": {s: s.split(" ", 1)[1] for s in SEGMENTS},
+    "interventions": INTERVENTIONS,
+    "yes": "yes",
+    "no": "no",
+    "stats": lambda n, share, rate: (
+        f"{n:,} invitations ({share:.0%}){NL}{rate:.1%} screened within 12 m"
+    ),
+    "title": lambda rate: (
+        "Segments of invitations as a decision tree: questions asked in order, "
+        f"leaves coloured by 12-month response (all invitations: {rate:.1%})"
+    ),
+    "cmap": "Blues",
+    "font": None,  # matplotlib default
+    "background": "white",
+}
+
+
+def node_text(node: str, n: int, total: int, rate: float, texts: dict) -> str:
+    stats = texts["stats"](n, n / total, rate)
     if node in QUESTIONS:
-        return f"{QUESTIONS[node]}{NL}{NL}{stats}"
-    letter, name = node.split(" ", 1)
-    title = NL.join(wrap(f"{letter}  {name}", 24))
-    action = NL.join(wrap(f"→ {INTERVENTIONS[node]}", 26))
+        return f"{texts['questions'][node]}{NL}{NL}{stats}"
+    letter = node.split(" ", 1)[0]
+    title = NL.join(wrap(f"{letter}  {texts['names'][node]}", 24))
+    action = NL.join(wrap(f"→ {texts['interventions'][node]}", 26))
     return f"{title}{NL}{NL}{stats}{NL}{NL}{action}"
 
 
-def draw_segment_tree(df: pd.DataFrame, path: Path | None = None) -> plt.Figure:
-    """Draw the rule tree; ``df`` needs ``segments.COLUMNS`` and the 12M label."""
+def draw_segment_tree(
+    df: pd.DataFrame, path: Path | None = None, texts: dict | None = None
+) -> plt.Figure:
+    """Draw the rule tree; ``df`` needs ``segments.COLUMNS`` and the 12M label.
+
+    ``texts``: labels and colours (keys as in ``TEXTS_EN``, the default).
+    """
+    texts = TEXTS_EN if texts is None else texts
     masks = node_masks(df)
     total = len(df)
     y = df[LABEL]
-    cmap, norm = colormaps["Blues"], Normalize(vmin=-0.15, vmax=0.6)
+    cmap, norm = colormaps[texts["cmap"]], Normalize(vmin=-0.15, vmax=0.6)
+    font = {} if texts["font"] is None else {"fontfamily": texts["font"]}
 
-    fig, ax = plt.subplots(figsize=(24, 17))
+    fig, ax = plt.subplots(figsize=(24, 17), facecolor=texts["background"])
     ax.set_xlim(0.3, 27.7)
     ax.set_ylim(-19.4, 1.1)
     ax.axis("off")
@@ -125,14 +153,15 @@ def draw_segment_tree(df: pd.DataFrame, path: Path | None = None) -> plt.Figure:
         ax.text(
             x0 + frac * (x1 - x0),
             y0 + frac * (y1 - y0),
-            answer,
+            texts[answer],
             ha="center",
             va="center",
             fontsize=10,
             color=INK2,
             fontweight="bold",
-            bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none"},
+            bbox={"boxstyle": "round,pad=0.2", "fc": texts["background"], "ec": "none"},
             zorder=4,
+            **font,
         )
 
     for node, (x, y_pos) in POSITIONS.items():
@@ -148,7 +177,7 @@ def draw_segment_tree(df: pd.DataFrame, path: Path | None = None) -> plt.Figure:
         ax.text(
             x,
             y_pos,
-            node_text(node, n, total, rate),
+            node_text(node, n, total, rate, texts),
             ha="center",
             va="center",
             fontsize=10,
@@ -156,17 +185,14 @@ def draw_segment_tree(df: pd.DataFrame, path: Path | None = None) -> plt.Figure:
             bbox=box,
             linespacing=1.3,
             zorder=3,
+            **font,
         )
 
-    ax.set_title(
-        "Segments of invitations as a decision tree: questions asked in order, "
-        f"leaves coloured by 12-month response (all invitations: {y.mean():.1%})",
-        fontsize=14,
-        fontweight="bold",
-        loc="left",
-    )
+    title = texts["title"](y.mean())
+    if title:
+        ax.set_title(title, fontsize=14, fontweight="bold", loc="left", **font)
     if path is not None:
-        fig.savefig(path, dpi=100, bbox_inches="tight")
+        fig.savefig(path, dpi=100, bbox_inches="tight", facecolor=texts["background"])
     return fig
 
 

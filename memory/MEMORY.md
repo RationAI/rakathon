@@ -8,6 +8,7 @@ Merged from the agents of Adam Džadoň (EDA, split, baselines) and Adam Kukučk
 - [Feature engineering](feature-engineering.md) — prepared 102-column file, spatial area features, history features
 - [Baseline results](baseline-results.md) — GB vs LR ~0.83-0.84 ROC AUC, history features add nothing, importance, thresholds
 - [Model ceiling](model-ceiling.md) — 57-fit ablation: all model families converge to test ROC AUC ~0.84; data is the limit
+- [Presentation](presentation.md) — Czech 16-slide jury deck + PNG assets; experiment sample sizes
 - [Segments](segments.md) — 8 rule-based segments A-H for interventions, response 2%-53%, suggested interventions
 - [Model explanations](model-explanations.md) — drawn tree segments, shared drivers, effect shapes, LR odds ratios
 - [Per-group experts](per-group-experts.md) — group experts never beat the global model; hardest groups and per-group drivers

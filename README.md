@@ -47,6 +47,10 @@ rakathon/
 │   ├── segments.py             8 rule-based segments (assign() reusable for later tasks)
 │   ├── tree_diagram.py         draws the rules as a decision tree -> segment_tree.png
 │   └── report.ipynb / .md      profiles, stability, regions, suggested interventions
+├── presentation/               Czech presentation for the Rakathon jury
+│   ├── make_assets.py          builds every chart as PNG + cisla.json (all quoted numbers)
+│   ├── assets/                 the charts
+│   └── deck/project/           source of the slide deck (16 slides, tasks 01-04)
 ├── preprocessing/              data pipeline
 │   ├── pipeline.py             ONE command: spatial -> prepare_data -> split -> validate
 │   ├── split.py                patient-level stratified 70/15/15 split

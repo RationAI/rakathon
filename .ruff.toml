@@ -59,3 +59,7 @@ lines-after-imports = 2
 
 [lint.pydocstyle]
 convention = "google"
+
+[lint.per-file-ignores]
+# Czech typography: non-breaking spaces and en dashes are intentional.
+"presentation/*" = ["RUF001"]
