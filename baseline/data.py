@@ -1,20 +1,16 @@
-"""Gradient-boosting baseline for the invitation predictor.
+"""Shared data loading and evaluation for the invitation-predictor baselines.
 
 One row of the dataset is one invitation; for each invitation we predict whether the
-woman is screened within 3, 6 and 12 months (``SCREENING_{3,6,12}M_FLAG``). This
-baseline fits one untuned ``HistGradientBoostingClassifier`` per label on the train
-split and reports scores on the validation and test splits.
-
-Reads the files written by ``preprocessing/split.py``.
-
-Usage:
-    uv run python train.py
+woman is screened within 3, 6 and 12 months (``SCREENING_{3,6,12}M_FLAG``). Each
+baseline fits one model per label on the train split and reports scores on the
+validation and test splits written by ``preprocessing/split.py``.
 """
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.base import ClassifierMixin
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
 
@@ -51,12 +47,16 @@ def load(name: str) -> pd.DataFrame:
 
 
 def features(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame:
-    # Missing values are structural (e.g. no GYN band when not registered); the
-    # trees handle NaN natively, so they stay as NaN.
+    # Missing values are structural (e.g. no GYN band when not registered) and are
+    # left as NaN; each model decides how to handle them.
     X = df.drop(columns=NOT_FEATURES)
     for col in CATEGORICAL:
         X[col] = pd.Categorical(X[col], categories=categories[col])
     return X
+
+
+def numeric_features(x: pd.DataFrame) -> list[str]:
+    return [col for col in x.columns if col not in CATEGORICAL + FLAGS]
 
 
 def scores(y: pd.Series, p: pd.Series) -> dict[str, float]:
@@ -68,29 +68,41 @@ def scores(y: pd.Series, p: pd.Series) -> dict[str, float]:
     }
 
 
-def main() -> None:
+ModelFactory = Callable[[pd.DataFrame], ClassifierMixin]
+
+
+def prepare() -> tuple[dict[str, pd.DataFrame], dict[str, pd.DataFrame]]:
+    """Load all splits; return (raw frames, feature frames) keyed by split name."""
     data = {name: load(name) for name in ["train", "val", "test"]}
     # Category sets come from train only; unseen values in val/test become NaN.
     categories = {
         col: sorted(data["train"][col].dropna().unique()) for col in CATEGORICAL
     }
     X = {name: features(df, categories) for name, df in data.items()}
+    return data, X
 
+
+def evaluate(
+    make_model: ModelFactory,
+    data: dict[str, pd.DataFrame],
+    x: dict[str, pd.DataFrame],
+) -> pd.DataFrame:
+    """Fit ``make_model(x_train)`` once per label; return val / test scores."""
     results = {}
     for label in LABELS:
-        model = HistGradientBoostingClassifier(
-            categorical_features="from_dtype", random_state=SEED
-        )
-        model.fit(X["train"], data["train"][label])
+        model = make_model(x["train"])
+        model.fit(x["train"], data["train"][label])
         for name in ["val", "test"]:
-            p = model.predict_proba(X[name])[:, 1]
+            p = model.predict_proba(x[name])[:, 1]
             results[(label, name)] = scores(data[name][label], p)
 
     table = pd.DataFrame(results).T
     table.index.names = ["label", "split"]
+    return table
+
+
+def run(make_model: ModelFactory, title: str) -> None:
+    data, X = prepare()
+    print(title)
     print(f"Train rows: {len(data['train']):,} | features: {X['train'].shape[1]}")
-    print(table.to_string(float_format="{:.3f}".format))
-
-
-if __name__ == "__main__":
-    main()
+    print(evaluate(make_model, data, X).to_string(float_format="{:.3f}".format))
