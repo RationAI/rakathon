@@ -27,7 +27,7 @@ Dataset: `data/Rakhaton2026.csv` (mammography screening invitations, 2020–2024
 - Insurance duration and GP prevention counts are weak.
 
 **Baseline**
-- An untuned HistGradientBoosting model, trained on 2020–2021 and tested on 2023–2024, reaches **ROC AUC ≈ 0.83** for all three horizons. PR AUC is 0.28 / 0.43 / 0.58 against base rates of 0.07 / 0.13 / 0.20.
+- An untuned HistGradientBoosting model (see [`baseline/`](../baseline/train.py)), trained on 2020–2021 and tested on 2023–2024, reaches **ROC AUC ≈ 0.83** for all three horizons. PR AUC is 0.28 / 0.43 / 0.58 against base rates of 0.07 / 0.13 / 0.20.
 
 **Next steps**
 - Sequence features built from earlier rows of the same woman: previous response, number of past non-responses.
