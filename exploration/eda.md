@@ -69,6 +69,8 @@ df.head()
 ```
 
     1,344,556 invitations | 508,527 women | 25 columns
+    
+
     Memory: 320 MB
     
 
@@ -323,9 +325,9 @@ df.dtypes.to_frame('dtype').T
   <tbody>
     <tr>
       <th>dtype</th>
-      <td>object</td>
-      <td>object</td>
-      <td>datetime64[ns]</td>
+      <td>str</td>
+      <td>str</td>
+      <td>datetime64[us]</td>
       <td>category</td>
       <td>category</td>
       <td>int64</td>
@@ -395,7 +397,7 @@ df.describe().T
     <tr>
       <th>INVITATION_DATE</th>
       <td>1344556</td>
-      <td>2022-06-28 03:07:25.669202688</td>
+      <td>2022-06-28 03:07:25.669202</td>
       <td>2020-01-14 00:00:00</td>
       <td>2021-04-09 00:00:00</td>
       <td>2022-06-15 00:00:00</td>
@@ -635,7 +637,7 @@ pd.Series(checks, name="holds").to_frame()
   </thead>
   <tbody>
     <tr>
-      <th>MONTHS_LAST_INVITATION NaN  &lt;=&gt; FIRST_INVITATION</th>
+      <th>MONTHS_LAST_INVITATION NaN&nbsp;&nbsp;&lt;=&gt; FIRST_INVITATION</th>
       <td>True</td>
     </tr>
     <tr>
@@ -959,14 +961,14 @@ by_year.style.format({l: "{:.1%}" for l in LABELS} | {"n": "{:,}"})
 
 <style type="text/css">
 </style>
-<table id="T_a1a3a">
+<table id="T_6aade">
   <thead>
     <tr>
       <th class="blank level0" >&nbsp;</th>
-      <th id="T_a1a3a_level0_col0" class="col_heading level0 col0" >n</th>
-      <th id="T_a1a3a_level0_col1" class="col_heading level0 col1" >SCREENING_3M_FLAG</th>
-      <th id="T_a1a3a_level0_col2" class="col_heading level0 col2" >SCREENING_6M_FLAG</th>
-      <th id="T_a1a3a_level0_col3" class="col_heading level0 col3" >SCREENING_12M_FLAG</th>
+      <th id="T_6aade_level0_col0" class="col_heading level0 col0" >n</th>
+      <th id="T_6aade_level0_col1" class="col_heading level0 col1" >SCREENING_3M_FLAG</th>
+      <th id="T_6aade_level0_col2" class="col_heading level0 col2" >SCREENING_6M_FLAG</th>
+      <th id="T_6aade_level0_col3" class="col_heading level0 col3" >SCREENING_12M_FLAG</th>
     </tr>
     <tr>
       <th class="index_name level0" >INVITATION_DATE</th>
@@ -978,39 +980,39 @@ by_year.style.format({l: "{:.1%}" for l in LABELS} | {"n": "{:,}"})
   </thead>
   <tbody>
     <tr>
-      <th id="T_a1a3a_level0_row0" class="row_heading level0 row0" >2020</th>
-      <td id="T_a1a3a_row0_col0" class="data row0 col0" >266,502</td>
-      <td id="T_a1a3a_row0_col1" class="data row0 col1" >6.4%</td>
-      <td id="T_a1a3a_row0_col2" class="data row0 col2" >11.5%</td>
-      <td id="T_a1a3a_row0_col3" class="data row0 col3" >17.8%</td>
+      <th id="T_6aade_level0_row0" class="row_heading level0 row0" >2020</th>
+      <td id="T_6aade_row0_col0" class="data row0 col0" >266,502</td>
+      <td id="T_6aade_row0_col1" class="data row0 col1" >6.4%</td>
+      <td id="T_6aade_row0_col2" class="data row0 col2" >11.5%</td>
+      <td id="T_6aade_row0_col3" class="data row0 col3" >17.8%</td>
     </tr>
     <tr>
-      <th id="T_a1a3a_level0_row1" class="row_heading level0 row1" >2021</th>
-      <td id="T_a1a3a_row1_col0" class="data row1 col0" >279,010</td>
-      <td id="T_a1a3a_row1_col1" class="data row1 col1" >7.5%</td>
-      <td id="T_a1a3a_row1_col2" class="data row1 col2" >13.0%</td>
-      <td id="T_a1a3a_row1_col3" class="data row1 col3" >19.7%</td>
+      <th id="T_6aade_level0_row1" class="row_heading level0 row1" >2021</th>
+      <td id="T_6aade_row1_col0" class="data row1 col0" >279,010</td>
+      <td id="T_6aade_row1_col1" class="data row1 col1" >7.5%</td>
+      <td id="T_6aade_row1_col2" class="data row1 col2" >13.0%</td>
+      <td id="T_6aade_row1_col3" class="data row1 col3" >19.7%</td>
     </tr>
     <tr>
-      <th id="T_a1a3a_level0_row2" class="row_heading level0 row2" >2022</th>
-      <td id="T_a1a3a_row2_col0" class="data row2 col0" >275,993</td>
-      <td id="T_a1a3a_row2_col1" class="data row2 col1" >7.6%</td>
-      <td id="T_a1a3a_row2_col2" class="data row2 col2" >13.1%</td>
-      <td id="T_a1a3a_row2_col3" class="data row2 col3" >19.9%</td>
+      <th id="T_6aade_level0_row2" class="row_heading level0 row2" >2022</th>
+      <td id="T_6aade_row2_col0" class="data row2 col0" >275,993</td>
+      <td id="T_6aade_row2_col1" class="data row2 col1" >7.6%</td>
+      <td id="T_6aade_row2_col2" class="data row2 col2" >13.1%</td>
+      <td id="T_6aade_row2_col3" class="data row2 col3" >19.9%</td>
     </tr>
     <tr>
-      <th id="T_a1a3a_level0_row3" class="row_heading level0 row3" >2023</th>
-      <td id="T_a1a3a_row3_col0" class="data row3 col0" >266,585</td>
-      <td id="T_a1a3a_row3_col1" class="data row3 col1" >7.1%</td>
-      <td id="T_a1a3a_row3_col2" class="data row3 col2" >12.7%</td>
-      <td id="T_a1a3a_row3_col3" class="data row3 col3" >19.8%</td>
+      <th id="T_6aade_level0_row3" class="row_heading level0 row3" >2023</th>
+      <td id="T_6aade_row3_col0" class="data row3 col0" >266,585</td>
+      <td id="T_6aade_row3_col1" class="data row3 col1" >7.1%</td>
+      <td id="T_6aade_row3_col2" class="data row3 col2" >12.7%</td>
+      <td id="T_6aade_row3_col3" class="data row3 col3" >19.8%</td>
     </tr>
     <tr>
-      <th id="T_a1a3a_level0_row4" class="row_heading level0 row4" >2024</th>
-      <td id="T_a1a3a_row4_col0" class="data row4 col0" >256,466</td>
-      <td id="T_a1a3a_row4_col1" class="data row4 col1" >7.1%</td>
-      <td id="T_a1a3a_row4_col2" class="data row4 col2" >12.4%</td>
-      <td id="T_a1a3a_row4_col3" class="data row4 col3" >19.2%</td>
+      <th id="T_6aade_level0_row4" class="row_heading level0 row4" >2024</th>
+      <td id="T_6aade_row4_col0" class="data row4 col0" >256,466</td>
+      <td id="T_6aade_row4_col1" class="data row4 col1" >7.1%</td>
+      <td id="T_6aade_row4_col2" class="data row4 col2" >12.4%</td>
+      <td id="T_6aade_row4_col3" class="data row4 col3" >19.2%</td>
     </tr>
   </tbody>
 </table>
@@ -1265,13 +1267,13 @@ pd.crosstab(pairs.prev_12m.astype(bool).map({True: "prev screened ≤12M", False
 
 <style type="text/css">
 </style>
-<table id="T_f0415">
+<table id="T_41527">
   <thead>
     <tr>
       <th class="index_name level0" >col_0</th>
-      <th id="T_f0415_level0_col0" class="col_heading level0 col0" >count fell</th>
-      <th id="T_f0415_level0_col1" class="col_heading level0 col1" >count rose</th>
-      <th id="T_f0415_level0_col2" class="col_heading level0 col2" >count same</th>
+      <th id="T_41527_level0_col0" class="col_heading level0 col0" >count fell</th>
+      <th id="T_41527_level0_col1" class="col_heading level0 col1" >count rose</th>
+      <th id="T_41527_level0_col2" class="col_heading level0 col2" >count same</th>
     </tr>
     <tr>
       <th class="index_name level0" >prev_12m</th>
@@ -1282,16 +1284,16 @@ pd.crosstab(pairs.prev_12m.astype(bool).map({True: "prev screened ≤12M", False
   </thead>
   <tbody>
     <tr>
-      <th id="T_f0415_level0_row0" class="row_heading level0 row0" >prev not screened</th>
-      <td id="T_f0415_row0_col0" class="data row0 col0" >5.7%</td>
-      <td id="T_f0415_row0_col1" class="data row0 col1" >0.1%</td>
-      <td id="T_f0415_row0_col2" class="data row0 col2" >94.2%</td>
+      <th id="T_41527_level0_row0" class="row_heading level0 row0" >prev not screened</th>
+      <td id="T_41527_row0_col0" class="data row0 col0" >5.7%</td>
+      <td id="T_41527_row0_col1" class="data row0 col1" >0.1%</td>
+      <td id="T_41527_row0_col2" class="data row0 col2" >94.2%</td>
     </tr>
     <tr>
-      <th id="T_f0415_level0_row1" class="row_heading level0 row1" >prev screened ≤12M</th>
-      <td id="T_f0415_row1_col0" class="data row1 col0" >2.4%</td>
-      <td id="T_f0415_row1_col1" class="data row1 col1" >74.3%</td>
-      <td id="T_f0415_row1_col2" class="data row1 col2" >23.2%</td>
+      <th id="T_41527_level0_row1" class="row_heading level0 row1" >prev screened ≤12M</th>
+      <td id="T_41527_row1_col0" class="data row1 col0" >2.4%</td>
+      <td id="T_41527_row1_col1" class="data row1 col1" >74.3%</td>
+      <td id="T_41527_row1_col2" class="data row1 col2" >23.2%</td>
     </tr>
   </tbody>
 </table>
@@ -1311,13 +1313,13 @@ habit.style.format("{:.1%}")
 
 <style type="text/css">
 </style>
-<table id="T_4b3f7">
+<table id="T_598ad">
   <thead>
     <tr>
       <th class="blank level0" >&nbsp;</th>
-      <th id="T_4b3f7_level0_col0" class="col_heading level0 col0" >SCREENING_3M_FLAG</th>
-      <th id="T_4b3f7_level0_col1" class="col_heading level0 col1" >SCREENING_6M_FLAG</th>
-      <th id="T_4b3f7_level0_col2" class="col_heading level0 col2" >SCREENING_12M_FLAG</th>
+      <th id="T_598ad_level0_col0" class="col_heading level0 col0" >SCREENING_3M_FLAG</th>
+      <th id="T_598ad_level0_col1" class="col_heading level0 col1" >SCREENING_6M_FLAG</th>
+      <th id="T_598ad_level0_col2" class="col_heading level0 col2" >SCREENING_12M_FLAG</th>
     </tr>
     <tr>
       <th class="index_name level0" >prev_12m</th>
@@ -1328,16 +1330,16 @@ habit.style.format("{:.1%}")
   </thead>
   <tbody>
     <tr>
-      <th id="T_4b3f7_level0_row0" class="row_heading level0 row0" >did not screen after previous</th>
-      <td id="T_4b3f7_row0_col0" class="data row0 col0" >3.4%</td>
-      <td id="T_4b3f7_row0_col1" class="data row0 col1" >6.6%</td>
-      <td id="T_4b3f7_row0_col2" class="data row0 col2" >11.3%</td>
+      <th id="T_598ad_level0_row0" class="row_heading level0 row0" >did not screen after previous</th>
+      <td id="T_598ad_row0_col0" class="data row0 col0" >3.4%</td>
+      <td id="T_598ad_row0_col1" class="data row0 col1" >6.6%</td>
+      <td id="T_598ad_row0_col2" class="data row0 col2" >11.3%</td>
     </tr>
     <tr>
-      <th id="T_4b3f7_level0_row1" class="row_heading level0 row1" >screened after previous invitation</th>
-      <td id="T_4b3f7_row1_col0" class="data row1 col0" >16.2%</td>
-      <td id="T_4b3f7_row1_col1" class="data row1 col1" >19.8%</td>
-      <td id="T_4b3f7_row1_col2" class="data row1 col2" >23.4%</td>
+      <th id="T_598ad_level0_row1" class="row_heading level0 row1" >screened after previous invitation</th>
+      <td id="T_598ad_row1_col0" class="data row1 col0" >16.2%</td>
+      <td id="T_598ad_row1_col1" class="data row1 col1" >19.8%</td>
+      <td id="T_598ad_row1_col2" class="data row1 col2" >23.4%</td>
     </tr>
   </tbody>
 </table>
@@ -1346,6 +1348,127 @@ habit.style.format("{:.1%}")
 
 
 Previous behaviour carries most of the signal. Because the same woman appears up to 5 times, **train/validation splits must be grouped by `PERSON_ID`**, or done out-of-time, to avoid leakage.
+
+### 5.1 Duplicate (woman, sequence) pairs
+
+`INVITATION_ID` is unique, but is `(PERSON_ID, INVITATION_SEQUENCE)` unique too?
+
+
+```python
+key = ["PERSON_ID", "INVITATION_SEQUENCE"]
+dup = df[df.duplicated(key, keep=False)].sort_values(key + ["INVITATION_DATE"])
+dup_gap = dup.groupby(key).INVITATION_DATE.agg(lambda s: (s.max() - s.min()).days)
+
+print(f"Duplicated pairs: {len(dup_gap):,} ({len(dup):,} rows, {dup.PERSON_ID.nunique():,} women)")
+print(f"Rows per pair: {dup.groupby(key).size().unique().tolist()}")
+print(f"Duplicated sequence values: {dup.INVITATION_SEQUENCE.value_counts().sort_index().to_dict()}")
+print(f"Days between the two rows: min {dup_gap.min()}, median {dup_gap.median():.0f}, max {dup_gap.max()}")
+print(f"Years of duplicated rows: {dup.INVITATION_DATE.dt.year.value_counts().sort_index().to_dict()}")
+
+dup[["PERSON_ID", "INVITATION_DATE", "INVITATION_SEQUENCE", "PRIOR_INVITATION_COUNT",
+     "MONTHS_LAST_INVITATION", "FIRST_INVITATION"]].head(6)
+```
+
+    Duplicated pairs: 1,839 (3,678 rows, 1,839 women)
+    Rows per pair: [2]
+    Duplicated sequence values: {1: 3604, 2: 74}
+    Days between the two rows: min 1024, median 1422, max 1478
+    Years of duplicated rows: {2020: 1578, 2021: 261, 2023: 119, 2024: 1720}
+    
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>PERSON_ID</th>
+      <th>INVITATION_DATE</th>
+      <th>INVITATION_SEQUENCE</th>
+      <th>PRIOR_INVITATION_COUNT</th>
+      <th>MONTHS_LAST_INVITATION</th>
+      <th>FIRST_INVITATION</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>297223</th>
+      <td>000771601131727</td>
+      <td>2020-12-10</td>
+      <td>1</td>
+      <td>1</td>
+      <td>NaN</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>1296730</th>
+      <td>000771601131727</td>
+      <td>2024-11-13</td>
+      <td>1</td>
+      <td>2</td>
+      <td>47.0</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>998768</th>
+      <td>000943553710028</td>
+      <td>2021-03-03</td>
+      <td>1</td>
+      <td>2</td>
+      <td>48.0</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1288479</th>
+      <td>000943553710028</td>
+      <td>2024-02-27</td>
+      <td>1</td>
+      <td>3</td>
+      <td>35.0</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>808962</th>
+      <td>002316828563445</td>
+      <td>2020-11-10</td>
+      <td>1</td>
+      <td>4</td>
+      <td>39.0</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>185454</th>
+      <td>002316828563445</td>
+      <td>2024-08-22</td>
+      <td>1</td>
+      <td>5</td>
+      <td>45.0</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+These are not true duplicates. The two rows of a pair are always about 3–4 years apart. `PRIOR_INVITATION_COUNT` keeps increasing and `MONTHS_LAST_INVITATION` shows the gap, but `INVITATION_SEQUENCE` **restarts at 1** after the break.
+
+So `INVITATION_SEQUENCE` appears to count invitations within an unbroken run of yearly reminders, while `PRIOR_INVITATION_COUNT` is the overall running count. This explains why the two agree on only 88% of rows, and it should be confirmed with the organisers. With the date split the two rows always fall into different splits, so there is no leakage.
 
 ## 6. Response rate by feature
 
@@ -1386,7 +1509,7 @@ plt.show(); t.style.format({"mean": "{:.1%}", "size": "{:,}"})
 
 
     
-![png](eda_files/eda_30_0.png)
+![png](eda_files/eda_33_0.png)
     
 
 
@@ -1395,12 +1518,12 @@ plt.show(); t.style.format({"mean": "{:.1%}", "size": "{:,}"})
 
 <style type="text/css">
 </style>
-<table id="T_29b21">
+<table id="T_5f922">
   <thead>
     <tr>
       <th class="blank level0" >&nbsp;</th>
-      <th id="T_29b21_level0_col0" class="col_heading level0 col0" >mean</th>
-      <th id="T_29b21_level0_col1" class="col_heading level0 col1" >size</th>
+      <th id="T_5f922_level0_col0" class="col_heading level0 col0" >mean</th>
+      <th id="T_5f922_level0_col1" class="col_heading level0 col1" >size</th>
     </tr>
     <tr>
       <th class="index_name level0" >AGE_BAND</th>
@@ -1410,39 +1533,39 @@ plt.show(); t.style.format({"mean": "{:.1%}", "size": "{:,}"})
   </thead>
   <tbody>
     <tr>
-      <th id="T_29b21_level0_row0" class="row_heading level0 row0" >40-44</th>
-      <td id="T_29b21_row0_col0" class="data row0 col0" >56.8%</td>
-      <td id="T_29b21_row0_col1" class="data row0 col1" >53,616</td>
+      <th id="T_5f922_level0_row0" class="row_heading level0 row0" >40-44</th>
+      <td id="T_5f922_row0_col0" class="data row0 col0" >56.8%</td>
+      <td id="T_5f922_row0_col1" class="data row0 col1" >53,616</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row1" class="row_heading level0 row1" >45-49</th>
-      <td id="T_29b21_row1_col0" class="data row1 col0" >31.1%</td>
-      <td id="T_29b21_row1_col1" class="data row1 col1" >371,835</td>
+      <th id="T_5f922_level0_row1" class="row_heading level0 row1" >45-49</th>
+      <td id="T_5f922_row1_col0" class="data row1 col0" >31.1%</td>
+      <td id="T_5f922_row1_col1" class="data row1 col1" >371,835</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row2" class="row_heading level0 row2" >50-54</th>
-      <td id="T_29b21_row2_col0" class="data row2 col0" >14.4%</td>
-      <td id="T_29b21_row2_col1" class="data row2 col1" >211,093</td>
+      <th id="T_5f922_level0_row2" class="row_heading level0 row2" >50-54</th>
+      <td id="T_5f922_row2_col0" class="data row2 col0" >14.4%</td>
+      <td id="T_5f922_row2_col1" class="data row2 col1" >211,093</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row3" class="row_heading level0 row3" >55-59</th>
-      <td id="T_29b21_row3_col0" class="data row3 col0" >12.8%</td>
-      <td id="T_29b21_row3_col1" class="data row3 col1" >217,696</td>
+      <th id="T_5f922_level0_row3" class="row_heading level0 row3" >55-59</th>
+      <td id="T_5f922_row3_col0" class="data row3 col0" >12.8%</td>
+      <td id="T_5f922_row3_col1" class="data row3 col1" >217,696</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row4" class="row_heading level0 row4" >60-64</th>
-      <td id="T_29b21_row4_col0" class="data row4 col0" >11.9%</td>
-      <td id="T_29b21_row4_col1" class="data row4 col1" >212,906</td>
+      <th id="T_5f922_level0_row4" class="row_heading level0 row4" >60-64</th>
+      <td id="T_5f922_row4_col0" class="data row4 col0" >11.9%</td>
+      <td id="T_5f922_row4_col1" class="data row4 col1" >212,906</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row5" class="row_heading level0 row5" >65-69</th>
-      <td id="T_29b21_row5_col0" class="data row5 col0" >11.0%</td>
-      <td id="T_29b21_row5_col1" class="data row5 col1" >242,690</td>
+      <th id="T_5f922_level0_row5" class="row_heading level0 row5" >65-69</th>
+      <td id="T_5f922_row5_col0" class="data row5 col0" >11.0%</td>
+      <td id="T_5f922_row5_col1" class="data row5 col1" >242,690</td>
     </tr>
     <tr>
-      <th id="T_29b21_level0_row6" class="row_heading level0 row6" >70-74</th>
-      <td id="T_29b21_row6_col0" class="data row6 col0" >10.0%</td>
-      <td id="T_29b21_row6_col1" class="data row6 col1" >34,720</td>
+      <th id="T_5f922_level0_row6" class="row_heading level0 row6" >70-74</th>
+      <td id="T_5f922_row6_col0" class="data row6 col0" >10.0%</td>
+      <td id="T_5f922_row6_col1" class="data row6 col1" >34,720</td>
     </tr>
   </tbody>
 </table>
@@ -1467,7 +1590,7 @@ print(f"Range: {area['mean'].min():.1%} – {area['mean'].max():.1%};  size rang
 
 
     
-![png](eda_files/eda_32_0.png)
+![png](eda_files/eda_35_0.png)
     
 
 
@@ -1489,7 +1612,7 @@ plt.tight_layout(); plt.show()
 
 
     
-![png](eda_files/eda_34_0.png)
+![png](eda_files/eda_37_0.png)
     
 
 
@@ -1509,7 +1632,7 @@ plt.tight_layout(); plt.show()
 
 
     
-![png](eda_files/eda_36_0.png)
+![png](eda_files/eda_39_0.png)
     
 
 
@@ -1530,7 +1653,7 @@ pd.cut(df.MONTHS_SINCE_LAST_SCREEN, [-1, 3, 29, 36, 48, 60, 80]).value_counts(so
 
 
     
-![png](eda_files/eda_37_0.png)
+![png](eda_files/eda_40_0.png)
     
 
 
@@ -1592,7 +1715,7 @@ plt.tight_layout(); plt.show()
 
 
     
-![png](eda_files/eda_39_0.png)
+![png](eda_files/eda_42_0.png)
     
 
 
@@ -1609,7 +1732,7 @@ plt.tight_layout(); plt.show()
 
 
     
-![png](eda_files/eda_40_0.png)
+![png](eda_files/eda_43_0.png)
     
 
 
@@ -1627,7 +1750,7 @@ plt.tight_layout(); plt.show()
 
 
     
-![png](eda_files/eda_42_0.png)
+![png](eda_files/eda_45_0.png)
     
 
 
@@ -1658,7 +1781,7 @@ corr["SCREEN_12M"].drop("SCREEN_12M").sort_values(key=abs, ascending=False).to_f
 
 
     
-![png](eda_files/eda_44_0.png)
+![png](eda_files/eda_47_0.png)
     
 
 
@@ -1753,6 +1876,7 @@ corr["SCREEN_12M"].drop("SCREEN_12M").sort_values(key=abs, ascending=False).to_f
   - 3,354 rows have `NEVER_SCREENED = N` but `PRIOR_SCREEN_COUNT_5Y = 0`. This is a 60-month window-edge effect.
   - 193 rows have `MONTHS_SINCE_LAST_SCREEN > 60`, although the documented window is 60 months.
   - 52 rows have `FIRST_INVITATION = A` but `INVITATION_SEQUENCE = 2`.
+- 1,839 women have two rows with the same `INVITATION_SEQUENCE` (almost always 1), 3–4 years apart. `INVITATION_SEQUENCE` restarts after a long break in invitations; use `PRIOR_INVITATION_COUNT` as the running count.
 - `PRIOR_SCREEN_COUNT_5Y` is mostly **2** (196k rows) rather than 1 (8k). It probably counts claim codes, not visits (2 codes per mammography visit?). Worth asking the organisers.
 
 **Targets**

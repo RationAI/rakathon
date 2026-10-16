@@ -8,6 +8,7 @@ Dataset: `data/Rakhaton2026.csv` (mammography screening invitations, 2020–2024
   - 3,354 rows have `NEVER_SCREENED = N` but `PRIOR_SCREEN_COUNT_5Y = 0`. This is a 60-month window-edge effect.
   - 193 rows have `MONTHS_SINCE_LAST_SCREEN > 60`, although the documented window is 60 months.
   - 52 rows have `FIRST_INVITATION = A` but `INVITATION_SEQUENCE = 2`.
+- 1,839 women have two rows with the same `INVITATION_SEQUENCE` (almost always 1), 3–4 years apart. `INVITATION_SEQUENCE` restarts after a long break in invitations; use `PRIOR_INVITATION_COUNT` as the running count.
 - `PRIOR_SCREEN_COUNT_5Y` is mostly **2** (196k rows) rather than 1 (8k). It probably counts claim codes, not visits (2 codes per mammography visit?). Worth asking the organisers.
 
 **Targets**
