@@ -35,10 +35,17 @@ def age_band_mean(band: str) -> float:
 
 
 def fix_sequence_starting_at_2(df: pd.DataFrame) -> int:
-    """Women whose first row is FIRST_INVITATION=A but INVITATION_SEQUENCE=2: shift their sequence down by 1."""
-    first = df.sort_values(["PERSON_ID", "INVITATION_DATE", "INVITATION_ID"]).groupby("PERSON_ID").head(1)
+    """Women whose first row is FIRST_INVITATION=A but INVITATION_SEQUENCE=2: shift their sequence down by 1.
+
+    Only their first run of invitations is shifted: if the sequence later restarts (drops back, e.g. to 1
+    after a long break), that run is already numbered correctly and must stay as it is (shifting it gave 0).
+    """
+    ordered = df.sort_values(["PERSON_ID", "INVITATION_DATE", "INVITATION_ID"])
+    first = ordered.groupby("PERSON_ID").head(1)
     bad = first[(first.FIRST_INVITATION == "A") & (first.INVITATION_SEQUENCE == 2)].PERSON_ID
-    mask = df.PERSON_ID.isin(bad)
+    seq = ordered.groupby("PERSON_ID").INVITATION_SEQUENCE
+    restarted = (ordered.INVITATION_SEQUENCE <= seq.shift()).groupby(ordered.PERSON_ID).cummax()
+    mask = (ordered.PERSON_ID.isin(bad) & ~restarted).reindex(df.index)
     df.loc[mask, "INVITATION_SEQUENCE"] -= 1
     return bad.nunique()
 
@@ -141,6 +148,7 @@ def main() -> None:
 
     assert len(df) == n_rows
     assert not ((df.FIRST_INVITATION == 1) & (df.INVITATION_SEQUENCE != 1)).any()
+    assert df.INVITATION_SEQUENCE.min() >= 1, "invitation sequence below 1"
     assert df.INVITATION_COUNT_DIFF.min() >= 0
     # Format the sorted frame's own column; `d` still has the pre-sort row order.
     df["INVITATION_DATE"] = df.INVITATION_DATE.dt.strftime("%Y-%m-%d")
