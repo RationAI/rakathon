@@ -13,13 +13,12 @@ Usage:
 
 import numpy as np
 import pandas as pd
+from data import CATEGORICAL, FLAGS, SEED, numeric_features, run
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
-
-from data import CATEGORICAL, FLAGS, SEED, numeric_features, run
 
 
 def make_model(x: pd.DataFrame) -> Pipeline:

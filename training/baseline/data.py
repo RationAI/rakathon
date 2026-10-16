@@ -14,7 +14,7 @@ from sklearn.base import ClassifierMixin
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 SPLITS = ROOT / "data" / "splits"
 SEED = 0
 

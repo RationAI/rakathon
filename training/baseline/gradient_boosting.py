@@ -7,9 +7,8 @@ Usage:
 """
 
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier
-
 from data import SEED, run
+from sklearn.ensemble import HistGradientBoostingClassifier
 
 
 def make_model(_x: pd.DataFrame) -> HistGradientBoostingClassifier:
