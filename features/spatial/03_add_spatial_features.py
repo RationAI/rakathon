@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-DATA = Path(__file__).resolve().parents[1] / "data"
+DATA = Path(__file__).resolve().parents[2] / "data"
 EARTH_RADIUS_KM = 6371.0
 RADII_KM = (15, 30, 50)
 HOURS_RADIUS_KM = 30  # opening hours barely vary across radii, so only one is kept

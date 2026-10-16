@@ -23,7 +23,7 @@ failures: list[str] = []
 
 
 def invitation_date(df: pd.DataFrame) -> pd.Series:
-    return pd.to_datetime(df["INVITATION_DATE"], format="%d.%m.%Y")
+    return pd.to_datetime(df["INVITATION_DATE"], format="%Y-%m-%d")
 
 
 def check(name: str, ok: bool, detail: str = "") -> None:
@@ -69,10 +69,10 @@ def main() -> None:
             ", ".join(f"{y}: {c:,}" for y, c in years.items()),
         )
 
-        flags = part[LABELS].eq("A")
+        flags = part[LABELS].eq("1")
         check(
-            f"{n}: labels are A/N and nested (3M => 6M => 12M)",
-            part[LABELS].isin(["A", "N"]).all().all()
+            f"{n}: labels are 1/0 and nested (3M => 6M => 12M)",
+            part[LABELS].isin(["1", "0"]).all().all()
             and (~flags.iloc[:, 0] | flags.iloc[:, 1]).all()
             and (~flags.iloc[:, 1] | flags.iloc[:, 2]).all(),
             ", ".join(

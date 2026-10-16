@@ -1,1 +1,69 @@
-# Rakathon
+# Rakathon 2026
+
+Predicting which women respond to VZP's addressed invitations to mammography screening.
+One row of the dataset is one invitation; the model predicts whether the woman is screened
+within 3, 6 and 12 months (`SCREENING_{3,6,12}M_FLAG`).
+
+## Setup
+
+One [uv](https://docs.astral.sh/uv/) project for the whole repository (Python 3.12):
+
+```sh
+uv sync                 # creates .venv/ in the repo root
+```
+
+Put the raw data into `data/` (not in git): `data/Rakhaton2026.csv` and the spec
+`data/Rakathon_Datove_rozhrani.docx`.
+
+Scripts take no command-line arguments and read/write `data/` relative to their own
+folder, so **run each script from the folder it lives in** (`uv run` finds the root
+project from any subfolder).
+
+## Repository structure
+
+```
+rakathon/
+├── pyproject.toml, uv.lock     the single uv project (all dependencies)
+├── .python-version             3.12
+├── .ruff.toml                  lint/format config for all Python code
+├── data/                       raw data + everything generated from it (gitignored)
+│   ├── Rakhaton2026_prepared.csv  fixed + feature-engineered dataset (prepare_data.py)
+│   └── splits/                 train/val/test CSVs of the prepared dataset (split.py)
+├── memory/                     shared notes for people and AI agents (start at MEMORY.md)
+├── exploration/                EDA only: notebooks and their reports
+│   ├── eda.ipynb               main EDA (committed with outputs)
+│   ├── eda.md, eda_files/      markdown export of eda.ipynb
+│   ├── FINDINGS.md             summary of the EDA
+│   └── playground.ipynb        personal scratch notebook (gitignored)
+├── features/                   feature engineering and feature experiments
+│   ├── prepare_data.py         raw CSV -> data/Rakhaton2026_prepared.csv (102 columns)
+│   ├── history_features.py     per-woman history features (+ comparison)
+│   ├── feature_importance.py   permutation importance
+│   ├── confusion.py            confusion matrices / thresholds
+│   ├── *.csv                   small result tables written by the scripts above
+│   └── spatial/                area-level spatial features (run 01 -> 02 -> 03, see README)
+├── preprocessing/              data pipeline
+│   ├── pipeline.py             ONE command: spatial -> prepare_data -> split -> validate
+│   ├── split.py                patient-level stratified 70/15/15 split
+│   └── validate_split.py       checks the split files
+└── training/                   models
+    ├── baseline/               sklearn baselines (gradient boosting, logistic regression, compare.py)
+    ├── ml/                     PyTorch Lightning package (template)
+    └── configs/                Hydra configs for ml/
+```
+
+Rules for keeping it clean:
+- Data never goes into git; everything in `data/` must be reproducible by a script.
+- New exploration goes into `exploration/` (notebooks); reusable code goes into a
+  script folder (`features/`, `preprocessing/`, `training/`).
+- No per-folder `pyproject.toml` or virtualenv; add dependencies to the root with
+  `uv add <package>`.
+
+## Common commands
+
+```sh
+cd preprocessing && uv run python pipeline.py        # rebuild all derived data + splits
+cd training/baseline && uv run python compare.py     # GB vs LR on the split
+cd exploration && uv run jupyter lab                 # notebooks
+uv run ruff check <folder>                           # lint (from repo root)
+```

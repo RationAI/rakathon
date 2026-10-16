@@ -1,6 +1,15 @@
 fix = true
 line-length = 88
 target-version = "py312"
+# Script folders import sibling modules by name (e.g. `from data import ...`);
+# listing them makes isort treat those modules as first-party.
+src = [
+    "preprocessing",
+    "training",
+    "training/baseline",
+    "features",
+    "features/spatial",
+]
 
 [format]
 docstring-code-format = true # Enable reformatting of code snippets in docstrings.

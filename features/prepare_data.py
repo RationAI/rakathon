@@ -11,7 +11,7 @@ import pandas as pd
 
 from history_features import add_history  # noqa: E402
 
-SPATIAL = "../data/area_spatial_features.csv"  # built by ../spatial/01-03 scripts
+SPATIAL = "../data/area_spatial_features.csv"  # built by spatial/01-03 scripts
 SRC = sys.argv[1] if len(sys.argv) > 1 else "../data/Rakhaton2026.csv"
 DST = sys.argv[2] if len(sys.argv) > 2 else "../data/Rakhaton2026_prepared.csv"
 
@@ -125,7 +125,8 @@ def main() -> None:
     assert len(df) == n_rows
     assert not ((df.FIRST_INVITATION == 1) & (df.INVITATION_SEQUENCE != 1)).any()
     assert df.INVITATION_COUNT_DIFF.min() >= 0
-    df["INVITATION_DATE"] = d.dt.strftime("%Y-%m-%d")
+    # Format the sorted frame's own column; `d` still has the pre-sort row order.
+    df["INVITATION_DATE"] = df.INVITATION_DATE.dt.strftime("%Y-%m-%d")
     df.to_csv(DST, index=False)
     print(f"wrote {DST}: {df.shape[0]:,} rows x {df.shape[1]} columns")
 

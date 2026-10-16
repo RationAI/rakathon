@@ -17,7 +17,7 @@ from datetime import date
 from pathlib import Path
 
 URL = "https://www.mamo.cz/centra/"
-OUT = Path(__file__).resolve().parents[1] / "data" / "mamo_centers.csv"
+OUT = Path(__file__).resolve().parents[2] / "data" / "mamo_centers.csv"
 
 
 def clean(fragment: str | None) -> str:

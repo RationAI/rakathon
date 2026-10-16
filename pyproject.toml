@@ -1,7 +1,7 @@
 [project]
-name = "exploration"
+name = "rakathon"
 version = "0.1.0"
-description = "Exploratory data analysis of the Rakathon 2026 screening dataset"
+description = "Rakathon 2026: predicting response to mammography screening invitations"
 authors = [
     { name = "Matěj Pekár", email = "matejpekar@mail.muni.cz" },
     { name = "Jakub Pekár", email = "jakubpekar@mail.muni.cz" },
@@ -9,13 +9,25 @@ authors = [
     { name = "Adam Džadoň", email = "524839@mail.muni.cz" },
 ]
 requires-python = ">=3.12,<3.14"
+readme = "README.md"
+license = { file = "LICENSE" }
 dependencies = [
-    "jupyterlab>=4.2",
-    "matplotlib>=3.9",
+    # data + classical ML
     "numpy>=2.0",
     "pandas>=2.2",
     "scikit-learn>=1.5",
+    # notebooks + plots
+    "jupyterlab>=4.2",
+    "matplotlib>=3.9",
+    # deep-learning training template (training/ml)
+    "torch>=2.9.0",
+    "lightning>=2.4.0",
+    "torchmetrics>=1.4.1",
+    "mlflow>=3.17.1",
 ]
+
+[dependency-groups]
+dev = ["mypy", "ruff"]
 
 [tool.uv]
 package = false

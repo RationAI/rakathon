@@ -8,9 +8,10 @@ Usage:
     uv run python compare.py
 """
 
+import pandas as pd
+
 import gradient_boosting
 import logistic_regression
-import pandas as pd
 from data import ModelFactory, evaluate, prepare
 
 

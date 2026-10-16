@@ -4,6 +4,9 @@ Women (``PERSON_ID``) are split 70 / 15 / 15 with all their invitations, stratif
 whether the woman was ever screened within 12 months of an invitation. No woman
 appears in two splits. Reproducible via a fixed seed.
 
+Input is the prepared dataset from ``features/prepare_data.py`` (fixes + engineered
+features; flags are 1/0). Run ``pipeline.py`` to rebuild everything in order.
+
 Usage:
     uv run python split.py
 """
@@ -15,7 +18,7 @@ from sklearn.model_selection import train_test_split
 
 
 ROOT = Path(__file__).resolve().parent.parent
-INPUT = ROOT / "data" / "Rakhaton2026.csv"
+INPUT = ROOT / "data" / "Rakhaton2026_prepared.csv"
 OUTPUT = ROOT / "data" / "splits"
 
 SEED = 0
@@ -29,22 +32,23 @@ def load(path: Path) -> pd.DataFrame:
 
 
 def split(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    ever_screened = df["SCREENING_12M_FLAG"].eq("A").groupby(df["PERSON_ID"]).any()
+    ever_screened = df["SCREENING_12M_FLAG"].eq("1").groupby(df["PERSON_ID"]).any()
+    women = ever_screened.index.to_numpy(dtype=str)
 
     train, rest = train_test_split(
-        ever_screened.index,
+        women,
         test_size=FRACTIONS["val"] + FRACTIONS["test"],
-        stratify=ever_screened,
+        stratify=ever_screened.to_numpy(),
         random_state=SEED,
     )
     val, test = train_test_split(
         rest,
         test_size=FRACTIONS["test"] / (FRACTIONS["val"] + FRACTIONS["test"]),
-        stratify=ever_screened[rest],
+        stratify=ever_screened.loc[rest].to_numpy(),
         random_state=SEED,
     )
-    women = {"train": train, "val": val, "test": test}
-    return {name: df[df["PERSON_ID"].isin(ids)] for name, ids in women.items()}
+    groups = {"train": train, "val": val, "test": test}
+    return {name: df[df["PERSON_ID"].isin(ids)] for name, ids in groups.items()}
 
 
 def main() -> None:

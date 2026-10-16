@@ -19,7 +19,6 @@ SPLITS = ROOT / "data" / "splits"
 SEED = 0
 
 LABELS = ["SCREENING_3M_FLAG", "SCREENING_6M_FLAG", "SCREENING_12M_FLAG"]
-NOT_FEATURES = ["INVITATION_ID", "PERSON_ID", "INVITATION_DATE", *LABELS]
 FLAGS = [
     "FIRST_INVITATION",
     "GP_REGISTERED",
@@ -32,24 +31,38 @@ CATEGORICAL = [
     "GP_REG_DURATION_BAND",
     "GYN_REG_DURATION_BAND",
 ]
+NUMERIC = [
+    "PRIOR_INVITATION_COUNT",
+    "MONTHS_LAST_INVITATION",
+    "INVITATION_SEQUENCE",
+    "HEALTHCARE_CONTACT_12M_CNT",
+    "INSURANCE_DURATION_YEARS",
+    "PRIOR_SCREEN_COUNT_5Y",
+    "MONTHS_SINCE_LAST_SCREEN",
+    "GP_PREVENTION_24M_CNT",
+    "GYN_PREVENTION_24M_CNT",
+    "OTHER_SCREENING_36M_CNT",
+    "DENTAL_PREVENTION_24M_CNT",
+]
+# The 19 original dataset columns. The prepared splits carry ~100 engineered columns
+# as well; the baselines deliberately use only the raw ones.
+FEATURES = NUMERIC + FLAGS + CATEGORICAL
 
 
 def load(name: str) -> pd.DataFrame:
-    df = pd.read_csv(
+    # Prepared splits store flags and labels as 1/0.
+    return pd.read_csv(
         SPLITS / f"{name}.csv",
         dtype={"INVITATION_ID": str, "PERSON_ID": str},
         keep_default_na=False,
         na_values=[""],
     )
-    for col in FLAGS + LABELS:
-        df[col] = df[col].eq("A").astype(int)
-    return df
 
 
 def features(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame:
     # Missing values are structural (e.g. no GYN band when not registered) and are
     # left as NaN; each model decides how to handle them.
-    X = df.drop(columns=NOT_FEATURES)
+    X = df[FEATURES].copy()
     for col in CATEGORICAL:
         X[col] = pd.Categorical(X[col], categories=categories[col])
     return X
