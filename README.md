@@ -43,6 +43,10 @@ rakathon/
 │   ├── confusion.py            confusion matrices / thresholds
 │   ├── *.csv                   small result tables written by the scripts above
 │   └── spatial/                area-level spatial features (run 01 -> 02 -> 03, see README)
+├── segmentation/               explainable groups of invited women for interventions
+│   ├── segments.py             8 rule-based segments (assign() reusable for later tasks)
+│   ├── tree_diagram.py         draws the rules as a decision tree -> segment_tree.png
+│   └── report.ipynb / .md      profiles, stability, regions, suggested interventions
 ├── preprocessing/              data pipeline
 │   ├── pipeline.py             ONE command: spatial -> prepare_data -> split -> validate
 │   ├── split.py                patient-level stratified 70/15/15 split

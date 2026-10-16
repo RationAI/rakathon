@@ -22,4 +22,4 @@ metadata:
 **Docs**
 - `exploration/FINDINGS.md` still says `PRIOR_SCREEN_COUNT_5Y`=2 is likely a claim-code artefact; this is wrong (see [[dataset-facts]]).
 
-**Not started:** tasks 2-4 (segmentation, interventions, experiment design).
+**Tasks:** task 2 (segmentation) done, see [[segments]]. Tasks 3-4 (interventions, experiment design) not started: next step is a randomized pilot per segment (start with E, gynaecologist channel).
