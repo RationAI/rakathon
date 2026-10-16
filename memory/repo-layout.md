@@ -12,7 +12,7 @@ The intended structure is documented in the root `README.md` (section "Repositor
 Folders:
 - `data/` (gitignored): raw `Rakhaton2026.csv`, spec docx, `splits/`, and generated files (`*_prepared.csv`, spatial CSVs; see [[feature-engineering]]).
 - `memory/`: this shared memory.
-- `exploration/`: EDA only. `eda.ipynb` (committed with outputs), `eda.md` + `eda_files/` (export: `uv run jupyter nbconvert --to markdown eda.ipynb`), `FINDINGS.md`, `label_correlations.ipynb` (+ `.md`; attribute-label correlations on the prepared data), `playground.ipynb` (Adam Džadoň's scratch notebook, gitignored).
+- `exploration/`: EDA only. `eda.ipynb` (committed with outputs), `eda.md` + `eda_files/` (export: `uv run jupyter nbconvert --to markdown eda.ipynb`), `FINDINGS.md`, `label_correlations.ipynb` (+ `.md`; attribute-label correlations on the prepared data), `covid.ipynb` (+ `.md`; COVID effects), `playground.ipynb` (Adam Džadoň's scratch notebook, gitignored).
 - `features/`: `prepare_data.py`, `history_features.py`, `feature_importance.py`, `confusion.py` (they import each other by module name, so they stay together), their result CSVs, and `spatial/` (scripts 01-03 + README).
 - `segmentation/`: `segments.py` (`assign(df)` -> 8 rule-based segments A-H) + `report.ipynb` / `report.md`; see [[segments]].
 - `presentation/`: `make_assets.py` (Czech charts -> `assets/*.png` + `assets/cisla.json`), `deck/project/` (slide source); see [[presentation]].

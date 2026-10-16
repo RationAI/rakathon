@@ -13,7 +13,7 @@ Source: `data/Rakhaton2026.csv` (183 MB, UTF-8, gitignored) + spec `data/Rakatho
 
 **Labels**
 - Strictly nested (3M ⇒ 6M ⇒ 12M); positive rates 7.1% / 12.5% / 19.3%. So the OR of all three equals the 12M label.
-- 2020 has COVID gaps in sending and lower response (17.8% vs ~19.5-20% in 2021-2024).
+- COVID (`exploration/covid.ipynb`): no invitations Mar-Apr 2020, Jul-Oct 2020, Feb 2021; catch-up batches May 2020 (3.3x), Nov 2020 (4.0x), May 2021 (2.3x). 2020 response 17.8% vs 19.2-19.9% later; 2020 mix would predict 20.2% at 2021-24 rates -> behaviour, not composition (hit first invitations 48% vs 54-55% and lapsed screeners). Model ranks 2020 fine (AUC 0.842) but over-predicts by 0.8 pp; year feature +0.0007. Use 2021-2024 for baseline rates / planning.
 
 **Missing values** are all structural: `MONTHS_LAST_INVITATION` NaN ⇔ first invitation; `MONTHS_SINCE_LAST_SCREEN` NaN ⇔ `NEVER_SCREENED_BEFORE_FLAG`=A; registration duration bands NaN ⇔ not registered.
 
