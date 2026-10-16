@@ -29,7 +29,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 
 
 os.environ.setdefault("LOKY_MAX_CPU_COUNT", str(os.cpu_count()))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "baseline"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "classifiers"))
 from data import CATEGORICAL, FEATURES, SEED, features, load
 
 

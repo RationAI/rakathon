@@ -4,20 +4,33 @@ Loads the data once, evaluates every model in ``MODELS`` and prints one table pe
 metric with a column per model. For ROC AUC and PR AUC higher is better, for Brier
 lower is better; the ``best`` column names the winner of each row.
 
-Usage:
+Usage (from training/classifiers):
     uv run python compare.py
 """
 
 import pandas as pd
 
-import gradient_boosting
-import logistic_regression
 from data import ModelFactory, evaluate, prepare
+from decision_tree import model as decision_tree
+from gradient_boosting import model as gradient_boosting
+from knn import model as knn
+from logistic_regression import model as logistic_regression
+from mlp import model as mlp
+from naive_bayes import model as naive_bayes
+from random_forest import model as random_forest
+from spline_logistic_regression import model as spline_logistic_regression
 
 
+# Each model lives in its own folder (<name>/model.py) and exposes make_model.
 MODELS: dict[str, ModelFactory] = {
     "gradient boosting": gradient_boosting.make_model,
     "logistic regression": logistic_regression.make_model,
+    "spline logistic regression": spline_logistic_regression.make_model,
+    "decision tree": decision_tree.make_model,
+    "random forest": random_forest.make_model,
+    "MLP": mlp.make_model,
+    "kNN": knn.make_model,
+    "naive Bayes": naive_bayes.make_model,
 }
 METRICS = {"ROC AUC": "max", "PR AUC": "max", "Brier": "min"}
 

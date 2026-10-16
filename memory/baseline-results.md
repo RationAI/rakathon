@@ -7,13 +7,14 @@ metadata:
 
 All baselines are untuned sklearn models, one model per label. Untuned HistGradientBoosting reaches ROC AUC ~0.83-0.84 under every split tried.
 
-**GB vs LR on the official patient-level split** (`training/baseline/`, Adam Džadoň's agent). Run from that folder: `uv run python compare.py` (or `gradient_boosting.py` / `logistic_regression.py`; shared code in `data.py`; root uv env). 19 raw features (all columns except IDs, INVITATION_DATE, labels).
+**GB vs LR on the official patient-level split** (`training/classifiers/`, Adam Džadoň's agent). Run from that folder: `uv run python compare.py` (all models) or `uv run python -m <model>.model`; each model has its own folder with `model.py`; shared code in `data.py`; root uv env. 19 raw features (all columns except IDs, INVITATION_DATE, labels).
 - Gradient boosting: `HistGradientBoostingClassifier`, native categoricals and NaN.
 - Logistic regression: one-hot categoricals (missing as own level), numeric NaN → 0 + missing indicator, log1p, standardise.
 - On the stratified patient split (current official split):
   - GB test ROC AUC 0.841 / 0.839 / 0.841 (3M / 6M / 12M), PR AUC 0.292 / 0.438 / 0.581.
   - LR test ROC AUC 0.833 / 0.830 / 0.832, PR AUC 0.274 / 0.418 / 0.558.
-  - GB wins every row, but the margins are small.
+  - Decision tree (depth 8, min 500 per leaf, ordinal-encoded categoricals) test ROC AUC 0.835 / 0.834 / 0.836, PR AUC 0.269 / 0.416 / 0.560.
+  - GB wins every row, but the margins are small (a single depth-8 tree is only ~0.005 behind).
 
 **Experiments on time splits A/B** (`features/*.py`, Adam Kukučka's agent; see [[split-decision]]):
 - GB baseline: ROC AUC ~0.83, PR AUC 0.28 / 0.43 / 0.58.

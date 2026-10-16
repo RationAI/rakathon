@@ -32,16 +32,31 @@ scores = pd.read_csv(RESULTS / "group_scores.csv")
 imp = pd.read_csv(RESULTS / "group_importance.csv", index_col=["criterion", "group"])
 
 BLUE, GRAY, INK2, GRID = "#2a78d6", "#a3a29d", "#52514e", "#e4e3df"
-plt.rcParams.update({
-    "figure.dpi": 110, "axes.spines.top": False, "axes.spines.right": False,
-    "axes.edgecolor": INK2, "axes.labelcolor": INK2, "xtick.color": INK2, "ytick.color": INK2,
-    "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.8, "axes.axisbelow": True,
-    "axes.titleweight": "bold", "axes.titlesize": 10, "axes.titlelocation": "left", "legend.frameon": False,
-})
+plt.rcParams.update(
+    {
+        "figure.dpi": 110,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.edgecolor": INK2,
+        "axes.labelcolor": INK2,
+        "xtick.color": INK2,
+        "ytick.color": INK2,
+        "axes.grid": True,
+        "grid.color": GRID,
+        "grid.linewidth": 0.8,
+        "axes.axisbelow": True,
+        "axes.titleweight": "bold",
+        "axes.titlesize": 10,
+        "axes.titlelocation": "left",
+        "legend.frameon": False,
+    }
+)
 criteria = [c for c in scores.criterion.unique() if c != "all"]
 overall = scores.query("criterion == 'all'").iloc[0]
-print(f"Global model on all test rows: ROC AUC {overall.auc_global:.3f}, PR AUC {overall.pr_auc_global:.3f}, "
-      f"base rate {overall.base_rate:.1%}")
+print(
+    f"Global model on all test rows: ROC AUC {overall.auc_global:.3f}, PR AUC {overall.pr_auc_global:.3f}, "
+    f"base rate {overall.base_rate:.1%}"
+)
 ```
 
     Global model on all test rows: ROC AUC 0.841, PR AUC 0.581, base rate 19.3%
@@ -52,12 +67,32 @@ print(f"Global model on all test rows: ROC AUC {overall.auc_global:.3f}, PR AUC 
 
 ```python
 table = scores.query("criterion != 'all'").set_index(["criterion", "group"])[
-    ["n_train", "n_test", "base_rate", "auc_global", "auc_expert", "gain", "gain_low", "gain_high",
-     "pr_auc_global", "pr_auc_expert"]]
-table.style.format({"n_train": "{:,}", "n_test": "{:,}", "base_rate": "{:.1%}", "gain": "{:+.3f}",
-                    "gain_low": "{:+.3f}", "gain_high": "{:+.3f}"} |
-                   dict.fromkeys(["auc_global", "auc_expert", "pr_auc_global", "pr_auc_expert"], "{:.3f}"))\
-    .background_gradient(subset=["gain"], cmap="RdBu", vmin=-0.02, vmax=0.02)
+    [
+        "n_train",
+        "n_test",
+        "base_rate",
+        "auc_global",
+        "auc_expert",
+        "gain",
+        "gain_low",
+        "gain_high",
+        "pr_auc_global",
+        "pr_auc_expert",
+    ]
+]
+table.style.format(
+    {
+        "n_train": "{:,}",
+        "n_test": "{:,}",
+        "base_rate": "{:.1%}",
+        "gain": "{:+.3f}",
+        "gain_low": "{:+.3f}",
+        "gain_high": "{:+.3f}",
+    }
+    | dict.fromkeys(
+        ["auc_global", "auc_expert", "pr_auc_global", "pr_auc_expert"], "{:.3f}"
+    )
+).background_gradient(subset=["gain"], cmap="RdBu", vmin=-0.02, vmax=0.02)
 ```
 
 
@@ -623,8 +658,13 @@ The label on the right is the group's response rate.
 
 
 ```python
-fig, axes = plt.subplots(len(criteria), 1, figsize=(9, 1.0 + 0.55 * len(scores)), sharex=True,
-                         gridspec_kw={"height_ratios": [scores.criterion.eq(c).sum() for c in criteria]})
+fig, axes = plt.subplots(
+    len(criteria),
+    1,
+    figsize=(9, 1.0 + 0.55 * len(scores)),
+    sharex=True,
+    gridspec_kw={"height_ratios": [scores.criterion.eq(c).sum() for c in criteria]},
+)
 for ax, crit in zip(axes, criteria, strict=True):
     s = scores[scores.criterion == crit].iloc[::-1]
     y = np.arange(len(s))
@@ -636,11 +676,22 @@ for ax, crit in zip(axes, criteria, strict=True):
     ax.axvline(overall.auc_global, color=INK2, lw=0.8, ls=":")
     ax.grid(axis="y", visible=False)
     for yi, rate in zip(y, s.base_rate, strict=True):
-        ax.annotate(f"{rate:.0%} respond", (1.0, yi), xycoords=("axes fraction", "data"), xytext=(4, 0),
-                    textcoords="offset points", va="center", fontsize=8, color=INK2)
+        ax.annotate(
+            f"{rate:.0%} respond",
+            (1.0, yi),
+            xycoords=("axes fraction", "data"),
+            xytext=(4, 0),
+            textcoords="offset points",
+            va="center",
+            fontsize=8,
+            color=INK2,
+        )
 axes[0].legend(loc="lower left", ncol=2, fontsize=8)
-axes[-1].set_xlabel("ROC AUC on the group's test rows (dotted: global model on all test rows)")
-plt.tight_layout(); plt.show()
+axes[-1].set_xlabel(
+    "ROC AUC on the group's test rows (dotted: global model on all test rows)"
+)
+plt.tight_layout()
+plt.show()
 ```
 
 
@@ -665,8 +716,11 @@ ax.axvline(0, color=INK2, lw=1)
 ax.set_yticks(y, s.criterion + ": " + s.group, fontsize=8)
 ax.grid(axis="y", visible=False)
 ax.set_xlabel("ROC AUC gain of the expert over the global model")
-ax.set_title("Expert gain per group (blue: reliably better, red: reliably worse, gray: no clear difference)")
-plt.tight_layout(); plt.show()
+ax.set_title(
+    "Expert gain per group (blue: reliably better, red: reliably worse, gray: no clear difference)"
+)
+plt.tight_layout()
+plt.show()
 ```
 
 
@@ -692,17 +746,29 @@ share = share[cols]
 fig, ax = plt.subplots(figsize=(1.0 + 0.55 * len(cols), 0.33 * len(share) + 1.5))
 im = ax.imshow(share.to_numpy(), cmap="Blues", vmin=0, vmax=0.6, aspect="auto")
 ax.set_xticks(range(len(cols)), cols, rotation=60, ha="right", fontsize=8)
-ax.set_yticks(range(len(share)), [f"{c}: {g}" if c != "all" else "ALL (global model)" for c, g in share.index],
-              fontsize=8)
+ax.set_yticks(
+    range(len(share)),
+    [f"{c}: {g}" if c != "all" else "ALL (global model)" for c, g in share.index],
+    fontsize=8,
+)
 ax.grid(False)
 for i in range(share.shape[0]):
     for j in range(share.shape[1]):
         v = share.iat[i, j]
         if v >= 0.08:
-            ax.text(j, i, f"{v:.0%}", ha="center", va="center", fontsize=7, color="white" if v > 0.35 else "black")
+            ax.text(
+                j,
+                i,
+                f"{v:.0%}",
+                ha="center",
+                va="center",
+                fontsize=7,
+                color="white" if v > 0.35 else "black",
+            )
 fig.colorbar(im, ax=ax, shrink=0.6, label="share of importance")
 ax.set_title("Share of permutation importance per expert")
-plt.tight_layout(); plt.show()
+plt.tight_layout()
+plt.show()
 ```
 
 
@@ -714,10 +780,20 @@ plt.tight_layout(); plt.show()
 
 ```python
 pd.set_option("display.max_colwidth", None)
-top = (share.stack().rename("share").reset_index().rename(columns={"level_2": "feature"})
-       .sort_values("share", ascending=False).groupby(["criterion", "group"], sort=False).head(3))
+top = (
+    share.stack()
+    .rename("share")
+    .reset_index()
+    .rename(columns={"level_2": "feature"})
+    .sort_values("share", ascending=False)
+    .groupby(["criterion", "group"], sort=False)
+    .head(3)
+)
 top.groupby(["criterion", "group"], sort=False).apply(
-    lambda t: ", ".join(f"{f} ({s:.0%})" for f, s in zip(t.feature, t.share, strict=True)), include_groups=False
+    lambda t: ", ".join(
+        f"{f} ({s:.0%})" for f, s in zip(t.feature, t.share, strict=True)
+    ),
+    include_groups=False,
 ).reindex(share.index).to_frame("top 3 features")
 ```
 
@@ -910,27 +986,62 @@ The region experts above group the 75 VZP areas into 14 regions (kraje). This ma
 
 ```python
 areas = pd.read_csv("../../data/area_coordinates.csv")
-rows = pd.concat(pd.read_csv(f"../../data/splits/{n}.csv", usecols=["VZP_TERRITORIAL_AREA", "SCREENING_12M_FLAG"])
-                 for n in ["train", "val", "test"])
+rows = pd.concat(
+    pd.read_csv(
+        f"../../data/splits/{n}.csv",
+        usecols=["VZP_TERRITORIAL_AREA", "SCREENING_12M_FLAG"],
+    )
+    for n in ["train", "val", "test"]
+)
 rate = rows.groupby("VZP_TERRITORIAL_AREA").SCREENING_12M_FLAG.agg(["mean", "size"])
 areas = areas.join(rate, on="area")
 
 fig, ax = plt.subplots(figsize=(10, 5.5))
-sc = ax.scatter(areas.lon, areas.lat, c=areas["mean"], s=areas["size"] / 400, cmap="Blues",
-                edgecolor=INK2, linewidth=0.5, vmin=areas["mean"].min(), vmax=areas["mean"].max())
-labelled = pd.concat([areas.nlargest(5, "mean"), areas.nsmallest(5, "mean")]).sort_values("lon")
-for i, (_, r) in enumerate(labelled.iterrows()):  # alternate above / below so neighbours don't collide
-    ax.annotate(f"{r.area.title()} {r['mean']:.0%}", (r.lon, r.lat), xytext=(5, 5 if i % 2 else -11),
-                textcoords="offset points", fontsize=7, color=INK2)
+sc = ax.scatter(
+    areas.lon,
+    areas.lat,
+    c=areas["mean"],
+    s=areas["size"] / 400,
+    cmap="Blues",
+    edgecolor=INK2,
+    linewidth=0.5,
+    vmin=areas["mean"].min(),
+    vmax=areas["mean"].max(),
+)
+labelled = pd.concat(
+    [areas.nlargest(5, "mean"), areas.nsmallest(5, "mean")]
+).sort_values("lon")
+for i, (_, r) in enumerate(
+    labelled.iterrows()
+):  # alternate above / below so neighbours don't collide
+    ax.annotate(
+        f"{r.area.title()} {r['mean']:.0%}",
+        (r.lon, r.lat),
+        xytext=(5, 5 if i % 2 else -11),
+        textcoords="offset points",
+        fontsize=7,
+        color=INK2,
+    )
 ax.set_aspect(1 / np.cos(np.radians(49.8)))  # keep Czech geography undistorted
-ax.grid(False); ax.set_xticks([]); ax.set_yticks([])
+ax.grid(False)
+ax.set_xticks([])
+ax.set_yticks([])
 for side in ["left", "bottom"]:
     ax.spines[side].set_visible(False)
-fig.colorbar(sc, ax=ax, shrink=0.7, format=lambda v, _: f"{v:.0%}", label="screened within 12 months")
+fig.colorbar(
+    sc,
+    ax=ax,
+    shrink=0.7,
+    format=lambda v, _: f"{v:.0%}",
+    label="screened within 12 months",
+)
 ax.set_title("Response rate per VZP area (5 highest and 5 lowest labelled)")
-plt.tight_layout(); plt.show()
-print(f"Area response rates range from {areas['mean'].min():.1%} to {areas['mean'].max():.1%} "
-      f"(overall {rows.SCREENING_12M_FLAG.mean():.1%}).")
+plt.tight_layout()
+plt.show()
+print(
+    f"Area response rates range from {areas['mean'].min():.1%} to {areas['mean'].max():.1%} "
+    f"(overall {rows.SCREENING_12M_FLAG.mean():.1%})."
+)
 ```
 
 

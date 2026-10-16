@@ -6,7 +6,7 @@ target-version = "py312"
 src = [
     "preprocessing",
     "training",
-    "training/baseline",
+    "training/classifiers",
     "features",
     "features/spatial",
 ]

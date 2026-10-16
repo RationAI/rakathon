@@ -22,7 +22,4 @@ metadata:
 **Docs**
 - `exploration/FINDINGS.md` still says `PRIOR_SCREEN_COUNT_5Y`=2 is likely a claim-code artefact; this is wrong (see [[dataset-facts]]).
 
-**Environment**
-- `training/ml` (Lightning template) imports `hydra`, `omegaconf` and `rationai.mlkit`, which are not dependencies yet; add them before using it.
-
 **Not started:** tasks 2-4 (segmentation, interventions, experiment design).

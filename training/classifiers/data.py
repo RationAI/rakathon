@@ -9,9 +9,19 @@ validation and test splits written by ``preprocessing/split.py``.
 from collections.abc import Callable
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import (
+    FunctionTransformer,
+    OneHotEncoder,
+    OrdinalEncoder,
+    StandardScaler,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,6 +80,59 @@ def features(df: pd.DataFrame, categories: dict[str, list[str]]) -> pd.DataFrame
 
 def numeric_features(x: pd.DataFrame) -> list[str]:
     return [col for col in x.columns if col not in CATEGORICAL + FLAGS]
+
+
+def signed_log1p(values: np.ndarray) -> np.ndarray:
+    """log1p that keeps the sign; equals log1p for the (non-negative) raw counts."""
+    return np.sign(values) * np.log1p(np.abs(values))
+
+
+def to_dense(m: object) -> np.ndarray:
+    """Sparse or dense matrix -> dense float32 (for models without sparse support)."""
+    return (m.toarray() if hasattr(m, "toarray") else np.asarray(m)).astype(np.float32)
+
+
+def scaled_one_hot(x: pd.DataFrame) -> ColumnTransformer:
+    """Preprocessing for models that need numeric, scaled input (LR, MLP).
+
+    - categorical columns: one-hot, missing ("not registered") as its own level,
+      unseen levels ignored,
+    - numeric NaNs (no previous invitation / screening): 0 plus a missing indicator,
+    - numeric columns: signed log1p (counts are long-tailed), then standardised,
+    - 0/1 flags: passed through.
+    """
+    numeric = make_pipeline(
+        SimpleImputer(strategy="constant", fill_value=0, add_indicator=True),
+        FunctionTransformer(signed_log1p),
+        StandardScaler(),
+    )
+    categorical = make_pipeline(
+        SimpleImputer(strategy="constant", fill_value="missing"),
+        OneHotEncoder(handle_unknown="ignore"),
+    )
+    return ColumnTransformer(
+        [
+            ("numeric", numeric, numeric_features(x)),
+            ("categorical", categorical, CATEGORICAL),
+            ("flags", "passthrough", FLAGS),
+        ]
+    )
+
+
+def ordinal_encoded() -> ColumnTransformer:
+    """Preprocessing for tree models: categorical columns as integer codes.
+
+    Trees can still split the codes (less freely than one-hot); NaN stays NaN, which
+    sklearn trees handle natively; all other columns pass through unchanged.
+    """
+    encoder = OrdinalEncoder(
+        handle_unknown="use_encoded_value",
+        unknown_value=-1,
+        encoded_missing_value=np.nan,
+    )
+    return ColumnTransformer(
+        [("categorical", encoder, CATEGORICAL)], remainder="passthrough"
+    )
 
 
 def scores(y: pd.Series, p: pd.Series) -> dict[str, float]:

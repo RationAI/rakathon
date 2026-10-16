@@ -48,11 +48,19 @@ rakathon/
 │   ├── split.py                patient-level stratified 70/15/15 split
 │   └── validate_split.py       checks the split files
 └── training/                   models
-    ├── baseline/               sklearn baselines (gradient boosting, logistic regression, compare.py)
-    ├── per_group_experts/      one model per group (age, first invitation, ...) vs the global model;
-    │                           experts.py -> results/*.csv, report.ipynb / report.md presents them
-    ├── ml/                     PyTorch Lightning package (template)
-    └── configs/                Hydra configs for ml/
+    ├── classifiers/            sklearn models; data.py (shared) + compare.py (all models)
+    │   ├── gradient_boosting/    model.py  (each model in its own folder; run from classifiers/:
+    │   ├── logistic_regression/  model.py   uv run python -m <model>.model)
+    │   ├── spline_logistic_regression/  model.py
+    │   ├── decision_tree/        model.py
+    │   ├── random_forest/        model.py
+    │   ├── mlp/                  model.py
+    │   ├── knn/                  model.py (fits on a 50k-row sample)
+    │   ├── naive_bayes/          model.py
+    │   └── ablation/             run.py (57 fits: capacity, learning curve, features) ->
+    │                             results/*.csv; report.ipynb / report.md presents them
+    └── per_group_experts/      one model per group (age, first invitation, ...) vs the global model;
+                                experts.py -> results/*.csv, report.ipynb / report.md presents them
 ```
 
 Rules for keeping it clean:
@@ -66,7 +74,7 @@ Rules for keeping it clean:
 
 ```sh
 cd preprocessing && uv run python pipeline.py        # rebuild all derived data + splits
-cd training/baseline && uv run python compare.py     # GB vs LR on the split
+cd training/classifiers && uv run python compare.py  # all classifiers on the split
 cd exploration && uv run jupyter lab                 # notebooks
 uv run ruff check <folder>                           # lint (from repo root)
 ```

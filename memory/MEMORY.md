@@ -7,6 +7,7 @@ Merged from the agents of Adam Džadoň (EDA, split, baselines) and Adam Kukučk
 - [Split decision](split-decision.md) — official patient-level stratified 70/15/15 split (seed 0); superseded time splits
 - [Feature engineering](feature-engineering.md) — prepared 102-column file, spatial area features, history features
 - [Baseline results](baseline-results.md) — GB vs LR ~0.83-0.84 ROC AUC, history features add nothing, importance, thresholds
+- [Model ceiling](model-ceiling.md) — 57-fit ablation: all model families converge to test ROC AUC ~0.84; data is the limit
 - [Per-group experts](per-group-experts.md) — group experts never beat the global model; hardest groups and per-group drivers
 - [Pitfalls](pitfalls.md) — HGB constant-column crash, train-only fitting, big files, DuckDB keywords
 - [Open items](open-items.md) — combined to-do list and questions for organisers
