@@ -1,0 +1,11 @@
+model,test_roc_auc
+gradient boosting,0.8411895195255829
+random forest,0.8400074879562879
+MLP,0.8397288662151661
+decision tree,0.8363902401088472
+spline logistic regression,0.8345757618722445
+logistic regression,0.831856481653583
+kNN,0.8313594106025485
+naive Bayes,0.7998019978399409
+decision tree depth 3,0.8083834558541928
+decision tree depth 4,0.8224619533595775

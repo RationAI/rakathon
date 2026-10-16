@@ -22,7 +22,7 @@ from data import CATEGORICAL, FLAGS, SEED, numeric_features, run, signed_log1p
 def build(x: pd.DataFrame, n_knots: int = 6) -> Pipeline:
     numeric = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=0, add_indicator=True),
-        FunctionTransformer(signed_log1p),
+        FunctionTransformer(signed_log1p, feature_names_out="one-to-one"),
         SplineTransformer(n_knots=n_knots, degree=3),
     )
     categorical = make_pipeline(

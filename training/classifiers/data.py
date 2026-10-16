@@ -103,7 +103,7 @@ def scaled_one_hot(x: pd.DataFrame) -> ColumnTransformer:
     """
     numeric = make_pipeline(
         SimpleImputer(strategy="constant", fill_value=0, add_indicator=True),
-        FunctionTransformer(signed_log1p),
+        FunctionTransformer(signed_log1p, feature_names_out="one-to-one"),
         StandardScaler(),
     )
     categorical = make_pipeline(

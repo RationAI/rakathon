@@ -58,6 +58,8 @@ rakathon/
     │   ├── mlp/                  model.py (sklearn) + neural_network.py (PyTorch, 3 outputs at once)
     │   ├── knn/                  model.py (fits on a 50k-row sample)
     │   ├── naive_bayes/          model.py
+    │   ├── explain/              run.py: drawn trees, permutation importance, partial dependence,
+    │   │                         LR odds ratios -> results/; report.ipynb / report.md presents them
     │   └── ablation/             run.py (57 fits: capacity, learning curve, features) ->
     │                             results/*.csv; report.ipynb / report.md presents them
     └── per_group_experts/      one model per group (age, first invitation, ...) vs the global model;

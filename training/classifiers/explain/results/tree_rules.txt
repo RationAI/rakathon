@@ -1,0 +1,96 @@
+Real decision tree (depth 8, >=500 rows per leaf), top 4 levels; deeper branches are shown as 'truncated branch'. 'class: 1' = majority screened.
+
+|--- PRIOR_INVITATION_COUNT <= 2.50
+|   |--- GYN_PREVENTION_24M_CNT <= 0.50
+|   |   |--- OTHER_SCREENING_36M_CNT <= 0.50
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 13.00
+|   |   |   |   |--- DENTAL_PREVENTION_24M_CNT <= 0.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- DENTAL_PREVENTION_24M_CNT >  0.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  13.00
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 46.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  46.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |--- OTHER_SCREENING_36M_CNT >  0.50
+|   |   |   |--- MONTHS_LAST_INVITATION <= 31.00
+|   |   |   |   |--- DENTAL_PREVENTION_24M_CNT <= 0.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- DENTAL_PREVENTION_24M_CNT >  0.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- MONTHS_LAST_INVITATION >  31.00
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 35.50
+|   |   |   |   |   |--- class: 0
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  35.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |--- GYN_PREVENTION_24M_CNT >  0.50
+|   |   |--- MONTHS_SINCE_LAST_SCREEN <= 11.50
+|   |   |   |--- AGE_BAND <= 1.50
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 0.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  0.50
+|   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |--- AGE_BAND >  1.50
+|   |   |   |   |--- VZP_TERRITORIAL_AREA <= 29.50
+|   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |--- VZP_TERRITORIAL_AREA >  29.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |--- MONTHS_SINCE_LAST_SCREEN >  11.50
+|   |   |   |--- MONTHS_LAST_INVITATION <= 87.00
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 47.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  47.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- MONTHS_LAST_INVITATION >  87.00
+|   |   |   |   |--- OTHER_SCREENING_36M_CNT <= 1.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- OTHER_SCREENING_36M_CNT >  1.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|--- PRIOR_INVITATION_COUNT >  2.50
+|   |--- INVITATION_SEQUENCE <= 4.50
+|   |   |--- GYN_PREVENTION_24M_CNT <= 0.50
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 24.00
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT <= 5.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT >  5.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  24.00
+|   |   |   |   |--- PRIOR_INVITATION_COUNT <= 3.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- PRIOR_INVITATION_COUNT >  3.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |--- GYN_PREVENTION_24M_CNT >  0.50
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 25.00
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= inf
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  inf
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  25.00
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 48.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  48.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |--- INVITATION_SEQUENCE >  4.50
+|   |   |--- GYN_PREVENTION_24M_CNT <= 0.50
+|   |   |   |--- INVITATION_SEQUENCE <= 6.50
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 19.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  19.50
+|   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |--- INVITATION_SEQUENCE >  6.50
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT <= 3.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT >  3.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |--- GYN_PREVENTION_24M_CNT >  0.50
+|   |   |   |--- INVITATION_SEQUENCE <= 6.50
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN <= 22.00
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- MONTHS_SINCE_LAST_SCREEN >  22.00
+|   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |--- INVITATION_SEQUENCE >  6.50
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT <= 8.50
+|   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |--- HEALTHCARE_CONTACT_12M_CNT >  8.50
+|   |   |   |   |   |--- truncated branch of depth 4
