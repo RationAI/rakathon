@@ -12,6 +12,7 @@ import pandas as pd
 from history_features import add_history  # noqa: E402
 
 SPATIAL = "../data/area_spatial_features.csv"  # built by spatial/01-03 scripts
+COORDS = "../data/area_coordinates.csv"  # its `matched` OSM name carries the kraj
 SRC = sys.argv[1] if len(sys.argv) > 1 else "../data/Rakhaton2026.csv"
 DST = sys.argv[2] if len(sys.argv) > 2 else "../data/Rakhaton2026_prepared.csv"
 
@@ -40,6 +41,15 @@ def fix_sequence_starting_at_2(df: pd.DataFrame) -> int:
     mask = df.PERSON_ID.isin(bad)
     df.loc[mask, "INVITATION_SEQUENCE"] -= 1
     return bad.nunique()
+
+
+def area_to_kraj() -> dict[str, str]:
+    """VZP_TERRITORIAL_AREA -> kraj, parsed from the geocoder's matched name ('okres X, Středočeský kraj, Česko')."""
+    coords = pd.read_csv(COORDS)
+    kraj = coords.matched.str.extract(r"(Kraj Vysočina|[^,]+ kraj)")[0].str.strip()
+    out = dict(zip(coords.area, kraj))
+    out["PRAHA-HL.MĚSTO"] = "Hlavní město Praha"  # matched name is just 'Praha, Česko'
+    return out
 
 
 def main() -> None:
@@ -103,6 +113,13 @@ def main() -> None:
     assert df.SPATIAL_DIST_NEAREST_KM.notna().all(), "areas without spatial features"
     df["SPATIAL_NO_WAIT_30KM_FLAG"] = df.SPATIAL_WAIT_MIN_WITHIN_30KM_DAYS.isna().astype(np.int8)
     df["SPATIAL_NO_HOURS_30KM_FLAG"] = df.SPATIAL_EARLIEST_OPEN_30KM_H.isna().astype(np.int8)
+
+    # 11b. kraj (region) of the area, plus its dummies for linear models
+    df["KRAJ"] = df.VZP_TERRITORIAL_AREA.map(area_to_kraj())
+    assert df.KRAJ.notna().all(), "areas without kraj"
+    for kraj in sorted(df.KRAJ.unique()):
+        df["LIN_KRAJ_" + re.sub(r"\W+", "_", kraj.upper().replace("KRAJ", "").strip()).strip("_")] = (
+            df.KRAJ == kraj).astype(np.int8)
 
     # 12. flags for linear models (LIN_*): dummies, bucket and "any" flags, median-filled copies of NaN columns
     for band in sorted(df.AGE_BAND.unique()):
