@@ -48,13 +48,14 @@ rakathon/
 │   ├── split.py                patient-level stratified 70/15/15 split
 │   └── validate_split.py       checks the split files
 └── training/                   models
-    ├── classifiers/            sklearn models; data.py (shared) + compare.py (all models)
-    │   ├── gradient_boosting/    model.py  (each model in its own folder; run from classifiers/:
-    │   ├── logistic_regression/  model.py   uv run python -m <model>.model)
+    ├── classifiers/            one folder per model; data.py (shared) + compare.py (all models)
+    │   │                         run one from classifiers/: uv run python -m <folder>.model
+    │   ├── gradient_boosting/    model.py + segmented.py (global vs per-segment GB -> segmented_results.csv)
+    │   ├── logistic_regression/  model.py
     │   ├── spline_logistic_regression/  model.py
-    │   ├── decision_tree/        model.py
+    │   ├── decision_tree/        model.py + tuned.py (depth/leaf search, prints the tree as rules)
     │   ├── random_forest/        model.py
-    │   ├── mlp/                  model.py
+    │   ├── mlp/                  model.py (sklearn) + neural_network.py (PyTorch, 3 outputs at once)
     │   ├── knn/                  model.py (fits on a 50k-row sample)
     │   ├── naive_bayes/          model.py
     │   └── ablation/             run.py (57 fits: capacity, learning curve, features) ->

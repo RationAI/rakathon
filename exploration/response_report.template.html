@@ -1,0 +1,354 @@
+<title>Regional Screening Response</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky control strip; one section per indicator (headline sentence, ranked bars + okres map), as in the NSC regional slides.
+   Single-hue blue ramp for magnitude, orange only for centre points and the regression line. */
+:root {
+  --bg: #f6f7fb; --surface: #ffffff; --fg: #141a33; --muted: #5a6180; --line: #dde1ee; --accent: #2b2d7e;
+  --s1: #dbe7f6; --s2: #a9c5e6; --s3: #6c9bd3; --s4: #2f66ad; --s5: #14316f;
+  --nodata: #e3e4ea; --edge: #ffffff; --hl: #141a33; --pt: #d9631e; --ptring: #ffffff;
+  --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
+  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
+  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; --pt: #ff9a4d; --ptring: #161b30; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
+  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
+  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; --pt: #ff9a4d; --ptring: #161b30; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.wrap { max-width: 1240px; margin: 0 auto; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 46px); line-height: 1.05; color: var(--accent); }
+.hero { padding-block: 40px 24px; display: grid; gap: 14px; }
+.lede { color: var(--muted); max-width: 72ch; font-size: 15px; margin: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi { border-top: 2px solid var(--accent); padding-top: 8px; }
+.kpi b { display: block; font-family: var(--mono); font-weight: 500; font-size: 26px; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: 12px; }
+.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.method h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.method p, .method ul { margin: 0; padding-left: 0; list-style: none; }
+.method li { padding-left: 14px; position: relative; margin-bottom: 3px; }
+.method li::before { content: "▪"; position: absolute; left: 0; color: var(--accent); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding-block: 10px; }
+.grp { display: flex; align-items: center; gap: 8px; }
+.grp > span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-weight: 500; padding: 6px 12px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.nav button { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.nav button:hover { border-color: var(--accent); }
+select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+button:focus-visible, select:focus-visible, .row:focus-visible, path:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section { padding-block: 40px 8px; scroll-margin-top: 70px; }
+section h2 { font-size: clamp(20px, 3vw, 28px); text-transform: uppercase; letter-spacing: .01em; color: var(--accent); }
+.head { margin: 8px 0 16px; max-width: 80ch; }
+.head b { font-family: var(--mono); font-weight: 500; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+svg { display: block; width: 100%; height: auto; }
+path.a { stroke: var(--edge); stroke-width: .5; stroke-linejoin: round; cursor: pointer; fill-rule: evenodd; transition: fill .25s; }
+path.a.hov, path.a.sel { stroke: var(--hl); stroke-width: 1.6; }
+.pt { fill: var(--pt); stroke: var(--ptring); stroke-width: .8; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--pt); }
+.detail { display: grid; gap: 4px; min-height: 118px; }
+.detail .nm { font-family: var(--display); font-size: 21px; font-weight: 600; }
+.detail .kr { color: var(--muted); font-size: 13px; }
+.big { font-family: var(--mono); font-size: 30px; font-weight: 500; line-height: 1.15; }
+.big small { font-size: 12px; color: var(--muted); font-family: var(--body); }
+.list { margin-top: 12px; display: grid; max-height: 440px; overflow-y: auto; align-content: start; }
+.list h3 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0 0 6px; }
+.row { display: grid; grid-template-columns: 1.7em minmax(0, 1.2fr) minmax(0, 1.4fr) 3.8em; gap: 8px; align-items: center; padding: 3px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.row.plain { cursor: default; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) 4.2em; padding: 5px 4px; }
+.row.net { grid-template-columns: minmax(0, 1.3fr) 2.4em minmax(0, 1.2fr) 3.4em; cursor: default; }
+.row:hover, .row.hov { background: var(--bg); }
+.row .rk { color: var(--muted); font-family: var(--mono); font-size: 11px; text-align: right; }
+.row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .tr { height: 9px; background: var(--bg); border-radius: 0 4px 4px 0; }
+.row .tr i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.row .v { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.row.ref { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 6px; cursor: default; font-weight: 500; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; align-items: center; }
+.rcap { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12px; line-height: 1.35; max-width: 250px; opacity: 0; transition: opacity .1s; }
+.axis text { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.axis line, .axis path { stroke: var(--line); }
+.dotp { fill: var(--s4); fill-opacity: .6; stroke: var(--surface); stroke-width: .6; }
+.reg { stroke: var(--pt); stroke-width: 2; }
+.note { color: var(--muted); font-size: 12px; max-width: 90ch; }
+footer { padding-block: 40px 56px; }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Regional evaluation of mammography screening response</h1>
+    <p class="lede">How women in each kraj and okres respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data.</p>
+    <div class="kpis" id="kpis"></div>
+  </header>
+  <div class="method">
+    <div><h3>Data</h3><ul>
+      <li>Rakhaton 2026: one row per invitation, 2020–2024, with 3, 6 and 12 month screening outcomes.</li>
+      <li>Area is the VZP territorial area, which is an okres (Praha, Brno, Ostrava and Plzeň are single areas).</li>
+      <li>Screening centres, booking waits and opening hours scraped from mamo.cz (snapshot <span id="scr"></span>).</li></ul></div>
+    <div><h3>Indicators</h3><ul>
+      <li>Response: share of invitations followed by a screening within the window.</li>
+      <li>Distance: straight line from the district point to the nearest centre.</li>
+      <li>Wait: mean booking wait of the three nearest centres, in days.</li>
+      <li>Kraj values combine districts weighted by invitations.</li></ul></div>
+    <div><h3>Limits</h3><ul>
+      <li>Rates are raw, with no adjustment for age or screening history.</li>
+      <li>Invitations, not the whole population of women aged 45–69, so not the NSC coverage figure.</li>
+      <li>Staffing, equipment and screening volumes per centre are not in this data. Population: ČSÚ women aged 40+, mean 2020–2024. Citizenship is not ethnicity: it covers foreign nationals only and says nothing about self-declared nationality (census). Immigration and citizenship: ČSÚ foreigners (residence permit holders, not asylum holders), 31 Dec 2024; the count of foreign women rose sharply in 2022 with Ukrainian refugees. Invitations come from one insurer (VZP), whose share of the population differs by district, so per-capita values are only comparable as a rough guide.</li>
+      <li>Centres and waits are today's snapshot, not 2020–2024.</li></ul></div>
+  </div>
+
+  <div class="bar">
+    <div class="grp"><span>Level</span><div class="seg" id="lvlSeg"><button data-l="k" aria-pressed="false">Kraj</button><button data-l="d" aria-pressed="true">District</button></div></div>
+    <div class="grp"><span>Response window</span><div class="seg" id="winSeg"><button data-w="0" aria-pressed="false">3 mo</button><button data-w="1" aria-pressed="false">6 mo</button><button data-w="2" aria-pressed="true">12 mo</button></div></div>
+    <div class="nav" id="nav"></div>
+    <div class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></div>
+  </div>
+
+  <div id="sections"></div>
+  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the dataset.</p></footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const D = __DATA__;
+const W = ["3 months", "6 months", "12 months"];
+const st = { w: 2, l: "d" };
+const $ = (s, r = document) => r.querySelector(s);
+const nf = (v, d = 0) => v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const tip = $("#tip"), NS = "http://www.w3.org/2000/svg";
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const showTip = (e, html) => { tip.innerHTML = html; tip.style.left = Math.min(e.clientX + 14, innerWidth - 260) + "px"; tip.style.top = e.clientY + 14 + "px"; tip.style.opacity = 1; };
+const hideTip = () => (tip.style.opacity = 0);
+
+// ---------- aggregation ----------
+const wmean = (xs, f) => { let s = 0, n = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.n; n += a.n; } }); return n ? s / n : null; };
+const withData = D.areas.filter((a) => a.n);
+const kraje = {};
+withData.forEach((a) => (kraje[a.kraj] ||= { name: a.kraj, kraj: a.kraj, members: [] }).members.push(a));
+Object.values(kraje).forEach((k) => { k.n = k.members.reduce((t, a) => t + a.n, 0);
+  k.p = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.p[w], 0));
+  k.pop = k.members.reduce((t, a) => t + a.pop, 0); k.wall = k.members.reduce((t, a) => t + a.wall, 0); k.eth = Object.fromEntries(D.groups.map((g) => [g, k.members.reduce((t, a) => t + a.eth[g], 0)])); k.forn = k.members.reduce((t, a) => t + a.forn, 0); k.pop24 = k.members.reduce((t, a) => t + a.pop24, 0); k.dist = wmean(k.members, (a) => a.dist); k.wait = wmean(k.members, (a) => a.wait); });
+const nat = { name: "Czechia", wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
+  dist: wmean(withData, (a) => a.dist), wait: wmean(withData, (a) => a.wait) };
+const unitOf = (a) => (st.l === "k" ? kraje[a.kraj] : a);
+
+// ---------- indicators ----------
+const IND = [
+  { id: "resp", nav: "Response", title: "Response to the invitation", unit: "%", dec: 1, val: (u) => (u.n ? 100 * u.p[st.w] / u.n : null),
+    what: () => `share of invitations followed by a screening within ${W[st.w]}` },
+  { id: "dist", nav: "Distance", title: "Distance to the nearest screening centre", unit: "km", dec: 1, val: (u) => u.dist, dots: true,
+    what: () => "straight-line distance from the district point to the nearest centre" },
+  { id: "wait", nav: "Waiting time", title: "Booking wait at the nearest centres", unit: "days", dec: 1, val: (u) => u.wait, dots: true,
+    what: () => "mean booking wait of the three nearest centres" },
+  { id: "vol", nav: "Volume", title: "Invitations and screenings", unit: "", get dec() { return vs.norm ? 1 : 0; },
+    val: (u) => { const c = vs.what === "inv" ? u.n : u.p[st.w]; return vs.norm ? c / 5 / u.pop * 1000 : c; },
+    lead: () => `Number of ${vs.what === "inv" ? "invitations" : `screenings within ${W[st.w]} of an invitation`} ${vs.norm ? "per 1,000 women aged 40+ per year" : "in 2020–2024"} in Czechia:` },
+];
+const vs = { what: "inv", norm: true };
+const es = { g: "Ukraine", mode: "per1000" };
+const fwOf = (u) => D.groups.reduce((t, g) => t + u.eth[g], 0);
+IND.push({ id: "eth", nav: "Citizenship", title: "Citizenship groups of foreign women", unit: "", get dec() { return es.mode === "per1000" ? 1 : 1; },
+  val: (u) => (es.mode === "per1000" ? 1000 * u.eth[es.g] / u.wall : 100 * u.eth[es.g] / fwOf(u)),
+  lead: () => es.mode === "per1000" ? `Women with ${es.g === "Other" ? "other" : es.g} citizenship per 1,000 women of all ages in Czechia:` : `Share of foreign women with ${es.g === "Other" ? "other" : es.g} citizenship in Czechia:` });
+IND.push({ id: "imm", nav: "Immigration", title: "Immigration: foreign women aged 40+", unit: "%", dec: 1, val: (u) => 100 * u.forn / u.pop24,
+  lead: () => "Foreign nationals (immigrants) make up the following share of women aged 40+ in Czechia:" });
+const fmtV = (ind, v) => (v == null ? "–" : ind.id === "eth" ? nf(v, 1) + (es.mode === "share" ? " %" : "") : ind.id === "vol" ? nf(v, ind.dec) : nf(v, ind.dec) + (ind.unit === "%" ? " %" : " " + ind.unit));
+
+function binsFor(vals) {
+  const lo0 = Math.min(...vals), hi = Math.max(...vals);
+  const steps = [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+  let step = steps.find((s) => Math.floor(lo0 / s) * s + 5 * s >= hi) ?? steps.at(-1);
+  const lo = Math.floor(lo0 / step) * step;
+  return { lo, step, edges: [0, 1, 2, 3, 4].map((i) => [lo + i * step, lo + (i + 1) * step]) };
+}
+const binOf = (b, v) => Math.max(0, Math.min(4, Math.floor((v - b.lo) / b.step + 1e-9)));
+
+function makeMap(host, onHover, onClick) {
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${D.w} ${D.h}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Map of Czechia by district");
+  const paths = D.areas.map((a, i) => { const p = document.createElementNS(NS, "path");
+    p.setAttribute("d", a.d); p.setAttribute("class", "a"); p.setAttribute("tabindex", "0");
+    p.addEventListener("pointermove", (e) => onHover(i, e)); p.addEventListener("pointerleave", () => onHover(null));
+    p.addEventListener("click", () => onClick(i)); p.addEventListener("keydown", (e) => e.key === "Enter" && onClick(i));
+    svg.appendChild(p); return p; });
+  host.appendChild(svg); return { svg, paths };
+}
+
+// ---------- indicator section ----------
+function indicatorSection(ind) {
+  const s = { sel: null, hov: null };
+  const el = document.createElement("section"); el.id = ind.id;
+  el.innerHTML = `<h2>${ind.title}</h2><p class="head" data-h></p>${ind.id === "eth" ? `<div class="tools"><div class="grp"><span>Citizenship</span><div class="seg" data-grp>${D.groups.map((g) => `<button data-v="${g}" aria-pressed="${g === es.g}">${g}</button>`).join("")}</div></div>
+      <div class="grp"><span>Measure</span><div class="seg" data-mode><button data-v="per1000" aria-pressed="true">Per 1,000 women</button><button data-v="share" aria-pressed="false">Share of foreign women</button></div></div></div>` : ""}${ind.id === "vol" ? `<div class="tools">
+      <div class="grp"><span>Count</span><div class="seg" data-what><button data-v="inv" aria-pressed="true">Invitations</button><button data-v="scr" aria-pressed="false">Screenings</button></div></div>
+      <div class="grp"><span>Scale</span><div class="seg" data-norm><button data-v="abs" aria-pressed="false">Absolute</button><button data-v="norm" aria-pressed="true">Per 1,000 women 40+</button></div></div></div>` : ""}
+    <div class="main"><div class="card"><div data-map></div><div class="legend" data-legend></div></div>
+    <div class="card"><div class="detail" data-detail></div><div class="list" data-list></div></div></div>`;
+  const m = makeMap($("[data-map]", el), (i, e) => { s.hov = i; paint(); if (i != null && e) showTip(e, tipHtml(i)); else hideTip(); detail(); }, (i) => { s.sel = s.sel === i ? null : i; paint(); detail(); });
+  if (ind.dots) D.centres.forEach((c) => { const t = document.createElementNS(NS, "circle");
+    t.setAttribute("cx", c.x); t.setAttribute("cy", c.y); t.setAttribute("r", 1.5); t.setAttribute("class", "pt");
+    t.style.pointerEvents = "none"; m.svg.appendChild(t); });
+  el.querySelectorAll("[data-what] button, [data-norm] button").forEach((b) => b.addEventListener("click", () => {
+    const g = b.parentElement; g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    if ("what" in g.dataset) vs.what = b.dataset.v; else vs.norm = b.dataset.v === "norm"; s.render(); }));
+  el.querySelectorAll("[data-grp] button, [data-mode] button").forEach((b) => b.addEventListener("click", () => {
+    const g = b.parentElement; g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    if ("grp" in g.dataset) es.g = b.dataset.v; else es.mode = b.dataset.v; s.render(); }));
+  let bins, natV;
+  const items = () => (st.l === "k" ? Object.values(kraje) : withData);
+  const grp = (i) => (i == null ? [] : st.l === "k" ? D.areas.map((a, j) => (a.kraj && a.kraj === D.areas[i].kraj ? j : -1)).filter((j) => j >= 0) : [i]);
+  const label = (a) => (st.l === "k" ? a.kraj : a.name);
+  const tipHtml = (i) => { const a = D.areas[i]; if (!a.n) return `<b>${a.name}</b><br>no data`; const u = unitOf(a);
+    return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}<br>${nf(u.n)} invitations`; };
+  function paint() {
+    const h = new Set(grp(s.hov)), sl = new Set(grp(s.sel));
+    D.areas.forEach((a, i) => { m.paths[i].classList.toggle("hov", h.has(i)); m.paths[i].classList.toggle("sel", sl.has(i)); if (h.has(i) || sl.has(i)) m.svg.insertBefore(m.paths[i], m.svg.querySelector("circle")); });
+    el.querySelectorAll(".row[data-i]").forEach((r) => r.classList.toggle("hov", h.has(+r.dataset.i) || sl.has(+r.dataset.i)));
+  }
+  function detail() {
+    const i = s.sel ?? s.hov, a = i == null ? null : D.areas[i], d = $("[data-detail]", el);
+    if (!a) { d.innerHTML = `<div class="nm">Czechia overall</div><div class="kr">Hover or select an area</div><div class="big">${fmtV(ind, natV)}</div>`; return; }
+    if (!a.n) { d.innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP area for this district in the dataset.</div>`; return; }
+    const u = unitOf(a), v = ind.val(u), dv = ind.id === "vol" && !vs.norm ? null : v - natV;
+    const r = 100 * u.p[st.w] / u.n;
+    d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Kraj" : a.kraj} · ${nf(u.n)} invitations</div>
+      <div class="big">${fmtV(ind, v)} ${dv == null ? "" : `<small>${dv >= 0 ? "+" : "−"}${nf(Math.abs(dv), ind.dec)} vs. Czechia</small>`}</div>
+      ${ind.id === "resp" ? `<div class="kr">${[0, 1, 2].map((w) => `${W[w]}: ${nf(100 * u.p[w] / u.n, 1)} %`).join(" · ")}</div>` : `<div class="kr">Response (${W[st.w]}): ${nf(r, 1)} %</div>`}`;
+  }
+  s.render = () => {
+    const its = items(), vals = its.map(ind.val).filter((v) => v != null);
+    bins = binsFor(vals);
+    natV = ind.val(nat);
+    D.areas.forEach((a, i) => { const v = a.n ? ind.val(unitOf(a)) : null; m.paths[i].style.fill = v == null ? "var(--nodata)" : `var(--s${binOf(bins, v) + 1})`; });
+    const dec = bins.step < 1 ? 1 : 0, fe = (x) => (ind.id === "vol" ? nf(x, dec) : x.toFixed(dec));
+    $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${fe(b[0])}–${fe(b[1])}</span>`).join("") + `<span><i style="background:var(--nodata)"></i>no data</span>` + (ind.dots ? `<span><i class="dot"></i>screening centre</span>` : "");
+    const ranked = its.filter((u) => ind.val(u) != null).sort((a, b) => ind.val(b) - ind.val(a)), hi = ranked[0], lo = ranked.at(-1);
+    $("[data-h]", el).innerHTML = `${ind.lead ? ind.lead() : `The ${ind.what()} in Czechia is`} <b>${fmtV(ind, natV)}</b>. Highest in ${st.l === "k" ? "" : "the district of "}<b>${esc(hi.name)}</b> (${fmtV(ind, ind.val(hi))}), lowest in <b>${esc(lo.name)}</b> (${fmtV(ind, ind.val(lo))}).`;
+    const max = ind.val(hi);
+    $("[data-list]", el).innerHTML = `<h3>${st.l === "k" ? "Kraje" : "Districts"} ranked</h3>` + ranked.map((u, r) => { const v = ind.val(u);
+      const idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj === u.name) : D.areas.indexOf(u);
+      return `<div class="row" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${esc(u.name)}</span><span class="tr"><i style="width:${100 * v / max}%;background:var(--s${binOf(bins, v) + 1})"></i></span><span class="v">${nf(v, ind.dec)}</span></div>`; }).join("")
+      + `<div class="row ref"><span></span><span class="nm">Czechia</span><span></span><span class="v">${nf(natV, ind.dec)}</span></div>`;
+    el.querySelectorAll(".row[data-i]").forEach((r) => { const i = +r.dataset.i;
+      r.addEventListener("pointerenter", () => { s.hov = i; paint(); detail(); }); r.addEventListener("pointerleave", () => { s.hov = null; paint(); detail(); });
+      r.addEventListener("click", () => { s.sel = s.sel === i ? null : i; paint(); detail(); }); r.addEventListener("keydown", (e) => e.key === "Enter" && r.click()); });
+    s.sel = null; s.hov = null; paint(); detail();
+  };
+  return { el, s };
+}
+
+// ---------- centre network ----------
+function networkSection() {
+  const el = document.createElement("section"); el.id = "net";
+  const byK = {}; D.centres.forEach((c) => (byK[c.kraj] ||= []).push(c));
+  const waits = D.centres.map((c) => c.wait).filter((w) => w != null), mean = waits.reduce((a, b) => a + b, 0) / waits.length;
+  const rows = Object.entries(byK).map(([k, cs]) => { const w = cs.filter((c) => c.wait != null).map((c) => c.wait); return { k, n: cs.length, wait: w.reduce((a, b) => a + b, 0) / w.length }; });
+  const bins = binsFor(D.centres.map((c) => c.wait).filter((w) => w != null));
+  el.innerHTML = `<h2>Network of screening centres</h2>
+    <p class="head">The scraped list has <b>${D.centres.length}</b> screening centres. The mean booking wait is <b>${nf(mean, 1)} days</b>, with a range from ${Math.min(...waits)} to ${Math.max(...waits)} days. Longest mean wait by kraj: <b>${esc(rows.slice().sort((a, b) => b.wait - a.wait)[0].k)}</b> (${nf(rows.slice().sort((a, b) => b.wait - a.wait)[0].wait, 1)} days).</p>
+    <div class="main"><div class="card"><div data-map></div><div class="legend" data-legend></div></div>
+    <div class="card"><div class="list" style="max-height:none" data-list></div></div></div>`;
+  const m = makeMap($("[data-map]", el), () => {}, () => {}); m.paths.forEach((p) => { p.style.fill = "var(--nodata)"; p.style.cursor = "default"; });
+  D.centres.forEach((c) => { const t = document.createElementNS(NS, "circle");
+    t.setAttribute("cx", c.x); t.setAttribute("cy", c.y); t.setAttribute("r", 2.3 + (c.wait ?? 0) / 14); t.setAttribute("class", "pt");
+    t.style.fillOpacity = ".8"; t.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(c.city)}</b><br>${esc(c.name)}<br>wait: ${c.wait ?? "n/a"} days`)); t.addEventListener("pointerleave", hideTip); m.svg.appendChild(t); });
+  $("[data-legend]", el).innerHTML = `<span><i class="dot"></i>centre, circle size grows with booking wait</span>`;
+  const max = Math.max(...rows.map((r) => r.wait));
+  $("[data-list]", el).innerHTML = `<h3>By kraj of the centre</h3><div class="row net" style="color:var(--muted);font-size:11px"><span></span><span>#</span><span>Mean wait, days</span><span></span></div>` +
+    rows.sort((a, b) => b.wait - a.wait).map((r) => `<div class="row net"><span class="nm">${esc(r.k)}</span><span class="v">${r.n}</span><span class="tr"><i style="width:${100 * r.wait / max}%;background:var(--s4)"></i></span><span class="v">${nf(r.wait, 0)}</span></div>`).join("") +
+    `<div class="row net ref"><span class="nm">Czechia</span><span class="v">${D.centres.length}</span><span></span><span class="v">${nf(mean, 0)}</span></div>`;
+  return { el, s: { render() {} } };
+}
+
+// ---------- access vs response scatter ----------
+function scatterSection() {
+  const el = document.createElement("section"); el.id = "rel";
+  el.innerHTML = `<h2>Does access explain response?</h2><p class="head" data-h></p>
+    <div class="card"><div class="tools"><div class="grp"><span>Compare response with</span><div class="seg" data-x>
+      <button data-k="dist" aria-pressed="true">Distance to centre</button><button data-k="wait" aria-pressed="false">Booking wait</button><button data-k="imm" aria-pressed="false">Share of foreign women 40+</button></div></div></div>
+    <svg viewBox="0 0 720 380" role="img" aria-label="Scatter of district response against access" data-svg></svg>
+    <p class="rcap">Each dot is a district, sized by invitations. Line: least squares fit. Associations at district level do not show that distance or waiting time cause lower response.</p></div>`;
+  let k = "dist";
+  const info = { dist: ["Distance to nearest centre, km", 1], wait: ["Mean booking wait of 3 nearest centres, days", 1], imm: ["Foreign women aged 40+, % of women aged 40+", 1] };
+  const xv = (a) => (k === "imm" ? 100 * a.forn / a.pop24 : a[k]);
+  function render() {
+    const pts = withData.filter((a) => xv(a) != null).map((a) => ({ a, x: xv(a), y: 100 * a.p[st.w] / a.n }));
+    const n = pts.length, mx = pts.reduce((t, p) => t + p.x, 0) / n, my = pts.reduce((t, p) => t + p.y, 0) / n;
+    const sxy = pts.reduce((t, p) => t + (p.x - mx) * (p.y - my), 0), sxx = pts.reduce((t, p) => t + (p.x - mx) ** 2, 0), syy = pts.reduce((t, p) => t + (p.y - my) ** 2, 0);
+    const slope = sxy / sxx, icpt = my - slope * mx, r = sxy / Math.sqrt(sxx * syy);
+    const X0 = 56, X1 = 700, Y0 = 340, Y1 = 14, xmax = Math.ceil(Math.max(...pts.map((p) => p.x)) / 5) * 5, ymin = Math.floor(Math.min(...pts.map((p) => p.y)) / 2) * 2, ymax = Math.ceil(Math.max(...pts.map((p) => p.y)) / 2) * 2;
+    const sx = (v) => X0 + (v / xmax) * (X1 - X0), sy = (v) => Y0 - ((v - ymin) / (ymax - ymin)) * (Y0 - Y1), nmax = Math.max(...pts.map((p) => p.a.n));
+    let g = `<g class="axis">`;
+    for (let v = ymin; v <= ymax; v += 2) g += `<line x1="${X0}" x2="${X1}" y1="${sy(v)}" y2="${sy(v)}"></line><text x="${X0 - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+    const xs = xmax <= 10 ? 1 : xmax <= 40 ? 5 : 10; for (let v = 0; v <= xmax; v += xs) g += `<text x="${sx(v)}" y="${Y0 + 18}" text-anchor="middle">${v}</text>`;
+    g += `<text x="${(X0 + X1) / 2}" y="${Y0 + 38}" text-anchor="middle">${info[k][0]}</text><text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">Response within ${W[st.w]}, %</text></g>`;
+    g += pts.map((p, i) => `<circle class="dotp" data-i="${i}" cx="${sx(p.x)}" cy="${sy(p.y)}" r="${3 + 8 * Math.sqrt(p.a.n / nmax)}"></circle>`).join("");
+    g += `<line class="reg" x1="${sx(0)}" y1="${sy(Math.max(ymin, Math.min(ymax, icpt)))}" x2="${sx(xmax)}" y2="${sy(Math.max(ymin, Math.min(ymax, icpt + slope * xmax)))}"></line>`;
+    const svg = $("[data-svg]", el); svg.innerHTML = g;
+    svg.querySelectorAll("circle").forEach((c) => { const p = pts[+c.dataset.i]; c.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(p.a.name)}</b><br>${nf(p.x, 1)} ${k === "dist" ? "km" : k === "wait" ? "days" : "%"}<br>response ${nf(p.y, 1)} %`)); c.addEventListener("pointerleave", hideTip); });
+    const u10 = { dist: ["10 km", 10], wait: ["10 days", 10], imm: ["5 percentage points", 5] }[k];
+    const per = `each ${u10[0]} ${k === "imm" ? "more" : "further"} is ${nf(Math.abs(slope * u10[1]), 1)} pp ${slope < 0 ? "lower" : "higher"}`;
+    $("[data-h]", el).innerHTML = `Across <b>${n}</b> districts the correlation between ${{ dist: "distance to the nearest centre", wait: "booking wait", imm: "the share of foreign women aged 40+" }[k]} and response is <b>r = ${r.toFixed(2)}</b>; on the fitted line ${per}.`;
+  }
+  el.querySelectorAll("[data-x] button").forEach((b) => b.addEventListener("click", () => { k = b.dataset.k; el.querySelectorAll("[data-x] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); }));
+  return { el, s: { render } };
+}
+
+// ---------- who responds ----------
+function whoSection() {
+  const el = document.createElement("section"); el.id = "who";
+  el.innerHTML = `<h2>Who responds</h2><p class="head" data-h></p>
+    <div class="card"><div class="tools"><div class="grp"><span>Break down by</span><div class="seg" data-d><button data-k="age" aria-pressed="true">Age band</button><button data-k="order" aria-pressed="false">Invitation order</button><button data-k="year" aria-pressed="false">Year</button></div></div>
+    <div class="grp"><span>Area</span><select id="whoKraj" aria-label="Kraj"><option value="ALL">Czechia</option>${D.meta.kraje.map((k) => `<option>${esc(k)}</option>`).join("")}</select></div></div>
+    <div class="list" style="max-height:none" data-list></div></div>`;
+  let dim = "age";
+  const sel = $("#whoKraj", el);
+  const pr = (r) => 100 * r.p[st.w] / r.n;
+  function render() {
+    const rows = D.who[dim][sel.value], max = Math.max(...rows.map(pr));
+    const hi = rows.reduce((a, b) => (pr(b) > pr(a) ? b : a)), lo = rows.reduce((a, b) => (pr(b) < pr(a) ? b : a));
+    const dn = { age: "age band", order: "invitation order", year: "year" }[dim];
+    $("[data-h]", el).innerHTML = `By ${dn}, response within ${W[st.w]} in ${sel.value === "ALL" ? "Czechia" : esc(sel.value)} is highest for <b>${esc(hi.k)}</b> (${nf(pr(hi), 1)} %) and lowest for <b>${esc(lo.k)}</b> (${nf(pr(lo), 1)} %).`;
+    $("[data-list]", el).innerHTML = `<h3>Response, % · invitations</h3>` + rows.map((r) => `<div class="row plain"><span class="nm">${esc(r.k)} <span style="color:var(--muted);font-size:11px">· ${nf(r.n)}</span></span><span class="tr"><i style="width:${100 * pr(r) / max}%;background:var(--s4)"></i></span><span class="v">${nf(pr(r), 1)}</span></div>`).join("");
+  }
+  el.querySelectorAll("[data-d] button").forEach((b) => b.addEventListener("click", () => { dim = b.dataset.k; el.querySelectorAll("[data-d] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); }));
+  sel.addEventListener("change", render);
+  return { el, s: { render } };
+}
+
+
+// ---------- page ----------
+$("#kpis").innerHTML = [[nf(D.meta.rows), "invitations, 2020–2024"], [nf(D.meta.women), "women invited"], [D.meta.centres, "screening centres (mamo.cz)"], [nf(100 * nat.p[0] / nat.n, 1) + " %", "respond within 3 months"], [nf(100 * nat.p[2] / nat.n, 1) + " %", "respond within 12 months"]]
+  .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
+$("#scr").textContent = D.meta.scraped;
+const secs = [indicatorSection(IND[0]), indicatorSection(IND[1]), indicatorSection(IND[2]), networkSection(), scatterSection(), whoSection(), indicatorSection(IND[3]), indicatorSection(IND[4]), indicatorSection(IND[5])];
+const titles = ["Response", "Distance", "Waiting time", "Centres", "Access vs response", "Who responds", "Volume", "Citizenship", "Immigration"];
+secs.forEach((x) => $("#sections").appendChild(x.el));
+$("#nav").innerHTML = titles.map((t, i) => `<button data-i="${i}">${t}</button>`).join("");
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) secs[+b.dataset.i].el.scrollIntoView({ behavior: "smooth" }); });
+const renderAll = () => secs.forEach((x) => x.s.render());
+function bindSeg(id, attr, fn) { document.querySelectorAll(`${id} button`).forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(`${id} button`).forEach((x) => x.setAttribute("aria-pressed", x === b)); fn(b.dataset[attr]); })); }
+bindSeg("#lvlSeg", "l", (v) => { st.l = v; renderAll(); });
+bindSeg("#winSeg", "w", (v) => { st.w = +v; renderAll(); });
+$("#themeBtn").addEventListener("click", () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; });
+renderAll();
+</script>
