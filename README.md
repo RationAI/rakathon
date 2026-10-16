@@ -48,6 +48,8 @@ rakathon/
 │   └── validate_split.py       checks the split files
 └── training/                   models
     ├── baseline/               sklearn baselines (gradient boosting, logistic regression, compare.py)
+    ├── per_group_experts/      one model per group (age, first invitation, ...) vs the global model;
+    │                           experts.py -> results/*.csv, report.ipynb / report.md presents them
     ├── ml/                     PyTorch Lightning package (template)
     └── configs/                Hydra configs for ml/
 ```

@@ -13,6 +13,8 @@ Built by Adam Kukučka's agent. The raw CSV is never modified; derived data goes
 - 10 `SPATIAL_*` area features + 2 missing flags,
 - `LIN_*` linear-model columns: age dummies, sequence buckets, "any" flags, median-filled copies of NaN columns.
 
+**Bug fixed (2026-10-16):** `prepare_data.py` used to write `INVITATION_DATE` from a copy taken before re-sorting the rows, so 95.8% of rows got another row's date. Fixed; verified 100% match with the raw file. Any `Rakhaton2026_prepared.csv` built before this fix has wrong dates and must be rebuilt (`preprocessing/pipeline.py`).
+
 **Decision:** for the 52 women whose first row has `INVITATION_SEQUENCE`=2, the sequence is shifted down by 1 so it starts at 1 (Adam Kukučka's call). This changes `INVITATION_COUNT_DIFF` from 0 to 1 for them.
 
 **Spatial pipeline** (`features/spatial/01_scrape_centers.py`, `02_geocode_areas.py`, `03_add_spatial_features.py`; see `features/spatial/README.md`) produces `data/mamo_centers.csv`, `data/area_coordinates.csv`, `data/area_spatial_features.csv`, `data/Rakhaton2026_spatial.csv`. Values are per VZP territorial area (no per-woman variation), use straight-line distance, and are a snapshot of today's centre list and waiting times (not historical).
