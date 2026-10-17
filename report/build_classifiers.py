@@ -1,4 +1,4 @@
-"""Build exploration/classifiers.html: the predictive models, segments, interventions and experiment.
+"""Build report/classifiers.html: the predictive models, segments, interventions and experiment.
 
 Companion to exploration.html (same style and navigation). Collects the saved results of
 training/classifiers (explain/, ablation/), training/per_group_experts and the segment

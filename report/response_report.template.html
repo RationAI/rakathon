@@ -12,12 +12,6 @@
   --t1: #7e170d; --t2: #5a1209; --t3: #2b0d09; --t4: #ffffff; --t5: #ffffff;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
-  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
-  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark;
-  --dv1: #c9ced8; --dv2: #5b6270; --dv3: #4a3d3a; --dv4: #6e241b; --dv5: #e0584a;
-  --t1: #ffd9d3; --t2: #ffe6e2; --t3: #ffffff; --t4: #2b0d09; --t5: #2b0d09; } }
 :root[data-theme="dark"] {
   --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
   --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
@@ -124,7 +118,7 @@ path.a.cmp { stroke: var(--pt); stroke-width: 1.8; stroke-dasharray: 3 2; }
 .legendline { stroke-width: 2; fill: none; }
 .note { color: var(--muted); font-size: 12px; max-width: 90ch; }
 footer { padding-block: 40px 56px; }
-/* Shared top navigation across the three report pages */
+/* Shared top navigation across the four report pages */
 .site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
 .site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
 .site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
@@ -133,7 +127,7 @@ footer { padding-block: 40px 56px; }
 </style>
 
 <div class="wrap">
-  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html" aria-current="page">Regional report</a><a href="classifiers.html">Predictive models</a></nav>
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html" aria-current="page">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html">Evidence &amp; tests</a></nav>
   <header class="hero">
     <h1>Regional evaluation of mammography screening response</h1>
     <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data. Click any district or region to follow it through every section, shift-click a second one to compare, press Esc to clear.</p>
@@ -168,7 +162,7 @@ footer { padding-block: 40px 56px; }
   </div>
 
   <div id="sections"></div>
-  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the invitation data, so they are grey on invitation-based maps; the distance, waiting-time, immigration and citizenship maps include them (for these two districts, distance and waits are estimated from the district centroid). Region values on those maps are weighted by women, not invitations.</p></footer>
+  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by report/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the invitation data, so they are grey on invitation-based maps; the distance, waiting-time, immigration and citizenship maps include them (for these two districts, distance and waits are estimated from the district centroid). Region values on those maps are weighted by women, not invitations.</p></footer>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -606,6 +600,6 @@ function bindSeg(id, attr, fn) { document.querySelectorAll(`${id} button`).forEa
   document.querySelectorAll(`${id} button`).forEach((x) => x.setAttribute("aria-pressed", x === b)); fn(b.dataset[attr]); })); }
 bindSeg("#lvlSeg", "l", (v) => { st.l = v; renderAll(); });
 bindSeg("#winSeg", "w", (v) => { st.w = +v; renderAll(); });
-$("#themeBtn").addEventListener("click", () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; });
+$("#themeBtn").addEventListener("click", () => { const r = document.documentElement, dark = r.dataset.theme === "dark"; r.dataset.theme = dark ? "light" : "dark"; });
 renderAll();
 </script>

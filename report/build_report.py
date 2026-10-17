@@ -1,4 +1,4 @@
-"""Build exploration/response_report.html: regional evaluation of invitation response, in the style of the NSC
+"""Build report/response_report.html: regional evaluation of invitation response, in the style of the NSC
 'Regionální hodnocení dostupnosti mamografického screeningu' slides (kraj bar chart + okres map per indicator).
 
 Run: uv run python build_report.py
@@ -13,6 +13,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 
 DATA = Path(__file__).resolve().parents[1] / "data"
 HERE = Path(__file__).parent

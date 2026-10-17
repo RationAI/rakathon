@@ -1,4 +1,4 @@
-"""Build exploration/exploration.html: the whole exploration as one interactive page.
+"""Build report/exploration.html: the whole exploration as one interactive page.
 
 Same approach and style as build_report.py: every number is computed
 here from the prepared data and embedded into exploration.template.html, so the page is
