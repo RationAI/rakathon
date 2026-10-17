@@ -1,19 +1,21 @@
 """Invitation planner: a small local web app over the predictive model and the segments.
 
-A manager selects women (by region, district, age band, segment, predicted chance, or a
-pasted list of PERSON_IDs). For each woman the app shows her predicted chance of screening
+A manager selects women (by mailing batch, region, district, age band, segment, predicted chance,
+or a pasted list of PERSON_IDs). For each woman the app shows her predicted chance of screening
 within 3 and 12 months, her segment (segmentation/segments.py) and the intervention and A/B
-tests proposed for it (report/evidence.json), and exports the selection as an action list.
+tests proposed for it (report/evidence.json), and exports the selection as an action list, optionally
+split 50/50 into A/B arms within each segment for a pilot. A guided demo (button "Demo", or #demo in
+the URL) walks through one real monthly mailing batch.
 
 Data source: today our CSV (data/Rakhaton2026_prepared.csv); each woman is represented by her
 latest invitation in it. In production, ``load_women`` is the one place to replace with a query
 to VZP's data, returning the same columns as of the planned mailing date.
 
 Model: gradient boosting on the 19 raw attributes (training/classifiers), one model per label,
-fitted on the train split on first start and cached in app/model.joblib (delete it to refit).
+fitted on the train split on first start and cached in predictor_ui/model.joblib (delete it to refit).
 Women from the train split are scored in-sample, so their chances are slightly optimistic.
 
-Run: uv run python server.py   (from app/), then open http://127.0.0.1:8000
+Run: uv run python server.py   (from predictor_ui/), then open http://127.0.0.1:8000
 """
 
 import io
@@ -64,7 +66,7 @@ def fit_or_load() -> dict:
 
 def load_women() -> pd.DataFrame:
     """One row per woman with the model's inputs. Replace with the VZP query in production."""
-    cols = ["PERSON_ID", "INVITATION_ID", "INVITATION_DATE", "KRAJ", *FEATURES, *COLUMNS]
+    cols = ["PERSON_ID", "INVITATION_ID", "INVITATION_DATE", "KRAJ", *FEATURES, *COLUMNS, "SCREENING_12M_FLAG"]
     df = pd.read_csv(ROOT / "data" / "Rakhaton2026_prepared.csv", usecols=list(dict.fromkeys(cols)),
                      dtype={"INVITATION_ID": str, "PERSON_ID": str}, keep_default_na=False, na_values=[""])
     df = df.sort_values(["PERSON_ID", "INVITATION_DATE", "INVITATION_ID"])
@@ -77,6 +79,7 @@ def score(df: pd.DataFrame, bundle: dict) -> pd.DataFrame:
     for key, model in bundle["models"].items():
         out[key] = model.predict_proba(x)[:, 1]
     out["segment"] = assign(df).astype(str)
+    out["y12"] = df.SCREENING_12M_FLAG  # what actually happened (historical data, for the demo only)
     # not due yet: suggest a date ~24 months after her last screen
     last = pd.to_datetime(df.INVITATION_DATE) - pd.to_timedelta(df.MONTHS_SINCE_LAST_SCREEN * 30.44, unit="D")
     due = (last + pd.to_timedelta(DUE_MONTHS * 30.44, unit="D")).dt.strftime("%Y-%m")
@@ -97,6 +100,8 @@ OPTIONS = {
                   "intervention": INTERVENTIONS[s], "barrier": BARRIERS[s][0],
                   "tests": [TEST_NAMES[t] for t in BARRIERS[s][1]]} for s, rule in SEGMENTS.items()],
     "women": len(WOMEN),
+    # monthly mailing batches of the last year: every 2024 invitation is its woman's latest, so these are whole batches
+    "batches": WOMEN[WOMEN.INVITATION_DATE >= "2024"].INVITATION_DATE.value_counts().sort_index().to_dict(),
 }
 print(f"Ready: {len(WOMEN):,} women. Open http://127.0.0.1:{PORT}", flush=True)
 
@@ -106,14 +111,14 @@ print(f"Ready: {len(WOMEN):,} women. Open http://127.0.0.1:{PORT}", flush=True)
 
 def select(q: dict) -> pd.DataFrame:
     ids = [i.strip() for i in q.get("ids", "").replace(",", "\n").split() if i.strip()]
-    lists = ["kraje", "areas", "ages", "segments"]
+    lists = ["batches", "kraje", "areas", "ages", "segments"]
     narrowed = q.get("min", 0) > 0 or q.get("max", 100) < 100
     if not (q.get("all") or ids or narrowed or any(q.get(k) for k in lists)):
         return WOMEN.iloc[:0]  # nothing chosen yet: select no-one
     keep = pd.Series(True, index=WOMEN.index)
     if ids:
         keep &= WOMEN.PERSON_ID.isin(ids)
-    for key, col in [("kraje", "KRAJ"), ("areas", "VZP_TERRITORIAL_AREA"), ("ages", "AGE_BAND"), ("segments", "segment")]:
+    for key, col in [("batches", "INVITATION_DATE"), ("kraje", "KRAJ"), ("areas", "VZP_TERRITORIAL_AREA"), ("ages", "AGE_BAND"), ("segments", "segment")]:
         if q.get(key):
             keep &= WOMEN[col].isin(q[key])
     keep &= WOMEN.p12.between(q.get("min", 0) / 100, q.get("max", 100) / 100)
@@ -121,11 +126,13 @@ def select(q: dict) -> pd.DataFrame:
 
 
 def summary(sel: pd.DataFrame) -> dict:
-    by = sel.groupby("segment").agg(n=("p12", "size"), p12=("p12", "mean"), p3=("p3", "mean"))
+    by = sel.groupby("segment").agg(n=("p12", "size"), p12=("p12", "mean"), p3=("p3", "mean"), a12=("y12", "mean"))
     hist = {k: np.histogram(sel[k], bins=20, range=(0, 1))[0].tolist() for k in ("p3", "p12")}  # 5 pp bins
     return {"n": len(sel), "expected": float(sel.p12.sum()), "p12": float(sel.p12.mean()) if len(sel) else None,
             "p3": float(sel.p3.mean()) if len(sel) else None, "hist": hist,
-            "segments": [{"k": k, "n": int(r.n), "p12": float(r.p12), "p3": float(r.p3)} for k, r in by.iterrows()]}
+            "actual": float(sel.y12.mean()) if len(sel) else None,
+            "segments": [{"k": k, "n": int(r.n), "p12": float(r.p12), "p3": float(r.p3), "a12": float(r.a12)}
+                         for k, r in by.iterrows()]}
 
 
 def page(sel: pd.DataFrame, q: dict) -> list[dict]:
@@ -138,7 +145,17 @@ def page(sel: pd.DataFrame, q: dict) -> list[dict]:
             for r in rows.itertuples()]
 
 
-def export(sel: pd.DataFrame) -> bytes:
+def arms(sel: pd.DataFrame) -> pd.Series:
+    """A/B arm per woman: within each segment, a fixed pseudo-random order (hash of PERSON_ID) split 50/50."""
+    order = pd.Series(pd.util.hash_pandas_object(sel.PERSON_ID, index=False).to_numpy(), index=sel.index)
+    rank = order.groupby(sel.segment).rank(method="first")
+    return pd.Series(np.where(rank % 2 == 0, "B intervention", "A control (standard letter)"), index=sel.index)
+
+
+def export(sel: pd.DataFrame, with_arms: bool = False) -> bytes:
+    sel = sel.drop(columns="y12")
+    if with_arms:
+        sel = sel.assign(AB_ARM=arms(sel))
     out = sel.sort_values("p12").assign(
         intervention=lambda d: d.segment.map(INTERVENTIONS),
         tests=lambda d: d.segment.map(lambda s: "; ".join(TEST_NAMES[t] for t in BARRIERS[s][1])),
@@ -184,7 +201,7 @@ class Handler(BaseHTTPRequestHandler):
             body = {**summary(sel), "rows": page(sel, q), "page_size": PAGE_SIZE}
             self.send(json.dumps(body, ensure_ascii=False).encode("utf-8"), "application/json")
         elif self.path == "/api/export":
-            self.send(export(sel), "text/csv; charset=utf-8",
+            self.send(export(sel, bool(q.get("arms"))), "text/csv; charset=utf-8",
                       {"Content-Disposition": 'attachment; filename="action_list.csv"'})
         else:
             self.send_error(404)

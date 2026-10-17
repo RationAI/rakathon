@@ -35,12 +35,30 @@ table.t th.sort[aria-sort="descending"]::after { content: " ↓"; }
 table.t td.iv { font-size: 12px; max-width: 280px; }
 .pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 10px; font-size: 12px; color: var(--muted); }
 #status { font-size: 12px; color: var(--muted); }
+label.chk { font-size: 13px; display: inline-flex; gap: 6px; align-items: center; margin-left: 8px; }
+/* guided demo: a fixed side panel on wide screens, inline on narrow ones */
+.demo { position: fixed; top: 12px; right: 12px; bottom: 12px; width: 390px; overflow: auto; z-index: 30; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, .12); }
+body.demo-open { padding-right: 420px; }
+@media (max-width: 1100px) { .demo { position: static; width: auto; box-shadow: none; margin-top: 16px; } body.demo-open { padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+.demo h2 { font-size: 22px; color: var(--accent); text-transform: none; }
+.demo .ctx { font-size: 13px; color: var(--muted); margin: 8px 0 12px; }
+.demo ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; counter-reset: d; }
+.demo li { counter-increment: d; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.demo li[aria-current="step"] { border-left-color: var(--accent); background: var(--band); }
+.demo li h4 { margin: 0 0 4px; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
+.demo li h4::before { content: counter(d); font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.demo li p { margin: 0; font-size: 13px; }
+.demo li b { font-family: var(--mono); font-weight: 500; }
+.demo .nav2 { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav class="site" aria-label="App"><b>Rakathon 2026 · screening invitations</b><a aria-current="page">Invitation planner</a>
-    <span style="margin-left:auto" class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></span></nav>
+    <span style="margin-left:auto"></span><button class="btn" id="demoBtn" aria-pressed="false">Demo: a real mailing batch</button>
+    <span class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></span></nav>
+  <aside class="demo" id="demo" hidden aria-label="Guided demo"></aside>
   <header class="hero">
     <h1>Invitation planner</h1>
     <p class="lede">Select women to invite. Each one gets her predicted chance of screening (gradient boosting, test ROC AUC 0.84), her segment and the intervention proposed for it, with the A/B tests that would verify it. Export the selection as an action list.</p>
@@ -50,7 +68,8 @@ table.t td.iv { font-size: 12px; max-width: 280px; }
   <div class="card">
     <h3 class="cap">Select women</h3>
     <div class="filters">
-      <div class="f"><span>Region</span><div class="chips" id="fKraj"></div></div>
+      <div class="f"><span>Mailing batch (2024)</span><select id="fBatch" aria-label="Mailing batch"><option value="">Any batch</option></select>
+        <span style="margin-top:14px">Region</span><div class="chips" id="fKraj"></div></div>
       <div class="f"><span>District</span><select id="fArea" aria-label="District"><option value="">All districts</option></select>
         <span style="margin-top:14px">Age band</span><div class="chips" id="fAge"></div></div>
       <div class="f"><span>Predicted chance of screening in 12 months, %</span>
@@ -61,7 +80,8 @@ table.t td.iv { font-size: 12px; max-width: 280px; }
     </div>
     <div class="actions">
       <button class="btn primary" id="apply">Apply</button><button class="btn" id="all" aria-pressed="false">All women</button><button class="btn" id="reset">Reset</button>
-      <button class="btn" id="export">Export action list (CSV)</button><span id="status"></span>
+      <button class="btn" id="export">Export action list (CSV)</button>
+      <label class="chk"><input type="checkbox" id="arms"> split into A/B arms (50/50 within each segment)</label><span id="status"></span>
     </div>
   </div>
 
@@ -94,7 +114,7 @@ const $ = (s) => document.querySelector(s);
 const num = (v) => v.toLocaleString("en-US");
 const pct = (v, d = 1) => (v == null ? "–" : (100 * v).toFixed(d) + " %");
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
-const st = { kraje: [], areas: [], ages: [], segments: [], min: 0, max: 100, ids: "", all: false, sort: "chance", desc: false, page: 0 };
+const st = { batches: [], kraje: [], areas: [], ages: [], segments: [], min: 0, max: 100, ids: "", all: false, sort: "chance", desc: false, page: 0 };
 let O, SEG = {}, last = null, hk = "p12";
 const tip = document.getElementById("tip");
 const showTip = (e, html) => { tip.innerHTML = html; tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px"; tip.style.top = e.clientY + 14 + "px"; tip.style.opacity = 1; };
@@ -128,7 +148,8 @@ function drawHist() {
 
 function setAll(on) { st.all = on; $("#all").setAttribute("aria-pressed", on); }
 function clearFilters() {
-  Object.assign(st, { kraje: [], areas: [], ages: [], segments: [], page: 0 });
+  Object.assign(st, { batches: [], kraje: [], areas: [], ages: [], segments: [], page: 0 });
+  $("#fBatch").value = ""; $("#arms").checked = false;
   document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
   $("#fMin").value = 0; $("#fMax").value = 100; $("#fIds").value = ""; areaOptions();
 }
@@ -144,7 +165,7 @@ function areaOptions() {
   $("#fArea").innerHTML = `<option value="">All districts</option>` + areas.map((a) => `<option ${a === cur ? "selected" : ""}>${esc(a)}</option>`).join("");
   st.areas = areas.includes(cur) && cur ? [cur] : [];
 }
-function query() { return { ...st, min: +$("#fMin").value, max: +$("#fMax").value, ids: $("#fIds").value }; }
+function query() { return { ...st, min: +$("#fMin").value, max: +$("#fMax").value, ids: $("#fIds").value, arms: $("#arms").checked }; }
 async function post(url, body) { return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); }
 
 async function run() {
@@ -163,8 +184,8 @@ async function run() {
       <p class="iv">${esc(s.intervention)}</p><p>${esc(s.barrier)}</p>
       <div class="tests">${s.tests.map((t) => `<span>A/B: ${esc(t)}</span>`).join("")}</div></div>`; }).join("");
   const pages = Math.max(1, Math.ceil(r.n / r.page_size));
-  const empty = !r.n && !(st.all || st.kraje.length || st.areas.length || st.ages.length || st.segments.length || $("#fIds").value.trim() || +$("#fMin").value > 0 || +$("#fMax").value < 100);
-  $("#womenHead").innerHTML = empty ? "No-one is selected yet. Choose a region, district, age band, chance range or segment, paste PERSON_IDs, or click <b>All women</b>." : !r.n ? "No women match the selection." : `Sorted by ${{ chance: "predicted chance", id: "PERSON_ID", segment: "segment", area: "district" }[st.sort]}${st.desc ? ", descending" : ""}. Lowest chance first = highest risk of not coming.`;
+  const empty = !r.n && !(st.all || st.batches.length || st.kraje.length || st.areas.length || st.ages.length || st.segments.length || $("#fIds").value.trim() || +$("#fMin").value > 0 || +$("#fMax").value < 100);
+  $("#womenHead").innerHTML = empty ? "No-one is selected yet. Choose a mailing batch, region, district, age band, chance range or segment, paste PERSON_IDs, or click <b>All women</b>." : !r.n ? "No women match the selection." : `Sorted by ${{ chance: "predicted chance", id: "PERSON_ID", segment: "segment", area: "district" }[st.sort]}${st.desc ? ", descending" : ""}. Lowest chance first = highest risk of not coming.`;
   const th = (k, l) => `<th class="sort" data-s="${k}" ${st.sort === k ? `aria-sort="${st.desc ? "descending" : "ascending"}"` : ""}>${l}</th>`;
   $("#tbl").innerHTML = `<tr>${th("id", "PERSON_ID")}${th("area", "District")}<th>Age</th>${th("segment", "Segment")}<th>3 m</th>${th("chance", "12 m chance")}<th style="text-align:left">Intervention</th></tr>` +
     r.rows.map((w) => { const s = SEG[w.segment];
@@ -175,12 +196,74 @@ async function run() {
   $("#prev").disabled = st.page === 0; $("#next").disabled = st.page >= pages - 1; $("#export").disabled = !r.n;
 }
 
+// ---------- guided demo: one real monthly mailing batch, step by step ----------
+const DEMO_BATCH = "2024-05-20";
+let DM = null, step = -1;
+// women per arm to detect +d (two-sided 5 %, power 80 %), pooled-variance formula as on the Interventions & tests page
+const perArmNeeded = (p1, d = 0.02) => { const p2 = p1 + d, pb = (p1 + p2) / 2;
+  return Math.ceil((1.959964 * Math.sqrt(2 * pb * (1 - pb)) + 0.841621 * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2))) ** 2 / d ** 2); };
+async function openDemo() {
+  $("#demo").hidden = false; document.body.classList.add("demo-open"); $("#demoBtn").setAttribute("aria-pressed", "true");
+  if (!DM) { const b = O.batches[DEMO_BATCH] ? DEMO_BATCH : Object.entries(O.batches).sort((x, y) => y[1] - x[1])[0][0];
+    $("#demo").innerHTML = `<p class="note">Loading the batch…</p>`;
+    const r = await (await post("/api/select", { batches: [b] })).json();
+    DM = { b, r, seg: Object.fromEntries(r.segments.map((x) => [x.k, x])) }; }
+  renderDemo(); if (step < 0) showStep(0);
+}
+function closeDemo() { $("#demo").hidden = true; document.body.classList.remove("demo-open"); $("#demoBtn").setAttribute("aria-pressed", "false"); }
+function demoSteps() {
+  const { b, r } = DM, n = r.n, key = (L) => O.segments.find((x) => x.letter === L).k, sg = (L) => DM.seg[key(L)] || { n: 0, p12: 0, a12: 0 };
+  const A = sg("A"), C = sg("C"), Dd = sg("D"), E = sg("E"), G = sg("G"), H = sg("H");
+  const date = new Date(b).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const low = r.hist.p12[0] + r.hist.p12[1], cd = C.n + Dd.n, cdA = cd ? (C.a12 * C.n + Dd.a12 * Dd.n) / cd : 0;
+  const need = perArmNeeded(E.p12), arm = Math.floor(E.n / 2), months = Math.ceil(need / Math.max(1, arm));
+  return [
+    { t: "The batch as it is sent today", f: { batches: [b] },
+      p: `On ${date} VZP mailed <b>${num(n)}</b> invitations, the same letter to every woman in it: women not screened in the last two years, from first invitations to women re-invited about every 12 months because they have not come. The model expects <b>${num(Math.round(r.expected))}</b> of them (${pct(r.p12)}) to be screened within 12 months. What actually happened: <b>${pct(r.actual)}</b>.` },
+    { t: "Where the letter does not work", f: { batches: [b], max: 10 },
+      p: `<b>${num(low)}</b> women (${pct(low / n)}) have under 10 % chance of coming. Another identical letter will hardly move them; this is where a different channel can pay off. The histogram and the segment cards show who they are.` },
+    { t: "Don't send yet (segment A)", f: { batches: [b], segments: [key("A")] },
+      p: `<b>${num(A.n)}</b> letters went to women screened less than 24 months earlier, most of them in the month before the mailing: the record was not updated in time. Only ${pct(A.a12)} came. Check the records just before mailing and postpone; the table shows the date to invite instead.` },
+    { t: "Ask the gynaecologist (segment E)", f: { batches: [b], segments: [key("E")] },
+      p: `<b>${num(E.n)}</b> women see a gynaecologist for prevention but have had no mammogram in 5 years; ${pct(E.a12)} came after the letter. Send each gynaecologist the list of their patients, asking them to recommend screening at the next visit.` },
+    { t: "Remind at the due date (segments C, D)", f: { batches: [b], segments: [key("C"), key("D")] },
+      p: `<b>${num(cd)}</b> regular screeners who slipped past their date; ${pct(cdA)} came. A short reminder with a booking link around month 3, only to those who have not booked yet.` },
+    { t: "Change the channel (segments G, H)", f: { batches: [b], segments: [key("G"), key("H")] },
+      p: `<b>${num(H.n)}</b> women with no healthcare contact in a year (${pct(H.a12)} came): stop the letter and try a phone call or a navigator. <b>${num(G.n)}</b> more use healthcare but no prevention (${pct(G.a12)} came): a nudge by their GP or pharmacist.` },
+    { t: "Export and measure", f: { batches: [b], arms: true },
+      p: `Export the batch with <b>A/B arms</b> ticked: within each segment, half get the new intervention (B) and half the standard letter (A). After 12 months, the difference in screening between the arms is the measured effect. To detect +2 percentage points in segment E (5 % significance, 80 % power) needs <b>${num(need)}</b> women per arm; one batch gives ${num(arm)}, so run the pilot over <b>${months}</b> monthly batches.` },
+  ];
+}
+function renderDemo() {
+  const S = demoSteps();
+  $("#demo").innerHTML = `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h2>Demo: one mailing batch</h2><button class="btn" id="demoClose" aria-label="Close the demo">Close</button></div>
+    <p class="ctx">VZP mails invitations in monthly batches, about 20,000 letters each (12 batches in 2024), the same letter to everyone. Follow one real batch from our data through the planner. Click a step: the page selects those women.</p>
+    <ol>${S.map((x, i) => `<li data-i="${i}" ${i === step ? 'aria-current="step"' : ""}><h4>${x.t}</h4><p>${x.p}</p></li>`).join("")}</ol>
+    <div class="nav2"><button class="btn" data-go="-1" ${step <= 0 ? "disabled" : ""}>‹ Previous</button><button class="btn primary" data-go="1" ${step >= S.length - 1 ? "disabled" : ""}>Next step ›</button></div>
+    <p class="note" style="margin-top:12px">"What actually happened" uses the historical outcomes, which a real mailing would not know yet. Women from the model's training split are scored in-sample.</p>`;
+}
+function showStep(i) {
+  const S = demoSteps(); if (i < 0 || i >= S.length) return; step = i; const f = S[i].f;
+  clearFilters(); setAll(false);
+  st.batches = f.batches || []; st.segments = f.segments || []; $("#fBatch").value = st.batches[0] || "";
+  if (f.max != null) $("#fMax").value = f.max; $("#arms").checked = !!f.arms; st.sort = "chance"; st.desc = false;
+  renderDemo(); $("#demo li[aria-current]")?.scrollIntoView({ block: "nearest" }); run();
+}
+
 async function init() {
   O = await (await fetch("/api/options")).json();
   O.segments.forEach((s) => (SEG[s.k] = s));
   chips($("#fKraj"), O.kraje, "kraje", (k) => k.replace(" kraj", "").replace("Hlavní město ", "").replace("Kraj ", ""));
   chips($("#fAge"), O.ages, "ages");
   areaOptions();
+  const day = (d) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  $("#fBatch").innerHTML += Object.entries(O.batches).map(([d, n]) => `<option value="${d}">${day(d)} · ${num(n)} letters</option>`).join("");
+  $("#fBatch").addEventListener("change", (e) => { st.batches = e.target.value ? [e.target.value] : []; setAll(false); st.page = 0; run(); });
+  $("#demoBtn").addEventListener("click", () => ($("#demo").hidden ? openDemo() : closeDemo()));
+  $("#demo").addEventListener("click", (e) => { if (e.target.closest("#demoClose")) return closeDemo();
+    const nb = e.target.closest("[data-go]"); if (nb) return showStep(step + +nb.dataset.go);
+    const li = e.target.closest("li[data-i]"); if (li) showStep(+li.dataset.i); });
+  if (location.hash === "#demo") openDemo();
   $("#fArea").addEventListener("change", (e) => { st.areas = e.target.value ? [e.target.value] : []; setAll(false); st.page = 0; run(); });
   $("#apply").addEventListener("click", () => { setAll(false); st.page = 0; run(); });
   $("#reset").addEventListener("click", () => { clearFilters(); setAll(false); run(); });
