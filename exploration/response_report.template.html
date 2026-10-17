@@ -123,7 +123,7 @@ footer { padding-block: 40px 56px; }
   </div>
 
   <div id="sections"></div>
-  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the dataset.</p></footer>
+  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the invitation data, so they are grey on invitation-based maps; the distance, waiting-time, immigration and citizenship maps include them (for these two districts, distance and waits are estimated from the district centroid). Kraj values on those maps are weighted by women, not invitations.</p></footer>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -145,30 +145,45 @@ const kraje = {};
 withData.forEach((a) => (kraje[a.kraj] ||= { name: a.kraj, kraj: a.kraj, members: [] }).members.push(a));
 Object.values(kraje).forEach((k) => { k.n = k.members.reduce((t, a) => t + a.n, 0);
   k.p = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.p[w], 0));
+  k.ord = [0, 1, 2, 3, 4].map((o) => ({ n: k.members.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.ord[o].p[w], 0)) }));
+  k.wn = k.members.reduce((t, a) => t + a.wn, 0); k.wp = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.wp[w], 0));
   k.pop = k.members.reduce((t, a) => t + a.pop, 0); k.wall = k.members.reduce((t, a) => t + a.wall, 0); k.eth = Object.fromEntries(D.groups.map((g) => [g, k.members.reduce((t, a) => t + a.eth[g], 0)])); k.forn = k.members.reduce((t, a) => t + a.forn, 0); k.pop24 = k.members.reduce((t, a) => t + a.pop24, 0); k.dist = wmean(k.members, (a) => a.dist); k.wait = wmean(k.members, (a) => a.wait); });
-const nat = { name: "Czechia", wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
+const nat = { name: "Czechia", wn: withData.reduce((t, a) => t + a.wn, 0), wp: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.wp[w], 0)), ord: [0, 1, 2, 3, 4].map((o) => ({ n: withData.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.ord[o].p[w], 0)) })), wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
   dist: wmean(withData, (a) => a.dist), wait: wmean(withData, (a) => a.wait) };
+// external-data indicators (population, foreigners) cover every district, including Bruntál and Jeseník
+const wmean2 = (xs, f) => { let s = 0, w = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.wall; w += a.wall; } }); return w ? s / w : null; };  // weighted by women
+const krajeX = {};
+D.areas.forEach((a) => (krajeX[a.kraj2] ||= { name: a.kraj2, kraj2: a.kraj2, members: [] }).members.push(a));
+Object.values(krajeX).forEach((k) => { const sum = (f) => k.members.reduce((t, a) => t + f(a), 0);
+  k.dist = wmean2(k.members, (a) => a.dist); k.wait = wmean2(k.members, (a) => a.wait); k.n = kraje[k.name]?.n; k.p = kraje[k.name]?.p;
+  k.wall = sum((a) => a.wall); k.forn = sum((a) => a.forn); k.pop24 = sum((a) => a.pop24);
+  k.eth = Object.fromEntries(D.groups.map((g) => [g, sum((a) => a.eth[g])])); });
+const natX = { name: "Czechia", dist: wmean2(D.areas, (a) => a.dist), wait: wmean2(D.areas, (a) => a.wait), n: nat.n, p: nat.p, wall: D.areas.reduce((t, a) => t + a.wall, 0), forn: D.areas.reduce((t, a) => t + a.forn, 0), pop24: D.areas.reduce((t, a) => t + a.pop24, 0),
+  eth: Object.fromEntries(D.groups.map((g) => [g, D.areas.reduce((t, a) => t + a.eth[g], 0)])) };
 const unitOf = (a) => (st.l === "k" ? kraje[a.kraj] : a);
 
 // ---------- indicators ----------
 const IND = [
-  { id: "resp", nav: "Response", title: "Response to the invitation", unit: "%", dec: 1, val: (u) => (u.n ? 100 * u.p[st.w] / u.n : null),
-    what: () => `share of invitations followed by a screening within ${W[st.w]}` },
-  { id: "dist", nav: "Distance", title: "Distance to the nearest screening centre", unit: "km", dec: 1, val: (u) => u.dist, dots: true,
+  { id: "resp", nav: "Response", title: "Response to the invitation", unit: "%", dec: 1, val: (u) => { const c = cn(u); return c.n >= MIN_N ? 100 * c.p[st.w] / c.n : null; },
+    what: () => ro.woman ? `share of invited women with at least one screening within ${W[st.w]} of an invitation` : `share of ${ORD[ro.k].toLowerCase()} followed by a screening within ${W[st.w]}` },
+  { id: "dist", ext: true, nav: "Distance", title: "Distance to the nearest screening centre", unit: "km", dec: 1, val: (u) => u.dist, dots: true,
     what: () => "straight-line distance from the district point to the nearest centre" },
-  { id: "wait", nav: "Waiting time", title: "Booking wait at the nearest centres", unit: "days", dec: 1, val: (u) => u.wait, dots: true,
+  { id: "wait", ext: true, nav: "Waiting time", title: "Booking wait at the nearest centres", unit: "days", dec: 1, val: (u) => u.wait, dots: true,
     what: () => "mean booking wait of the three nearest centres" },
   { id: "vol", nav: "Volume", title: "Invitations and screenings", unit: "", get dec() { return vs.norm ? 1 : 0; },
     val: (u) => { const c = vs.what === "inv" ? u.n : u.p[st.w]; return vs.norm ? c / 5 / u.pop * 1000 : c; },
     lead: () => `Number of ${vs.what === "inv" ? "invitations" : `screenings within ${W[st.w]} of an invitation`} ${vs.norm ? "per 1,000 women aged 40+ per year" : "in 2020–2024"} in Czechia:` },
 ];
 const vs = { what: "inv", norm: true };
+const ro = { k: -1, woman: false }, MIN_N = 30;  // invitation order shown on the response map (-1 = all)
+const ORD = { "-1": "Invitations (mean of all)", 0: "1st invitations", 1: "2nd invitations", 2: "3rd invitations", 3: "4th invitations", 4: "5th and later invitations" };
+const cn = (u) => (ro.woman ? { n: u.wn, p: u.wp } : ro.k < 0 ? u : u.ord[ro.k]);  // counts for the selected invitation order
 const es = { g: "Ukraine", mode: "per1000" };
 const fwOf = (u) => D.groups.reduce((t, g) => t + u.eth[g], 0);
-IND.push({ id: "eth", nav: "Citizenship", title: "Citizenship groups of foreign women", unit: "", get dec() { return es.mode === "per1000" ? 1 : 1; },
+IND.push({ id: "eth", ext: true, nav: "Citizenship", title: "Citizenship groups of foreign women", unit: "", get dec() { return es.mode === "per1000" ? 1 : 1; },
   val: (u) => (es.mode === "per1000" ? 1000 * u.eth[es.g] / u.wall : 100 * u.eth[es.g] / fwOf(u)),
   lead: () => es.mode === "per1000" ? `Women with ${es.g === "Other" ? "other" : es.g} citizenship per 1,000 women of all ages in Czechia:` : `Share of foreign women with ${es.g === "Other" ? "other" : es.g} citizenship in Czechia:` });
-IND.push({ id: "imm", nav: "Immigration", title: "Immigration: foreign women aged 40+", unit: "%", dec: 1, val: (u) => 100 * u.forn / u.pop24,
+IND.push({ id: "imm", ext: true, nav: "Immigration", title: "Immigration: foreign women aged 40+", unit: "%", dec: 1, val: (u) => 100 * u.forn / u.pop24,
   lead: () => "Foreign nationals (immigrants) make up the following share of women aged 40+ in Czechia:" });
 const fmtV = (ind, v) => (v == null ? "–" : ind.id === "eth" ? nf(v, 1) + (es.mode === "share" ? " %" : "") : ind.id === "vol" ? nf(v, ind.dec) : nf(v, ind.dec) + (ind.unit === "%" ? " %" : " " + ind.unit));
 
@@ -196,7 +211,7 @@ function makeMap(host, onHover, onClick) {
 function indicatorSection(ind) {
   const s = { sel: null, hov: null };
   const el = document.createElement("section"); el.id = ind.id;
-  el.innerHTML = `<h2>${ind.title}</h2><p class="head" data-h></p>${ind.id === "eth" ? `<div class="tools"><div class="grp"><span>Citizenship</span><div class="seg" data-grp>${D.groups.map((g) => `<button data-v="${g}" aria-pressed="${g === es.g}">${g}</button>`).join("")}</div></div>
+  el.innerHTML = `<h2>${ind.title}</h2><p class="head" data-h></p>${ind.id === "resp" ? `<div class="tools"><div class="grp"><span>Count</span><div class="seg" data-unit><button data-v="inv" aria-pressed="true">Per invitation</button><button data-v="woman" aria-pressed="false">Per woman</button></div></div><div class="grp"><span>Invitation</span><select id="respOrd" aria-label="Invitation order"><option value="-1">All (mean)</option><option value="0">1st</option><option value="1">2nd</option><option value="2">3rd</option><option value="3">4th</option><option value="4">5th and later</option></select></div><span class="rcap" style="margin:0">Per woman counts each woman once: the share of invited women with at least one screening in the window. Invitation order then does not apply.</span></div>` : ""}${ind.id === "eth" ? `<div class="tools"><div class="grp"><span>Citizenship</span><div class="seg" data-grp>${D.groups.map((g) => `<button data-v="${g}" aria-pressed="${g === es.g}">${g}</button>`).join("")}</div></div>
       <div class="grp"><span>Measure</span><div class="seg" data-mode><button data-v="per1000" aria-pressed="true">Per 1,000 women</button><button data-v="share" aria-pressed="false">Share of foreign women</button></div></div></div>` : ""}${ind.id === "vol" ? `<div class="tools">
       <div class="grp"><span>Count</span><div class="seg" data-what><button data-v="inv" aria-pressed="true">Invitations</button><button data-v="scr" aria-pressed="false">Screenings</button></div></div>
       <div class="grp"><span>Scale</span><div class="seg" data-norm><button data-v="abs" aria-pressed="false">Absolute</button><button data-v="norm" aria-pressed="true">Per 1,000 women 40+</button></div></div></div>` : ""}
@@ -212,12 +227,16 @@ function indicatorSection(ind) {
   el.querySelectorAll("[data-grp] button, [data-mode] button").forEach((b) => b.addEventListener("click", () => {
     const g = b.parentElement; g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
     if ("grp" in g.dataset) es.g = b.dataset.v; else es.mode = b.dataset.v; s.render(); }));
+  el.querySelectorAll("[data-unit] button").forEach((b) => b.addEventListener("click", () => { el.querySelectorAll("[data-unit] button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    ro.woman = b.dataset.v === "woman"; if ($("#respOrd", el)) $("#respOrd", el).disabled = ro.woman; s.render(); }));
+  const ordSel = $("#respOrd", el); if (ordSel) ordSel.addEventListener("change", () => { ro.k = +ordSel.value; s.render(); });
   let bins, natV;
-  const items = () => (st.l === "k" ? Object.values(kraje) : withData);
-  const grp = (i) => (i == null ? [] : st.l === "k" ? D.areas.map((a, j) => (a.kraj && a.kraj === D.areas[i].kraj ? j : -1)).filter((j) => j >= 0) : [i]);
-  const label = (a) => (st.l === "k" ? a.kraj : a.name);
-  const tipHtml = (i) => { const a = D.areas[i]; if (!a.n) return `<b>${a.name}</b><br>no data`; const u = unitOf(a);
-    return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}<br>${nf(u.n)} invitations`; };
+  const unitFor = (a) => (ind.ext ? (st.l === "k" ? krajeX[a.kraj2] : a) : a.n ? unitOf(a) : null);
+  const items = () => (ind.ext ? (st.l === "k" ? Object.values(krajeX) : D.areas) : st.l === "k" ? Object.values(kraje) : withData);
+  const grp = (i) => (i == null ? [] : st.l === "k" ? D.areas.map((a, j) => (a.kraj2 && a.kraj2 === D.areas[i].kraj2 ? j : -1)).filter((j) => j >= 0) : [i]);
+  const label = (a) => (st.l === "k" ? a.kraj2 : a.name);
+  const tipHtml = (i) => { const a = D.areas[i], u = unitFor(a); if (!u) return `<b>${a.name}</b><br>no data`;
+    return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}${ind.ext ? "" : `<br>${nf(ind.id === "resp" ? cn(u).n : u.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}`; };
   function paint() {
     const h = new Set(grp(s.hov)), sl = new Set(grp(s.sel));
     D.areas.forEach((a, i) => { m.paths[i].classList.toggle("hov", h.has(i)); m.paths[i].classList.toggle("sel", sl.has(i)); if (h.has(i) || sl.has(i)) m.svg.insertBefore(m.paths[i], m.svg.querySelector("circle")); });
@@ -226,25 +245,26 @@ function indicatorSection(ind) {
   function detail() {
     const i = s.sel ?? s.hov, a = i == null ? null : D.areas[i], d = $("[data-detail]", el);
     if (!a) { d.innerHTML = `<div class="nm">Czechia overall</div><div class="kr">Hover or select an area</div><div class="big">${fmtV(ind, natV)}</div>`; return; }
-    if (!a.n) { d.innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP area for this district in the dataset.</div>`; return; }
-    const u = unitOf(a), v = ind.val(u), dv = ind.id === "vol" && !vs.norm ? null : v - natV;
-    const r = 100 * u.p[st.w] / u.n;
-    d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Kraj" : a.kraj} · ${nf(u.n)} invitations</div>
+    const u = unitFor(a);
+    if (!u) { d.innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP area for this district in the dataset.</div>`; return; }
+    const v = ind.val(u), dv = v == null || (ind.id === "vol" && !vs.norm) ? null : v - natV;
+    const c = ind.id === "resp" ? cn(u) : u, r = c.n ? 100 * c.p[st.w] / c.n : null;
+    d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Kraj" : a.kraj2} · ${ind.ext ? `${nf(u.wall)} women` : `${nf(c.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}</div>
       <div class="big">${fmtV(ind, v)} ${dv == null ? "" : `<small>${dv >= 0 ? "+" : "−"}${nf(Math.abs(dv), ind.dec)} vs. Czechia</small>`}</div>
-      ${ind.id === "resp" ? `<div class="kr">${[0, 1, 2].map((w) => `${W[w]}: ${nf(100 * u.p[w] / u.n, 1)} %`).join(" · ")}</div>` : `<div class="kr">Response (${W[st.w]}): ${nf(r, 1)} %</div>`}`;
+      ${ind.id === "resp" ? `<div class="kr">${v == null ? `too few cases` : [0, 1, 2].map((w) => `${W[w]}: ${nf(100 * c.p[w] / c.n, 1)} %`).join(" · ")}</div>` : r == null ? "" : `<div class="kr">Response (${W[st.w]}): ${nf(r, 1)} %</div>`}`;
   }
   s.render = () => {
     const its = items(), vals = its.map(ind.val).filter((v) => v != null);
     bins = binsFor(vals);
-    natV = ind.val(nat);
-    D.areas.forEach((a, i) => { const v = a.n ? ind.val(unitOf(a)) : null; m.paths[i].style.fill = v == null ? "var(--nodata)" : `var(--s${binOf(bins, v) + 1})`; });
+    natV = ind.val(ind.ext ? natX : nat);
+    D.areas.forEach((a, i) => { const u = unitFor(a), v = u ? ind.val(u) : null; m.paths[i].style.fill = v == null ? "var(--nodata)" : `var(--s${binOf(bins, v) + 1})`; });
     const dec = bins.step < 1 ? 1 : 0, fe = (x) => (ind.id === "vol" ? nf(x, dec) : x.toFixed(dec));
     $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${fe(b[0])}–${fe(b[1])}</span>`).join("") + `<span><i style="background:var(--nodata)"></i>no data</span>` + (ind.dots ? `<span><i class="dot"></i>screening centre</span>` : "");
     const ranked = its.filter((u) => ind.val(u) != null).sort((a, b) => ind.val(b) - ind.val(a)), hi = ranked[0], lo = ranked.at(-1);
     $("[data-h]", el).innerHTML = `${ind.lead ? ind.lead() : `The ${ind.what()} in Czechia is`} <b>${fmtV(ind, natV)}</b>. Highest in ${st.l === "k" ? "" : "the district of "}<b>${esc(hi.name)}</b> (${fmtV(ind, ind.val(hi))}), lowest in <b>${esc(lo.name)}</b> (${fmtV(ind, ind.val(lo))}).`;
     const max = ind.val(hi);
     $("[data-list]", el).innerHTML = `<h3>${st.l === "k" ? "Kraje" : "Districts"} ranked</h3>` + ranked.map((u, r) => { const v = ind.val(u);
-      const idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj === u.name) : D.areas.indexOf(u);
+      const idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj2 === u.name) : D.areas.indexOf(u);
       return `<div class="row" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${esc(u.name)}</span><span class="tr"><i style="width:${100 * v / max}%;background:var(--s${binOf(bins, v) + 1})"></i></span><span class="v">${nf(v, ind.dec)}</span></div>`; }).join("")
       + `<div class="row ref"><span></span><span class="nm">Czechia</span><span></span><span class="v">${nf(natV, ind.dec)}</span></div>`;
     el.querySelectorAll(".row[data-i]").forEach((r) => { const i = +r.dataset.i;

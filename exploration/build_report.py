@@ -11,6 +11,7 @@ import math
 import unicodedata
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 DATA = Path(__file__).resolve().parents[1] / "data"
@@ -36,10 +37,18 @@ P = ["p3", "p6", "p12"]
 
 spatial = pd.read_csv(DATA / "area_spatial_features.csv")
 spatial.index = [key(a) for a in spatial.VZP_TERRITORIAL_AREA]
+df["order"] = df.INVITATION_SEQUENCE.clip(upper=5)  # 1st .. 4th, 5th and later
+by_order = df.groupby(["VZP_TERRITORIAL_AREA", "order"])[P].sum().join(df.groupby(["VZP_TERRITORIAL_AREA", "order"]).size().rename("n"))
+# per woman: at least one screening within the window after any of her invitations
+per_woman = df.groupby("PERSON_ID").agg(area=("VZP_TERRITORIAL_AREA", "first"), **{c: (c, "max") for c in P})
+women = per_woman.groupby("area").agg(wn=("p3", "size"), **{f"w{m}": (f"p{m}", "sum") for m in (3, 6, 12)})
+women.index = [fix_key for fix_key in (key(i) for i in women.index)]
 agg = df.groupby("VZP_TERRITORIAL_AREA").agg(kraj=("KRAJ", "first"), n=("KRAJ", "size"), **{c: (c, "sum") for c in P})
 agg.index = [key(i) for i in agg.index]
 fix = {"PRAHA-HL.MESTO": "PRAHA", "OSTRAVA": "OSTRAVA-MESTO"}
 agg = agg.rename(index=fix)
+by_order.index = pd.MultiIndex.from_tuples([(fix.get(key(a), key(a)), o) for a, o in by_order.index])
+women = women.rename(index=fix)
 spatial = spatial.rename(index=fix)
 
 pop = pd.read_csv(DATA / "population" / "women40plus.csv")
@@ -55,6 +64,27 @@ wall = pd.read_csv(DATA / "population" / "women_all_ages.csv").query("year == 20
 KRAJ_OF_MISSING = {"Bruntál": "Moravskoslezský kraj", "Jeseník": "Olomoucký kraj"}  # not VZP areas in the data; map display only
 
 feats = json.load(open(DATA / "okresy.geojson"))["features"] + json.load(open(DATA / "praha.geojson"))["features"]
+centres = pd.read_csv(DATA / "mamo_centers.csv")
+cw = centres.dropna(subset=["lat", "lon", "wait_days_primary"])
+
+
+def centroid(ring: list) -> tuple[float, float]:
+    """Area centroid (shoelace) of a lon/lat ring."""
+    a = cx = cy = 0.0
+    for (x0, y0), (x1, y1) in zip(ring, ring[1:] + ring[:1]):
+        c = x0 * y1 - x1 * y0
+        a += c; cx += (x0 + x1) * c; cy += (y0 + y1) * c
+    return cx / (3 * a), cy / (3 * a)
+
+
+def centre_access(lon: float, lat: float) -> tuple[float, float]:
+    """Straight-line km to the nearest centre and mean booking wait of the 3 nearest (as in spatial/03)."""
+    la1, lo1, la2, lo2 = map(np.radians, (lat, lon, cw.lat.to_numpy(), cw.lon.to_numpy()))
+    d = 2 * 6371.0 * np.arcsin(np.sqrt(np.sin((la2 - la1) / 2) ** 2 + np.cos(la1) * np.cos(la2) * np.sin((lo2 - lo1) / 2) ** 2))
+    o = np.argsort(d)
+    return float(d[o[0]]), float(cw.wait_days_primary.to_numpy()[o[:3]].mean())
+
+
 areas = []
 for f in feats:
     name = f["properties"]["nazev"]
@@ -71,12 +101,16 @@ for f in feats:
     if k in agg.index:
         r, s = agg.loc[k], spatial.loc[k]
         a["kraj2"] = r.kraj
+        a["wn"], a["wp"] = int(women.loc[k, "wn"]), [int(women.loc[k, f"w{m}"]) for m in (3, 6, 12)]
+        a["ord"] = [{"n": int(by_order.loc[(k, o), "n"]), "p": [int(by_order.loc[(k, o), c]) for c in P]} for o in range(1, 6)]
         a.update(kraj=r.kraj, n=int(r.n), p=[int(r[c]) for c in P], dist=round(float(s.SPATIAL_DIST_NEAREST_KM), 1),
                  wait=None if pd.isna(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS) else round(float(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS), 1))
+    if a["dist"] is None:  # not a VZP area (Bruntál, Jeseník): estimate from the district centroid
+        ring = max((r for p in polys for r in p), key=len)
+        a["dist"], a["wait"] = (round(v, 1) for v in centre_access(*centroid(ring)))
     areas.append(a)
 assert sum(a["n"] is not None for a in areas) == len(agg)
 
-centres = pd.read_csv(DATA / "mamo_centers.csv")
 cen = [{"name": r["name"], "city": r.city, "kraj": r.region, "x": xy(r.lon, r.lat)[0], "y": xy(r.lon, r.lat)[1],
         "wait": None if pd.isna(r.wait_days_primary) else float(r.wait_days_primary)} for _, r in centres.iterrows()]
 
