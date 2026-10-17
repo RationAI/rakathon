@@ -28,11 +28,39 @@ def xy(lon: float, lat: float) -> tuple[float, float]:
     return round((lon - 12.0) * KX * SCALE, 1), round((51.1 - lat) * SCALE, 1)
 
 
-cols = ["PERSON_ID", "VZP_TERRITORIAL_AREA", "KRAJ", "AGE_BAND", "AGE_BAND_MEAN", "INVITATION_SEQUENCE", "INVITATION_YEAR",
-        "SCREENING_3M_FLAG", "SCREENING_6M_FLAG", "SCREENING_12M_FLAG"]
-df = pd.read_csv(DATA / "Rakhaton2026_prepared.csv", usecols=cols, dtype={"PERSON_ID": str})
+MODEL_FEATURES = [  # who the woman is and her history; no area or spatial feature, so the area effect stays in the residual
+    "AGE_BAND_MEAN", "FIRST_INVITATION", "INVITATION_SEQUENCE", "PRIOR_INVITATION_COUNT", "MONTHS_LAST_INVITATION",
+    "HEALTHCARE_CONTACT_12M_CNT", "INSURANCE_DURATION_YEARS", "GP_REGISTERED", "GYN_REGISTERED_FLAG",
+    "GP_REG_DURATION_BAND_ORD", "GYN_REG_DURATION_BAND_ORD", "PRIOR_SCREEN_COUNT_5Y", "MONTHS_SINCE_LAST_SCREEN",
+    "NEVER_SCREENED_BEFORE_FLAG", "GP_PREVENTION_24M_CNT", "GYN_PREVENTION_24M_CNT", "OTHER_SCREENING_36M_CNT",
+    "DENTAL_PREVENTION_24M_CNT", "INVITATION_YEAR", "INVITATION_MONTH"]
+cols = ["PERSON_ID", "INVITATION_ID", "INVITATION_DATE", "VZP_TERRITORIAL_AREA", "KRAJ", "AGE_BAND", "INVITATION_SEQUENCE",
+        "SCREENING_3M_FLAG", "SCREENING_6M_FLAG", "SCREENING_12M_FLAG", *MODEL_FEATURES]
+df = pd.read_csv(DATA / "Rakhaton2026_prepared.csv", usecols=cols, dtype={"PERSON_ID": str, "INVITATION_ID": str})
 for m in (3, 6, 12):
     df[f"p{m}"] = df[f"SCREENING_{m}M_FLAG"]
+
+
+def expected_12m(frame: pd.DataFrame) -> pd.Series:
+    """Out-of-fold probability of the 12 month response from the woman's own features (3 folds, split by woman)."""
+    from sklearn.ensemble import HistGradientBoostingClassifier
+
+    ids = frame.PERSON_ID.unique()
+    fold = frame.PERSON_ID.map(pd.Series(np.random.default_rng(0).integers(0, 3, len(ids)), index=ids)).to_numpy()
+    out = np.zeros(len(frame))
+    for k in range(3):
+        train = fold != k
+        model = HistGradientBoostingClassifier(max_iter=200, random_state=0).fit(
+            frame.loc[train, MODEL_FEATURES], frame.loc[train, "SCREENING_12M_FLAG"])
+        out[~train] = model.predict_proba(frame.loc[~train, MODEL_FEATURES])[:, 1]
+    return pd.Series(out, index=frame.index)
+
+
+df["pred"] = expected_12m(df)
+# cluster-robust variance of (observed - expected): residuals are summed per woman first, because one woman can have up to 5 rows
+df["res"] = df.SCREENING_12M_FLAG - df.pred
+_w = df.groupby("PERSON_ID").agg(area=("VZP_TERRITORIAL_AREA", "first"), res=("res", "sum"))
+cluster_var = (_w.res ** 2).groupby(_w.area).sum()
 P = ["p3", "p6", "p12"]
 
 spatial = pd.read_csv(DATA / "area_spatial_features.csv")
@@ -43,12 +71,48 @@ by_order = df.groupby(["VZP_TERRITORIAL_AREA", "order"])[P].sum().join(df.groupb
 per_woman = df.groupby("PERSON_ID").agg(area=("VZP_TERRITORIAL_AREA", "first"), **{c: (c, "max") for c in P})
 women = per_woman.groupby("area").agg(wn=("p3", "size"), **{f"w{m}": (f"p{m}", "sum") for m in (3, 6, 12)})
 women.index = [fix_key for fix_key in (key(i) for i in women.index)]
-agg = df.groupby("VZP_TERRITORIAL_AREA").agg(kraj=("KRAJ", "first"), n=("KRAJ", "size"), **{c: (c, "sum") for c in P})
+agg = df.groupby("VZP_TERRITORIAL_AREA").agg(kraj=("KRAJ", "first"), n=("KRAJ", "size"), e=("pred", "sum"),
+                                              **{c: (c, "sum") for c in P}).join(cluster_var.rename("ev"))
 agg.index = [key(i) for i in agg.index]
 fix = {"PRAHA-HL.MESTO": "PRAHA", "OSTRAVA": "OSTRAVA-MESTO"}
 agg = agg.rename(index=fix)
 by_order.index = pd.MultiIndex.from_tuples([(fix.get(key(a), key(a)), o) for a, o in by_order.index])
 women = women.rename(index=fix)
+
+# --- reminder funnel: n-th invitation of the woman (rows are sorted by woman and date), women not yet screened in 12 months ---
+df = df.sort_values(["PERSON_ID", "INVITATION_DATE", "INVITATION_ID"]).reset_index(drop=True)
+df["round"] = df.groupby("PERSON_ID").cumcount() + 1
+df["earlier_ok"] = (df.groupby("PERSON_ID").p12.cumsum() - df.p12) > 0
+risk = df[(df["round"] <= 5) & ~df.earlier_ok]
+funnel = risk.groupby(["VZP_TERRITORIAL_AREA", "round"])[P].sum().join(risk.groupby(["VZP_TERRITORIAL_AREA", "round"]).size().rename("n"))
+funnel.index = pd.MultiIndex.from_tuples([(fix.get(key(a), key(a)), r) for a, r in funnel.index])
+
+# --- timeline: invitation date x area, all invitations and 1st invitations ---
+dates = sorted(df.INVITATION_DATE.unique())
+df["di"] = df.INVITATION_DATE.map({d: i for i, d in enumerate(dates)})
+df["first"] = (df.order == 1)
+
+
+def timeline(frame: pd.DataFrame) -> dict:
+    g = frame.groupby(["VZP_TERRITORIAL_AREA", "di"])[P].sum().join(frame.groupby(["VZP_TERRITORIAL_AREA", "di"]).size().rename("n"))
+    out = {}
+    for (a, di), r in g.iterrows():
+        out.setdefault(fix.get(key(a), key(a)), [0] * (4 * len(dates)))[4 * di:4 * di + 4] = [int(r.n), *[int(r[c]) for c in P]]
+    return out
+
+
+tl_all, tl_first = timeline(df), timeline(df[df["first"]])
+
+# --- heatmap: kraj x age band, all and 1st invitations ---
+age_order = df.drop_duplicates("AGE_BAND").sort_values("AGE_BAND_MEAN").AGE_BAND.tolist()
+age_bands = age_order
+heat = {}
+for flag, frame in (("all", df), ("first", df[df["first"]])):
+    g = frame.groupby(["KRAJ", "AGE_BAND"])[P].sum().join(frame.groupby(["KRAJ", "AGE_BAND"]).size().rename("n"))
+    for (k, a), r in g.iterrows():
+        heat.setdefault(k, {}).setdefault(a, {})[flag] = [int(r.n), *[int(r[c]) for c in P]]
+
+
 spatial = spatial.rename(index=fix)
 
 pop = pd.read_csv(DATA / "population" / "women40plus.csv")
@@ -101,7 +165,10 @@ for f in feats:
     if k in agg.index:
         r, s = agg.loc[k], spatial.loc[k]
         a["kraj2"] = r.kraj
+        a["e"], a["ev"] = round(float(r.e), 1), round(float(r.ev), 1)
         a["wn"], a["wp"] = int(women.loc[k, "wn"]), [int(women.loc[k, f"w{m}"]) for m in (3, 6, 12)]
+        a["fn"] = [[int(funnel.loc[(k, r), "n"]), *[int(funnel.loc[(k, r), c]) for c in P]] for r in range(1, 6)]
+        a["tl"] = [tl_all.get(k, [0] * 4 * 60), tl_first.get(k, [0] * 4 * 60)]
         a["ord"] = [{"n": int(by_order.loc[(k, o), "n"]), "p": [int(by_order.loc[(k, o), c]) for c in P]} for o in range(1, 6)]
         a.update(kraj=r.kraj, n=int(r.n), p=[int(r[c]) for c in P], dist=round(float(s.SPATIAL_DIST_NEAREST_KM), 1),
                  wait=None if pd.isna(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS) else round(float(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS), 1))
@@ -135,9 +202,10 @@ for k, rows in who["order"].items():
         if r["k"] in "1234":
             r["k"] = {"1": "1st", "2": "2nd", "3": "3rd", "4": "4th"}[r["k"]]
 
+
 meta = {"women": int(df.PERSON_ID.nunique()), "rows": len(df), "centres": len(centres),
         "kraje": sorted(df.KRAJ.unique()), "scraped": str(centres.scraped.max())}
-data = {"areas": areas, "centres": cen, "who": who, "meta": meta, "groups": [*GROUPS.values(), "Other"], "w": round(7.1 * KX * SCALE, 1), "h": round(2.6 * SCALE, 1)}
+data = {"areas": areas, "centres": cen, "who": who, "meta": meta, "dates": dates, "heat": heat, "ages": age_bands, "groups": [*GROUPS.values(), "Other"], "w": round(7.1 * KX * SCALE, 1), "h": round(2.6 * SCALE, 1)}
 html = (HERE / "response_report.template.html").read_text(encoding="utf-8")
 out = HERE / "response_report.html"
 out.write_text(html.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")

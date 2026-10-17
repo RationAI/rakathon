@@ -8,16 +8,22 @@
   --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
   --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
   --nodata: #e6e0de; --edge: #ffffff; --hl: #231a19; --pt: #3d4451; --ptring: #ffffff;
+  --dv1: #7b3fa0; --dv2: #c9a9e0; --dv3: #e6e0de; --dv4: #8fd0c8; --dv5: #0f766e;
+  --t1: #7e170d; --t2: #5a1209; --t3: #2b0d09; --t4: #ffffff; --t5: #ffffff;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
   --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
-  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark; } }
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark;
+  --dv1: #c79cf0; --dv2: #5a3a75; --dv3: #2e2523; --dv4: #1f5a54; --dv5: #5fd3c6;
+  --t1: #ffd9d3; --t2: #ffe6e2; --t3: #ffffff; --t4: #2b0d09; --t5: #2b0d09; } }
 :root[data-theme="dark"] {
   --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
   --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
-  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark; }
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark;
+  --dv1: #c79cf0; --dv2: #5a3a75; --dv3: #2e2523; --dv4: #1f5a54; --dv5: #5fd3c6;
+  --t1: #ffd9d3; --t2: #ffe6e2; --t3: #ffffff; --t4: #2b0d09; --t5: #2b0d09; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;
@@ -88,6 +94,34 @@ path.a.hov, path.a.sel { stroke: var(--hl); stroke-width: 1.6; }
 .axis line, .axis path { stroke: var(--line); }
 .dotp { fill: var(--s4); fill-opacity: .6; stroke: var(--surface); stroke-width: .6; }
 .reg { stroke: var(--pt); stroke-width: 2; }
+.prof { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; padding-top: 6px; border-top: 1px dashed var(--line); }
+.prof .who { font-family: var(--display); font-weight: 600; font-size: 16px; }
+.prof .chip { display: grid; line-height: 1.2; }
+.prof .chip span { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.prof .chip b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.prof button { font: inherit; font-size: 12px; padding: 3px 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; margin-left: auto; }
+input.find { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); width: 190px; }
+.row.faded, path.a.faded { opacity: .5; }
+.dotp.sel { stroke: var(--hl); stroke-width: 2.2; fill-opacity: .95; }
+.warn { color: var(--muted); font-size: 12px; max-width: 70ch; border-left: 2px solid var(--pt); padding-left: 8px; }
+.tools .seg + .seg { margin-left: 0; }
+path.a.cmp { stroke: var(--pt); stroke-width: 1.8; stroke-dasharray: 3 2; }
+.dotp.cmp { stroke: var(--pt); stroke-width: 2.2; stroke-dasharray: 3 2; fill-opacity: .95; }
+.insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 20px; }
+.insight { text-align: left; font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; align-content: start; }
+.insight:hover { border-color: var(--accent); }
+.insight b { font-family: var(--mono); font-weight: 500; font-size: 22px; color: var(--accent); }
+.insight small { color: var(--muted); font-size: 12px; }
+.heat { border-collapse: collapse; width: 100%; font-size: 12px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.heat th { font-family: var(--body); font-weight: 500; font-size: 11px; color: var(--muted); padding: 4px 6px; text-align: center; }
+.heat th.rowh { text-align: left; white-space: nowrap; cursor: pointer; color: var(--fg); font-size: 12px; }
+.heat tr.sel th.rowh { color: var(--accent); font-weight: 600; }
+.heat tr.sel td { outline: 2px solid var(--accent); outline-offset: -2px; }
+.heat td { text-align: center; padding: 6px 4px; border: 1px solid var(--surface); min-width: 44px; cursor: default; }
+.heat td.faded { opacity: .5; }
+.heat tr.all td, .heat tr.all th { border-bottom: 2px solid var(--line); }
+.scroll { overflow-x: auto; }
+.legendline { stroke-width: 2; fill: none; }
 .note { color: var(--muted); font-size: 12px; max-width: 90ch; }
 footer { padding-block: 40px 56px; }
 /* Shared top navigation across the four report pages */
@@ -102,7 +136,7 @@ footer { padding-block: 40px 56px; }
   <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="results.html">Model &amp; segments</a><a href="response_map.html">Response map</a><a href="response_report.html" aria-current="page">Regional report</a></nav>
   <header class="hero">
     <h1>Regional evaluation of mammography screening response</h1>
-    <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data.</p>
+    <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data. Click any district or region to follow it through every section, shift-click a second one to compare, press Esc to clear.</p>
     <div class="kpis" id="kpis"></div>
   </header>
   <div class="method">
@@ -122,15 +156,19 @@ footer { padding-block: 40px 56px; }
       <li>Centres and waits are today's snapshot, not 2020–2024.</li></ul></div>
   </div>
 
+  <div class="insights" id="insights"></div>
+
   <div class="bar">
     <div class="grp"><span>Level</span><div class="seg" id="lvlSeg"><button data-l="k" aria-pressed="false">Region</button><button data-l="d" aria-pressed="true">District</button></div></div>
     <div class="grp"><span>Response window</span><div class="seg" id="winSeg"><button data-w="0" aria-pressed="false">3 mo</button><button data-w="1" aria-pressed="false">6 mo</button><button data-w="2" aria-pressed="true">12 mo</button></div></div>
+    <div class="grp"><span>Find</span><input class="find" id="find" list="areas" placeholder="District or region" aria-label="Find a district or region" autocomplete="off"><datalist id="areas"></datalist></div>
     <div class="nav" id="nav"></div>
     <div class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></div>
+    <div class="prof" id="prof" hidden></div>
   </div>
 
   <div id="sections"></div>
-  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the invitation data, so they are grey on invitation-based maps; the distance, waiting-time, immigration and citizenship maps include them (for these two districts, distance and waits are estimated from the district centroid). Kraj values on those maps are weighted by women, not invitations.</p></footer>
+  <footer><p class="note">Built from data/Rakhaton2026_prepared.csv, data/area_spatial_features.csv and data/mamo_centers.csv by exploration/build_report.py. District outlines: RUIAN, ČÚZK. Bruntál and Jeseník have no VZP area in the invitation data, so they are grey on invitation-based maps; the distance, waiting-time, immigration and citizenship maps include them (for these two districts, distance and waits are estimated from the district centroid). Region values on those maps are weighted by women, not invitations.</p></footer>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -148,14 +186,18 @@ const hideTip = () => (tip.style.opacity = 0);
 // ---------- aggregation ----------
 const wmean = (xs, f) => { let s = 0, n = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.n; n += a.n; } }); return n ? s / n : null; };
 const withData = D.areas.filter((a) => a.n);
+const sumArr = (arrs) => arrs.reduce((acc, a) => acc.map((v, i) => v + a[i]), Array(arrs[0].length).fill(0));
 const kraje = {};
 withData.forEach((a) => (kraje[a.kraj] ||= { name: a.kraj, kraj: a.kraj, members: [] }).members.push(a));
 Object.values(kraje).forEach((k) => { k.n = k.members.reduce((t, a) => t + a.n, 0);
   k.p = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.p[w], 0));
+  k.fn = [0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3].map((c) => k.members.reduce((t, a) => t + a.fn[r][c], 0)));
+  k.tl = [0, 1].map((f) => sumArr(k.members.map((a) => a.tl[f])));
+  k.e = k.members.reduce((t, a) => t + a.e, 0); k.ev = k.members.reduce((t, a) => t + a.ev, 0);
   k.ord = [0, 1, 2, 3, 4].map((o) => ({ n: k.members.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.ord[o].p[w], 0)) }));
   k.wn = k.members.reduce((t, a) => t + a.wn, 0); k.wp = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.wp[w], 0));
   k.pop = k.members.reduce((t, a) => t + a.pop, 0); k.wall = k.members.reduce((t, a) => t + a.wall, 0); k.eth = Object.fromEntries(D.groups.map((g) => [g, k.members.reduce((t, a) => t + a.eth[g], 0)])); k.forn = k.members.reduce((t, a) => t + a.forn, 0); k.pop24 = k.members.reduce((t, a) => t + a.pop24, 0); k.dist = wmean(k.members, (a) => a.dist); k.wait = wmean(k.members, (a) => a.wait); });
-const nat = { name: "Czechia", wn: withData.reduce((t, a) => t + a.wn, 0), wp: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.wp[w], 0)), ord: [0, 1, 2, 3, 4].map((o) => ({ n: withData.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.ord[o].p[w], 0)) })), wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
+const nat = { name: "Czechia", fn: [0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3].map((c) => withData.reduce((t, a) => t + a.fn[r][c], 0))), tl: [0, 1].map((f) => sumArr(withData.map((a) => a.tl[f]))), e: withData.reduce((t, a) => t + a.e, 0), ev: withData.reduce((t, a) => t + a.ev, 0), wn: withData.reduce((t, a) => t + a.wn, 0), wp: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.wp[w], 0)), ord: [0, 1, 2, 3, 4].map((o) => ({ n: withData.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.ord[o].p[w], 0)) })), wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
   dist: wmean(withData, (a) => a.dist), wait: wmean(withData, (a) => a.wait) };
 // external-data indicators (population, foreigners) cover every district, including Bruntál and Jeseník
 const wmean2 = (xs, f) => { let s = 0, w = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.wall; w += a.wall; } }); return w ? s / w : null; };  // weighted by women
@@ -181,18 +223,39 @@ const IND = [
     val: (u) => { const c = vs.what === "inv" ? u.n : u.p[st.w]; return vs.norm ? c / 5 / u.pop * 1000 : c; },
     lead: () => `Number of ${vs.what === "inv" ? "invitations" : `screenings within ${W[st.w]} of an invitation`} ${vs.norm ? "per 1,000 women aged 40+ per year" : "in 2020–2024"} in Czechia:` },
 ];
-const vs = { what: "inv", norm: true };
-const ro = { k: -1, woman: false }, MIN_N = 30;  // invitation order shown on the response map (-1 = all)
+const vs = { what: "inv", norm: false };
+const G = { sel: null, cmp: null }, syncs = [];  // selection shared by every section
+const sameGroup = (i, j) => (st.l === "k" ? D.areas[i].kraj2 === D.areas[j].kraj2 : i === j);
+function setSel(i) { G.sel = G.sel != null && i != null && sameGroup(G.sel, i) ? null : i; syncs.forEach((f) => f()); profile(); }
+function setCmp(i) { G.cmp = G.cmp != null && i != null && sameGroup(G.cmp, i) ? null : i; syncs.forEach((f) => f()); profile(); }
+const onPick = (i, e) => (e && e.shiftKey ? setCmp(i) : setSel(i));
+const unitAt = (i) => { if (i == null) return null; const a = D.areas[i]; return a.n ? (st.l === "k" ? kraje[a.kraj2] : a) : null; };  // response-data unit of a selected area
+const nameAt = (i) => (st.l === "k" ? D.areas[i].kraj2 : D.areas[i].name);
+const ro = { k: 0, woman: false }, MIN_N = 30, RELIABLE_N = 300;  // invitation order shown on the response map (-1 = all)
 const ORD = { "-1": "Invitations (mean of all)", 0: "1st invitations", 1: "2nd invitations", 2: "3rd invitations", 3: "4th invitations", 4: "5th and later invitations" };
 const cn = (u) => (ro.woman ? { n: u.wn, p: u.wp } : ro.k < 0 ? u : u.ord[ro.k]);  // counts for the selected invitation order
 const es = { g: "Ukraine", mode: "per1000" };
 const fwOf = (u) => D.groups.reduce((t, g) => t + u.eth[g], 0);
+const hz = { r: 0, mode: "haz" };
+const ORDN = ["1st", "2nd", "3rd", "4th", "5th"];
+const hazOf = (u, r = hz.r, mode = hz.mode) => { const f = u.fn; if (!f || f[r][0] < MIN_N) return null;
+  if (mode === "haz") return 100 * f[r][1 + st.w] / f[r][0];
+  let keep = 1; for (let k = 0; k <= r; k++) { if (f[k][0] < MIN_N) return null; keep *= 1 - f[k][3] / f[k][0]; } return 100 * (1 - keep); };
+IND.push({ id: "haz", nav: "Reminders", title: "Reminders: who responds at each round", unit: "%", dec: 1, val: (u) => hazOf(u), extra: drawRounds,
+  lead: () => hz.mode === "haz" ? `Among women not yet screened, the share who screen within ${W[st.w]} of their ${ORDN[hz.r]} invitation in the data. Czechia:` : `Share of invited women screened by their ${ORDN[hz.r]} invitation (chaining the 12 month rates of each round). Czechia:` });
+IND.push({ id: "adj", div: true, extra: drawAdj, nav: "Adjusted", title: "Response compared with what to expect", unit: "pp", dec: 1, val: (u) => adjOf(u),
+  lead: () => "Observed 12 month response minus the response expected for these women (age, history, prior screening, registrations, prevention visits). Czechia:" });
 IND.push({ id: "eth", ext: true, nav: "Citizenship", title: "Citizenship groups of foreign women", unit: "", get dec() { return es.mode === "per1000" ? 1 : 1; },
   val: (u) => (es.mode === "per1000" ? 1000 * u.eth[es.g] / u.wall : 100 * u.eth[es.g] / fwOf(u)),
   lead: () => es.mode === "per1000" ? `Women with ${es.g === "Other" ? "other" : es.g} citizenship per 1,000 women of all ages in Czechia:` : `Share of foreign women with ${es.g === "Other" ? "other" : es.g} citizenship in Czechia:` });
 IND.push({ id: "imm", ext: true, nav: "Immigration", title: "Immigration: foreign women aged 40+", unit: "%", dec: 1, val: (u) => 100 * u.forn / u.pop24,
   lead: () => "Foreign nationals (immigrants) make up the following share of women aged 40+ in Czechia:" });
-const fmtV = (ind, v) => (v == null ? "–" : ind.id === "eth" ? nf(v, 1) + (es.mode === "share" ? " %" : "") : ind.id === "vol" ? nf(v, ind.dec) : nf(v, ind.dec) + (ind.unit === "%" ? " %" : " " + ind.unit));
+const ci = (c) => (c.n ? 196 * Math.sqrt((c.p[st.w] / c.n) * (1 - c.p[st.w] / c.n) / c.n) : null);  // 95% half-width in pp
+const adjOf = (u) => (u.e != null && u.n ? 100 * (u.p[2] - u.e) / u.n : null);  // observed minus expected 12 month response, pp
+const adjZ = (u) => (u.p[2] - u.e) / Math.sqrt(u.ev);
+const adjCls = (u) => { const g = adjOf(u), z = adjZ(u); return Math.abs(z) < 3 || Math.abs(g) < 0.5 ? 2 : g < -2 ? 0 : g < 0 ? 1 : g < 2 ? 3 : 4; };
+const sgn = (v, d = 1) => `${v >= 0 ? "+" : "−"}${nf(Math.abs(v), d)}`;
+const fmtV = (ind, v) => (v == null ? "–" : ind.id === "adj" ? sgn(v) + " pp" : ind.id === "eth" ? nf(v, 1) + (es.mode === "share" ? " %" : "") : ind.id === "vol" ? nf(v, ind.dec) : nf(v, ind.dec) + (ind.unit === "%" ? " %" : " " + ind.unit));
 
 function binsFor(vals) {
   const lo0 = Math.min(...vals), hi = Math.max(...vals);
@@ -209,22 +272,26 @@ function makeMap(host, onHover, onClick) {
   const paths = D.areas.map((a, i) => { const p = document.createElementNS(NS, "path");
     p.setAttribute("d", a.d); p.setAttribute("class", "a"); p.setAttribute("tabindex", "0");
     p.addEventListener("pointermove", (e) => onHover(i, e)); p.addEventListener("pointerleave", () => onHover(null));
-    p.addEventListener("click", () => onClick(i)); p.addEventListener("keydown", (e) => e.key === "Enter" && onClick(i));
+    p.addEventListener("click", (e) => onClick(i, e)); p.addEventListener("keydown", (e) => e.key === "Enter" && onClick(i, e));
     svg.appendChild(p); return p; });
   host.appendChild(svg); return { svg, paths };
 }
 
 // ---------- indicator section ----------
 function indicatorSection(ind) {
-  const s = { sel: null, hov: null };
+  const s = { hov: null };
   const el = document.createElement("section"); el.id = ind.id;
-  el.innerHTML = `<h2>${ind.title}</h2><p class="head" data-h></p>${ind.id === "resp" ? `<div class="tools"><div class="grp"><span>Count</span><div class="seg" data-unit><button data-v="inv" aria-pressed="true">Per invitation</button><button data-v="woman" aria-pressed="false">Per woman</button></div></div><div class="grp"><span>Invitation</span><select id="respOrd" aria-label="Invitation order"><option value="-1">All (mean)</option><option value="0">1st</option><option value="1">2nd</option><option value="2">3rd</option><option value="3">4th</option><option value="4">5th and later</option></select></div><span class="rcap" style="margin:0">Per woman counts each woman once: the share of invited women with at least one screening in the window. Invitation order then does not apply.</span></div>` : ""}${ind.id === "eth" ? `<div class="tools"><div class="grp"><span>Citizenship</span><div class="seg" data-grp>${D.groups.map((g) => `<button data-v="${g}" aria-pressed="${g === es.g}">${g}</button>`).join("")}</div></div>
+  el.innerHTML = `<h2>${ind.title}</h2><p class="head" data-h></p>${ind.id === "resp" ? `<div class="tools"><div class="grp"><span>Count</span><div class="seg" data-unit><button data-v="inv" aria-pressed="true">Per invitation</button><button data-v="woman" aria-pressed="false">Per woman</button></div></div><div class="grp"><span>Invitation</span><select id="respOrd" aria-label="Invitation order"><option value="-1">All (mean)</option><option value="0" selected>1st</option><option value="1">2nd</option><option value="2">3rd</option><option value="3">4th</option><option value="4">5th and later</option></select></div><span class="rcap" style="margin:0">Per woman counts each woman once: the share of invited women with at least one screening in the window. Invitation order then does not apply.</span></div>` : ""}${ind.id === "eth" ? `<div class="tools"><div class="grp"><span>Citizenship</span><div class="seg" data-grp>${D.groups.map((g) => `<button data-v="${g}" aria-pressed="${g === es.g}">${g}</button>`).join("")}</div></div>
       <div class="grp"><span>Measure</span><div class="seg" data-mode><button data-v="per1000" aria-pressed="true">Per 1,000 women</button><button data-v="share" aria-pressed="false">Share of foreign women</button></div></div></div>` : ""}${ind.id === "vol" ? `<div class="tools">
       <div class="grp"><span>Count</span><div class="seg" data-what><button data-v="inv" aria-pressed="true">Invitations</button><button data-v="scr" aria-pressed="false">Screenings</button></div></div>
-      <div class="grp"><span>Scale</span><div class="seg" data-norm><button data-v="abs" aria-pressed="false">Absolute</button><button data-v="norm" aria-pressed="true">Per 1,000 women 40+</button></div></div></div>` : ""}
+      <div class="grp"><span>Scale</span><div class="seg" data-norm><button data-v="abs" aria-pressed="true">Absolute</button><button data-v="norm" aria-pressed="false">Per 1,000 women 40+</button></div></div>
+      <span class="warn">Invitations come from one insurer (VZP). Per-capita values mostly reflect its market share in each district, so they do not measure screening intensity.</span></div>` : ""}${ind.id === "haz" ? `<div class="tools"><div class="grp"><span>Round</span><select id="hzRound" aria-label="Invitation round">${ORDN.map((o, i) => `<option value="${i}">${o} invitation</option>`).join("")}</select></div>
+      <div class="grp"><span>Measure</span><div class="seg" data-hzmode><button data-v="haz" aria-pressed="true">Response at this round</button><button data-v="cum" aria-pressed="false">Cumulative reach</button></div></div>
+      <span class="rcap" style="margin:0">Round is the woman's n-th invitation in the data. Only women not screened earlier are counted, so each woman is counted at most once per round.</span></div>` : ""}${ind.id === "adj" ? `<div class="tools"><span class="warn">Grey means not clearly different from expectation (under 3 standard errors, or under 0.5 points). Standard errors are computed by woman, so repeat invitations are not counted as independent. A gap shows what the woman's history does not explain. It does not show the cause.</span></div>` : ""}
     <div class="main"><div class="card"><div data-map></div><div class="legend" data-legend></div></div>
-    <div class="card"><div class="detail" data-detail></div><div class="list" data-list></div></div></div>`;
-  const m = makeMap($("[data-map]", el), (i, e) => { s.hov = i; paint(); if (i != null && e) showTip(e, tipHtml(i)); else hideTip(); detail(); }, (i) => { s.sel = s.sel === i ? null : i; paint(); detail(); });
+    <div class="card"><div class="detail" data-detail></div><div class="list" data-list></div></div></div>
+    ${ind.extra ? `<div class="card" style="margin-top:20px" data-extra></div>` : ""}`;
+  const m = makeMap($("[data-map]", el), (i, e) => { s.hov = i; paint(); if (i != null && e) showTip(e, tipHtml(i)); else hideTip(); detail(); }, onPick);
   if (ind.dots) D.centres.forEach((c) => { const t = document.createElementNS(NS, "circle");
     t.setAttribute("cx", c.x); t.setAttribute("cy", c.y); t.setAttribute("r", 1.5); t.setAttribute("class", "pt");
     t.style.pointerEvents = "none"; m.svg.appendChild(t); });
@@ -236,6 +303,8 @@ function indicatorSection(ind) {
     if ("grp" in g.dataset) es.g = b.dataset.v; else es.mode = b.dataset.v; s.render(); }));
   el.querySelectorAll("[data-unit] button").forEach((b) => b.addEventListener("click", () => { el.querySelectorAll("[data-unit] button").forEach((x) => x.setAttribute("aria-pressed", x === b));
     ro.woman = b.dataset.v === "woman"; if ($("#respOrd", el)) $("#respOrd", el).disabled = ro.woman; s.render(); }));
+  el.querySelectorAll("[data-hzmode] button").forEach((b) => b.addEventListener("click", () => { el.querySelectorAll("[data-hzmode] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); hz.mode = b.dataset.v; s.render(); }));
+  const hzSel = $("#hzRound", el); if (hzSel) hzSel.addEventListener("change", () => { hz.r = +hzSel.value; s.render(); });
   const ordSel = $("#respOrd", el); if (ordSel) ordSel.addEventListener("change", () => { ro.k = +ordSel.value; s.render(); });
   let bins, natV;
   const unitFor = (a) => (ind.ext ? (st.l === "k" ? krajeX[a.kraj2] : a) : a.n ? unitOf(a) : null);
@@ -243,43 +312,156 @@ function indicatorSection(ind) {
   const grp = (i) => (i == null ? [] : st.l === "k" ? D.areas.map((a, j) => (a.kraj2 && a.kraj2 === D.areas[i].kraj2 ? j : -1)).filter((j) => j >= 0) : [i]);
   const label = (a) => (st.l === "k" ? a.kraj2 : a.name);
   const tipHtml = (i) => { const a = D.areas[i], u = unitFor(a); if (!u) return `<b>${a.name}</b><br>no data`;
-    return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}${ind.ext ? "" : `<br>${nf(ind.id === "resp" ? cn(u).n : u.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}`; };
+    if (ind.div) return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}<br>z = ${nf(adjZ(u), 1)}`;
+    return `<b>${esc(label(a))}</b><br>${fmtV(ind, ind.val(u))}${ind.id === "resp" && ind.val(u) != null ? ` ± ${nf(ci(cn(u)), 1)}` : ""}${ind.ext ? "" : `<br>${nf(ind.id === "resp" ? cn(u).n : u.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}`; };
   function paint() {
-    const h = new Set(grp(s.hov)), sl = new Set(grp(s.sel));
-    D.areas.forEach((a, i) => { m.paths[i].classList.toggle("hov", h.has(i)); m.paths[i].classList.toggle("sel", sl.has(i)); if (h.has(i) || sl.has(i)) m.svg.insertBefore(m.paths[i], m.svg.querySelector("circle")); });
+    const h = new Set(grp(s.hov)), sl = new Set(grp(G.sel)), cm = new Set(grp(G.cmp));
+    D.areas.forEach((a, i) => { m.paths[i].classList.toggle("hov", h.has(i)); m.paths[i].classList.toggle("sel", sl.has(i)); m.paths[i].classList.toggle("cmp", cm.has(i)); if (h.has(i) || sl.has(i) || cm.has(i)) m.svg.insertBefore(m.paths[i], m.svg.querySelector("circle")); });
     el.querySelectorAll(".row[data-i]").forEach((r) => r.classList.toggle("hov", h.has(+r.dataset.i) || sl.has(+r.dataset.i)));
   }
   function detail() {
-    const i = s.sel ?? s.hov, a = i == null ? null : D.areas[i], d = $("[data-detail]", el);
+    const i = s.hov ?? G.sel, a = i == null ? null : D.areas[i], d = $("[data-detail]", el);
     if (!a) { d.innerHTML = `<div class="nm">Czechia overall</div><div class="kr">Hover or select an area</div><div class="big">${fmtV(ind, natV)}</div>`; return; }
     const u = unitFor(a);
     if (!u) { d.innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP area for this district in the dataset.</div>`; return; }
-    const v = ind.val(u), dv = v == null || (ind.id === "vol" && !vs.norm) ? null : v - natV;
-    const c = ind.id === "resp" ? cn(u) : u, r = c.n ? 100 * c.p[st.w] / c.n : null;
+    const v = ind.val(u), dv = v == null || ind.div || (ind.id === "vol" && !vs.norm) ? null : v - natV;
+    const c = ind.id === "resp" ? cn(u) : u, r = c.n ? 100 * c.p[st.w] / c.n : null, hw = ind.id === "resp" && v != null ? ci(c) : null;
+    if (ind.div) { d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Region" : a.kraj2} · ${nf(u.n)} invitations</div>
+      <div class="big">${fmtV(ind, v)}</div><div class="kr">observed ${nf(100 * u.p[2] / u.n, 1)} % · expected ${nf(100 * u.e / u.n, 1)} % · z = ${nf(adjZ(u), 1)}</div>`; return; }
     d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Region" : a.kraj2} · ${ind.ext ? `${nf(u.wall)} women` : `${nf(c.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}</div>
-      <div class="big">${fmtV(ind, v)} ${dv == null ? "" : `<small>${dv >= 0 ? "+" : "−"}${nf(Math.abs(dv), ind.dec)} vs. Czechia</small>`}</div>
+      <div class="big">${fmtV(ind, v)}${hw == null ? "" : ` <small>± ${nf(hw, 1)} pp</small>`} ${dv == null ? "" : `<small>${dv >= 0 ? "+" : "−"}${nf(Math.abs(dv), ind.dec)} vs. Czechia</small>`}</div>
       ${ind.id === "resp" ? `<div class="kr">${v == null ? `too few cases` : [0, 1, 2].map((w) => `${W[w]}: ${nf(100 * c.p[w] / c.n, 1)} %`).join(" · ")}</div>` : r == null ? "" : `<div class="kr">Response (${W[st.w]}): ${nf(r, 1)} %</div>`}`;
   }
   s.render = () => {
     const its = items(), vals = its.map(ind.val).filter((v) => v != null);
     bins = binsFor(vals);
-    natV = ind.val(ind.ext ? natX : nat);
-    D.areas.forEach((a, i) => { const u = unitFor(a), v = u ? ind.val(u) : null; m.paths[i].style.fill = v == null ? "var(--nodata)" : `var(--s${binOf(bins, v) + 1})`; });
+    natV = ind.div ? 0 : ind.val(ind.ext ? natX : nat);
+    D.areas.forEach((a, i) => { const u = unitFor(a), v = u ? ind.val(u) : null;
+      m.paths[i].style.fill = v == null ? "var(--nodata)" : ind.div ? `var(--dv${adjCls(u) + 1})` : `var(--s${binOf(bins, v) + 1})`;
+      m.paths[i].classList.toggle("faded", ind.id === "resp" && u != null && v != null && cn(u).n < RELIABLE_N); });
     const dec = bins.step < 1 ? 1 : 0, fe = (x) => (ind.id === "vol" ? nf(x, dec) : x.toFixed(dec));
-    $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${fe(b[0])}–${fe(b[1])}</span>`).join("") + `<span><i style="background:var(--nodata)"></i>no data</span>` + (ind.dots ? `<span><i class="dot"></i>screening centre</span>` : "");
+    if (ind.div) $("[data-legend]", el).innerHTML = [["clearly below, more than 2 points", 1], ["clearly below", 2], ["not clearly different", 3], ["clearly above", 4], ["clearly above, more than 2 points", 5]].map(([tx, i]) => `<span><i style="background:var(--dv${i})"></i>${tx}</span>`).join("") + `<span><i style="background:var(--nodata)"></i>no data</span>`;
+    else $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${fe(b[0])}–${fe(b[1])}</span>`).join("") + `<span><i style="background:var(--nodata)"></i>no data</span>` + (ind.dots ? `<span><i class="dot"></i>screening centre</span>` : "") + (ind.id === "resp" ? `<span>faded: fewer than ${RELIABLE_N} cases</span>` : "");
     const ranked = its.filter((u) => ind.val(u) != null).sort((a, b) => ind.val(b) - ind.val(a)), hi = ranked[0], lo = ranked.at(-1);
     $("[data-h]", el).innerHTML = `${ind.lead ? ind.lead() : `The ${ind.what()} in Czechia is`} <b>${fmtV(ind, natV)}</b>. Highest in ${st.l === "k" ? "" : "the district of "}<b>${esc(hi.name)}</b> (${fmtV(ind, ind.val(hi))}), lowest in <b>${esc(lo.name)}</b> (${fmtV(ind, ind.val(lo))}).`;
-    const max = ind.val(hi);
+    const max = ind.div ? Math.max(...ranked.map((u) => Math.abs(ind.val(u)))) : ind.val(hi);
+    const barOf = (u, v) => ind.div ? `<i style="width:${100 * Math.abs(v) / max}%;background:var(--dv${adjCls(u) + 1})"></i>` : `<i style="width:${100 * v / max}%;background:var(--s${binOf(bins, v) + 1})"></i>`;
     $("[data-list]", el).innerHTML = `<h3>${st.l === "k" ? "Regions" : "Districts"} ranked</h3>` + ranked.map((u, r) => { const v = ind.val(u);
       const idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj2 === u.name) : D.areas.indexOf(u);
-      return `<div class="row" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${esc(u.name)}</span><span class="tr"><i style="width:${100 * v / max}%;background:var(--s${binOf(bins, v) + 1})"></i></span><span class="v">${nf(v, ind.dec)}</span></div>`; }).join("")
-      + `<div class="row ref"><span></span><span class="nm">Czechia</span><span></span><span class="v">${nf(natV, ind.dec)}</span></div>`;
+      const small = ind.id === "resp" && cn(u).n < RELIABLE_N;
+      return `<div class="row${small ? " faded" : ""}" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${esc(u.name)}</span><span class="tr">${barOf(u, v)}</span><span class="v">${ind.div ? sgn(v) : nf(v, ind.dec)}</span></div>`; }).join("")
+      + `<div class="row ref"><span></span><span class="nm">Czechia</span><span></span><span class="v">${ind.div ? "0.0" : nf(natV, ind.dec)}</span></div>`;
     el.querySelectorAll(".row[data-i]").forEach((r) => { const i = +r.dataset.i;
       r.addEventListener("pointerenter", () => { s.hov = i; paint(); detail(); }); r.addEventListener("pointerleave", () => { s.hov = null; paint(); detail(); });
-      r.addEventListener("click", () => { s.sel = s.sel === i ? null : i; paint(); detail(); }); r.addEventListener("keydown", (e) => e.key === "Enter" && r.click()); });
-    s.sel = null; s.hov = null; paint(); detail();
+      r.addEventListener("click", (e) => onPick(i, e)); r.addEventListener("keydown", (e) => e.key === "Enter" && r.click()); });
+    s.hov = null; paint(); detail(); if (ind.extra) ind.extra($("[data-extra]", el), s);
   };
+  s.sync = () => { paint(); detail(); if (ind.extra) ind.extra($("[data-extra]", el), s); const r = el.querySelector(".row.hov"); if (r && G.sel != null) r.scrollIntoView({ block: "nearest" }); };
+  syncs.push(s.sync);
   return { el, s };
+}
+
+
+// ---------- extras under the maps ----------
+const colorOf = { sel: "var(--accent)", cmp: "var(--pt)", cz: "var(--muted)" };
+function axisBox(svgHtml) { return `<svg viewBox="0 0 720 320" role="img" aria-label="Chart">${svgHtml}</svg>`; }
+
+function drawRounds(host) {
+  const rows = [[nat, "Czechia", "cz"], [unitAt(G.sel), G.sel != null ? nameAt(G.sel) : null, "sel"], [unitAt(G.cmp), G.cmp != null ? nameAt(G.cmp) : null, "cmp"]].filter(([u]) => u);
+  const vals = rows.map(([u]) => [0, 1, 2, 3, 4].map((r) => hazOf(u, r)));
+  const max = Math.max(1, ...vals.flat().filter((v) => v != null)), X0 = 56, X1 = 700, Y0 = 270, Y1 = 20, gw = (X1 - X0) / 5, bw = Math.min(34, (gw - 18) / rows.length);
+  const sy = (v) => Y0 - (v / max) * (Y0 - Y1), top = Math.ceil(max / 10) * 10;
+  let g = `<g class="axis">`;
+  for (let v = 0; v <= top; v += top > 40 ? 20 : 10) { const y = Y0 - (v / top) * (Y0 - Y1); g += `<line x1="${X0}" x2="${X1}" y1="${y}" y2="${y}"></line><text x="${X0 - 8}" y="${y + 4}" text-anchor="end">${v}</text>`; }
+  g += `<text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">${hz.mode === "haz" ? `Screened within ${W[st.w]}, % of women still unscreened` : "Cumulative reach, %"}</text></g>`;
+  const sy2 = (v) => Y0 - (v / top) * (Y0 - Y1);
+  [0, 1, 2, 3, 4].forEach((r) => { const cx = X0 + gw * r + gw / 2;
+    g += `<text class="axis" x="${cx}" y="${Y0 + 20}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${ORDN[r]}</text>`;
+    rows.forEach(([u, nm, c], j) => { const v = vals[j][r]; if (v == null) return; const x = cx - (rows.length * bw) / 2 + j * bw;
+      g += `<rect x="${x}" y="${sy2(v)}" width="${bw - 3}" height="${Y0 - sy2(v)}" rx="3" style="fill:${colorOf[c]}"><title>${esc(nm)} · ${ORDN[r]}: ${nf(v, 1)} % (${nf(u.fn[r][0])} women at risk)</title></rect><text x="${x + (bw - 3) / 2}" y="${sy2(v) - 4}" text-anchor="middle" style="fill:var(--fg);font:10px var(--mono)">${nf(v, 0)}</text>`; }); });
+  const leg = rows.map(([u, nm, c], j) => `<span><i style="background:${colorOf[c]}"></i>${esc(nm)}</span>`).join("");
+  const nv = [0, 1, 2, 3, 4].map((r) => hazOf(nat, r, "haz")), cum = hazOf(nat, 4, "cum");
+  host.innerHTML = `<h3 style="margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500">By round: selected area vs Czechia</h3><svg viewBox="0 0 720 300" role="img" aria-label="Response by invitation round">${g}</svg>
+    <div class="legend">${leg}</div><p class="rcap">In Czechia ${nf(nv[0], 0)} % of women respond at their first invitation in the data, falling to ${nf(nv[4], 0)} % at the fifth. By the fifth round ${nf(cum, 0)} % have been screened at least once. Shift-click an area on a map or in a list to compare two areas.</p>`;
+}
+
+function drawAdj(host) {
+  const its = st.l === "k" ? Object.values(kraje) : withData, nmax = Math.max(...its.map((u) => u.n));
+  const pts = its.map((u) => ({ u, x: 100 * u.e / u.n, y: 100 * u.p[2] / u.n })), all = pts.flatMap((q) => [q.x, q.y]);
+  const lo = Math.floor(Math.min(...all)), hi = Math.ceil(Math.max(...all)), X0 = 56, X1 = 700, Y0 = 270, Y1 = 14, R = hi - lo || 1;
+  const sx = (v) => X0 + ((v - lo) / R) * (X1 - X0), sy = (v) => Y0 - ((v - lo) / R) * (Y0 - Y1), step = R > 20 ? 5 : 2;
+  let g = `<g class="axis">`;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) g += `<line x1="${X0}" x2="${X1}" y1="${sy(v)}" y2="${sy(v)}"></line><text x="${X0 - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text><text x="${sx(v)}" y="${Y0 + 18}" text-anchor="middle">${v}</text>`;
+  g += `<text x="${(X0 + X1) / 2}" y="${Y0 + 36}" text-anchor="middle">Expected 12 month response, % (from who the women are)</text><text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">Observed, %</text></g>`;
+  g += `<line x1="${sx(lo)}" y1="${sy(lo)}" x2="${sx(hi)}" y2="${sy(hi)}" style="stroke:var(--muted);stroke-dasharray:4 4"></line>`;
+  const idxOf = (u) => (st.l === "k" ? D.areas.findIndex((a) => a.kraj2 === u.name) : D.areas.indexOf(u));
+  g += pts.map((q, i) => { const ix = idxOf(q.u), isSel = G.sel != null && sameGroup(G.sel, ix), isCmp = G.cmp != null && sameGroup(G.cmp, ix);
+    return `<circle class="dotp${isSel ? " sel" : ""}${isCmp ? " cmp" : ""}" data-i="${i}" cx="${sx(q.x)}" cy="${sy(q.y)}" r="${3 + 8 * Math.sqrt(q.u.n / nmax)}" style="fill:var(--dv${adjCls(q.u) + 1});fill-opacity:.9;stroke:var(--hl);stroke-width:.5;cursor:pointer"></circle>`; }).join("");
+  host.innerHTML = `<h3 style="margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500">Observed vs expected response</h3><svg viewBox="0 0 720 320" role="img" aria-label="Observed against expected response">${g}</svg>
+    <p class="rcap">Dots below the dashed line respond less than their women's profile predicts, dots above respond more. A dot far to the right with a low position is a district that does worse despite a favourable mix of women. Dot size is the number of invitations, colour as in the map.</p>`;
+  host.querySelectorAll("circle").forEach((c) => { const q = pts[+c.dataset.i], ix = idxOf(q.u);
+    c.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(q.u.name)}</b><br>observed ${nf(q.y, 1)} %, expected ${nf(q.x, 1)} %<br>${sgn(adjOf(q.u))} pp`)); c.addEventListener("pointerleave", hideTip);
+    c.addEventListener("click", (e) => onPick(ix, e)); });
+}
+
+// ---------- timeline ----------
+function timelineSection() {
+  const el = document.createElement("section"); el.id = "time";
+  el.innerHTML = `<h2>Response over time</h2><p class="head" data-h></p>
+    <div class="card"><div class="tools"><div class="grp"><span>Invitations</span><div class="seg" data-f><button data-v="0" aria-pressed="true">All</button><button data-v="1" aria-pressed="false">1st invitation</button></div></div>
+    <div class="grp"><span>Group by</span><div class="seg" data-by><button data-v="batch" aria-pressed="false">Mailing batch</button><button data-v="half" aria-pressed="true">Half-year</button><button data-v="year" aria-pressed="false">Year</button></div></div></div>
+    <svg viewBox="0 0 720 340" role="img" aria-label="Response by invitation date" data-svg></svg><div class="legend" data-legend></div><p class="rcap" data-note></p></div>`;
+  const ts = { f: 0, by: "half" };
+  const keyOf = (d) => (ts.by === "year" ? d.slice(0, 4) : ts.by === "half" ? `${d.slice(0, 4)} ${+d.slice(5, 7) <= 6 ? "H1" : "H2"}` : d);
+  const buckets = (arr) => { const out = new Map(); D.dates.forEach((d, i) => { const k = keyOf(d), b = out.get(k) || [0, 0, 0, 0]; for (let c = 0; c < 4; c++) b[c] += arr[4 * i + c]; out.set(k, b); }); return out; };
+  function render() {
+    const series = [[nat, "Czechia", "cz"], [unitAt(G.sel), G.sel != null ? nameAt(G.sel) : null, "sel"], [unitAt(G.cmp), G.cmp != null ? nameAt(G.cmp) : null, "cmp"]].filter(([u]) => u).map(([u, n, c]) => ({ n, c, b: buckets(u.tl[ts.f]) }));
+    const keys = [...series[0].b.keys()], val = (b) => (b[0] >= 20 ? 100 * b[1 + st.w] / b[0] : null), half = (b) => (b[0] >= 20 ? 196 * Math.sqrt((b[1 + st.w] / b[0]) * (1 - b[1 + st.w] / b[0]) / b[0]) : 0);
+    const all = series.flatMap((s) => keys.map((k) => { const b = s.b.get(k); return b && val(b) != null ? [val(b) - (s.c === "cz" ? 0 : half(b)), val(b) + (s.c === "cz" ? 0 : half(b))] : []; })).flat();
+    const lo = Math.max(0, Math.floor(Math.min(...all) / 2) * 2), hi = Math.ceil(Math.max(...all) / 2) * 2, X0 = 56, X1 = 700, Y0 = 290, Y1 = 14;
+    const sx = (i) => X0 + (keys.length === 1 ? 0.5 : i / (keys.length - 1)) * (X1 - X0), sy = (v) => Y0 - ((v - lo) / (hi - lo)) * (Y0 - Y1), ys = hi - lo > 30 ? 10 : hi - lo > 12 ? 4 : 2;
+    let g = `<g class="axis">`; for (let v = lo; v <= hi; v += ys) g += `<line x1="${X0}" x2="${X1}" y1="${sy(v)}" y2="${sy(v)}"></line><text x="${X0 - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
+    const every = Math.ceil(keys.length / 10); keys.forEach((k, i) => { if (i % every === 0) g += `<text x="${sx(i)}" y="${Y0 + 18}" text-anchor="middle">${k.length > 8 ? k.slice(2, 7) : k}</text>`; });
+    g += `<text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">Screened within ${W[st.w]}, %</text></g>`;
+    series.forEach((s) => { let d = "", pen = false; const dots = [];
+      keys.forEach((k, i) => { const b = s.b.get(k), v = b ? val(b) : null; if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${sx(i)},${sy(v)}`; pen = true;
+        if (s.c !== "cz") { const h = half(b); g += `<line x1="${sx(i)}" x2="${sx(i)}" y1="${sy(v - h)}" y2="${sy(v + h)}" style="stroke:${colorOf[s.c]};opacity:.45;stroke-width:2"></line>`; }
+        dots.push(`<circle cx="${sx(i)}" cy="${sy(v)}" r="3.4" style="fill:${colorOf[s.c]};stroke:var(--surface)"><title>${esc(s.n)} · ${k}: ${nf(v, 1)} % (${nf(b[0])} invitations)</title></circle>`); });
+      g += `<path d="${d}" class="legendline" style="stroke:${colorOf[s.c]}"></path>` + dots.join(""); });
+    $("[data-svg]", el).innerHTML = g;
+    $("[data-legend]", el).innerHTML = series.map((s) => `<span><i style="background:${colorOf[s.c]}"></i>${esc(s.n)}</span>`).join("") + (series.length > 1 ? `<span>whiskers: 95% interval</span>` : "");
+    const yearN = (y) => D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[ts.f][4 * i] : 0), 0), yearR = (y) => 100 * D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[ts.f][4 * i + 1 + st.w] : 0), 0) / yearN(y), nb = series[0].b, vs0 = keys.map((k) => val(nb.get(k))).filter((v) => v != null);
+    $("[data-h]", el).innerHTML = `Czechia: ${ts.f ? "1st" : "all"} invitations followed by a screening within ${W[st.w]} range from <b>${nf(Math.min(...vs0), 1)} %</b> to <b>${nf(Math.max(...vs0), 1)} %</b> over the periods. Invitations sent in 2020: <b>${nf(yearN("2020"))}</b> with a response of <b>${nf(yearR("2020"), 1)} %</b>, against ${nf(yearN("2021"))} and ${nf(yearR("2021"), 1)} % in 2021.`;
+    $("[data-note]", el).textContent = ts.by === "batch" ? "Mailing batches are not evenly spaced in time. Select an area (or two with shift-click) to see its line with a 95% interval; small areas are noisy per batch." : "Select an area, or shift-click a second one, to compare it with Czechia. Whiskers show the 95% interval, which is wide for small areas.";
+  }
+  el.querySelectorAll("[data-f] button, [data-by] button").forEach((b) => b.addEventListener("click", () => { const g = b.parentElement; g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); if ("f" in g.dataset) ts.f = +b.dataset.v; else ts.by = b.dataset.v; render(); }));
+  syncs.push(render); return { el, s: { render } };
+}
+
+// ---------- region x age band heatmap ----------
+function heatSection() {
+  const el = document.createElement("section"); el.id = "heat";
+  el.innerHTML = `<h2>Region by age band</h2><p class="head" data-h></p>
+    <div class="card"><div class="tools"><div class="grp"><span>Invitations</span><div class="seg" data-f><button data-v="all" aria-pressed="false">All</button><button data-v="first" aria-pressed="true">1st invitation</button></div></div><span class="rcap" style="margin:0">Click a region name to select it. Faded cells have fewer than 100 cases.</span></div>
+    <div class="scroll"><table class="heat" data-table></table></div><div class="legend" data-legend></div></div>`;
+  const hs = { f: "first" }, cell = (c) => (c && c[0] >= MIN_N ? 100 * c[1 + st.w] / c[0] : null);
+  function render() {
+    const rows = D.meta.kraje.map((k) => ({ k, cells: D.ages.map((a) => D.heat[k]?.[a]?.[hs.f]) })), tot = (cs) => cs.reduce((acc, c) => (c ? [acc[0] + c[0], acc[1] + c[1], acc[2] + c[2], acc[3] + c[3]] : acc), [0, 0, 0, 0]);
+    rows.forEach((r) => (r.all = tot(r.cells))); rows.sort((a, b) => cell(b.all) - cell(a.all));
+    const natCells = D.ages.map((a, i) => tot(D.meta.kraje.map((k) => D.heat[k]?.[a]?.[hs.f]))), natAll = tot(natCells);
+    const vals = [...rows.flatMap((r) => r.cells.map(cell)), ...natCells.map(cell)].filter((v) => v != null), bins = binsFor(vals);
+    const td = (c) => { const v = cell(c); return v == null ? `<td>–</td>` : `<td class="${c[0] < 100 ? "faded" : ""}" style="background:var(--s${binOf(bins, v) + 1});color:var(--t${binOf(bins, v) + 1})" title="${nf(c[0])} invitations">${nf(v, 1)}</td>`; };
+    const selK = G.sel != null ? D.areas[G.sel].kraj2 : null;
+    $("[data-table]", el).innerHTML = `<tr><th></th>${D.ages.map((a) => `<th>${a}</th>`).join("")}<th>All ages</th></tr>` +
+      `<tr class="all"><th class="rowh" style="cursor:default">Czechia</th>${natCells.map(td).join("")}${td(natAll)}</tr>` +
+      rows.map((r) => `<tr class="${r.k === selK ? "sel" : ""}" data-k="${esc(r.k)}"><th class="rowh">${esc(r.k.replace(" kraj", "").replace("Hlavní město ", ""))}</th>${r.cells.map(td).join("")}${td(r.all)}</tr>`).join("");
+    el.querySelectorAll("tr[data-k]").forEach((tr) => tr.querySelector("th").addEventListener("click", () => { const i = D.areas.findIndex((a) => a.kraj2 === tr.dataset.k); if (st.l !== "k") $("#lvlSeg [data-l=k]").click(); G.sel = null; setSel(i); }));
+    const dec = bins.step < 1 ? 1 : 0; $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${b[0].toFixed(dec)}–${b[1].toFixed(dec)}</span>`).join("");
+    const best = rows[0], worst = rows.at(-1), ai = D.ages.map((a, i) => [a, cell(natCells[i])]).filter((x) => x[1] != null);
+    $("[data-h]", el).innerHTML = `${hs.f === "first" ? "First" : "All"} invitations, screened within ${W[st.w]}. By age band Czechia runs from <b>${nf(Math.min(...ai.map((x) => x[1])), 1)} %</b> (${ai.reduce((a, b) => (a[1] < b[1] ? a : b))[0]}) to <b>${nf(Math.max(...ai.map((x) => x[1])), 1)} %</b> (${ai.reduce((a, b) => (a[1] > b[1] ? a : b))[0]}). By region the whole-age rate goes from <b>${nf(cell(worst.all), 1)} %</b> in ${esc(worst.k)} to <b>${nf(cell(best.all), 1)} %</b> in ${esc(best.k)}.`;
+  }
+  el.querySelectorAll("[data-f] button").forEach((b) => b.addEventListener("click", () => { el.querySelectorAll("[data-f] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); hs.f = b.dataset.v; render(); }));
+  syncs.push(render); return { el, s: { render } };
 }
 
 // ---------- centre network ----------
@@ -327,15 +509,16 @@ function scatterSection() {
     for (let v = ymin; v <= ymax; v += 2) g += `<line x1="${X0}" x2="${X1}" y1="${sy(v)}" y2="${sy(v)}"></line><text x="${X0 - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
     const xs = xmax <= 10 ? 1 : xmax <= 40 ? 5 : 10; for (let v = 0; v <= xmax; v += xs) g += `<text x="${sx(v)}" y="${Y0 + 18}" text-anchor="middle">${v}</text>`;
     g += `<text x="${(X0 + X1) / 2}" y="${Y0 + 38}" text-anchor="middle">${info[k][0]}</text><text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">Response within ${W[st.w]}, %</text></g>`;
-    g += pts.map((p, i) => `<circle class="dotp" data-i="${i}" cx="${sx(p.x)}" cy="${sy(p.y)}" r="${3 + 8 * Math.sqrt(p.a.n / nmax)}"></circle>`).join("");
+    g += pts.map((p, i) => `<circle class="dotp${G.sel != null && sameGroup(G.sel, D.areas.indexOf(p.a)) ? " sel" : ""}" data-i="${i}" cx="${sx(p.x)}" cy="${sy(p.y)}" r="${3 + 8 * Math.sqrt(p.a.n / nmax)}"></circle>`).join("");
     g += `<line class="reg" x1="${sx(0)}" y1="${sy(Math.max(ymin, Math.min(ymax, icpt)))}" x2="${sx(xmax)}" y2="${sy(Math.max(ymin, Math.min(ymax, icpt + slope * xmax)))}"></line>`;
     const svg = $("[data-svg]", el); svg.innerHTML = g;
-    svg.querySelectorAll("circle").forEach((c) => { const p = pts[+c.dataset.i]; c.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(p.a.name)}</b><br>${nf(p.x, 1)} ${k === "dist" ? "km" : k === "wait" ? "days" : "%"}<br>response ${nf(p.y, 1)} %`)); c.addEventListener("pointerleave", hideTip); });
+    svg.querySelectorAll("circle").forEach((c) => { const p = pts[+c.dataset.i]; c.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(p.a.name)}</b><br>${nf(p.x, 1)} ${k === "dist" ? "km" : k === "wait" ? "days" : "%"}<br>response ${nf(p.y, 1)} %`)); c.addEventListener("pointerleave", hideTip); c.addEventListener("click", (e) => onPick(D.areas.indexOf(p.a), e)); c.style.cursor = "pointer"; });
     const u10 = { dist: ["10 km", 10], wait: ["10 days", 10], imm: ["5 percentage points", 5] }[k];
     const per = `each ${u10[0]} ${k === "imm" ? "more" : "further"} is ${nf(Math.abs(slope * u10[1]), 1)} pp ${slope < 0 ? "lower" : "higher"}`;
     $("[data-h]", el).innerHTML = `Across <b>${n}</b> districts the correlation between ${{ dist: "distance to the nearest centre", wait: "booking wait", imm: "the share of foreign women aged 40+" }[k]} and response is <b>r = ${r.toFixed(2)}</b>; on the fitted line ${per}.`;
   }
   el.querySelectorAll("[data-x] button").forEach((b) => b.addEventListener("click", () => { k = b.dataset.k; el.querySelectorAll("[data-x] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); }));
+  syncs.push(render);
   return { el, s: { render } };
 }
 
@@ -358,6 +541,7 @@ function whoSection() {
   }
   el.querySelectorAll("[data-d] button").forEach((b) => b.addEventListener("click", () => { dim = b.dataset.k; el.querySelectorAll("[data-d] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); }));
   sel.addEventListener("change", render);
+  syncs.push(() => { if (G.sel != null) { sel.value = D.areas[G.sel].kraj2; render(); } });
   return { el, s: { render } };
 }
 
@@ -366,12 +550,58 @@ function whoSection() {
 $("#kpis").innerHTML = [[nf(D.meta.rows), "invitations, 2020–2024"], [nf(D.meta.women), "women invited"], [D.meta.centres, "screening centres (mamo.cz)"], [nf(100 * nat.p[0] / nat.n, 1) + " %", "respond within 3 months"], [nf(100 * nat.p[2] / nat.n, 1) + " %", "respond within 12 months"]]
   .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
 $("#scr").textContent = D.meta.scraped;
-const secs = [indicatorSection(IND[0]), indicatorSection(IND[1]), indicatorSection(IND[2]), networkSection(), scatterSection(), whoSection(), indicatorSection(IND[3]), indicatorSection(IND[4]), indicatorSection(IND[5])];
-const titles = ["Response", "Distance", "Waiting time", "Centres", "Access vs response", "Who responds", "Volume", "Citizenship", "Immigration"];
+const I = Object.fromEntries(IND.map((x) => [x.id, x]));
+const secs = [indicatorSection(I.resp), indicatorSection(I.adj), indicatorSection(I.haz), timelineSection(), heatSection(), indicatorSection(I.dist), indicatorSection(I.wait), networkSection(), scatterSection(), whoSection(), indicatorSection(I.vol), indicatorSection(I.eth), indicatorSection(I.imm)];
+const titles = ["Response", "Adjusted", "Reminders", "Timeline", "Region × age", "Distance", "Waiting time", "Centres", "Access vs response", "Who responds", "Volume", "Citizenship", "Immigration"];
+
+// selected-area bar: the same area across all indicators
+function profile() {
+  const box = $("#prof");
+  if (G.sel == null) { box.hidden = true; return; }
+  const k = st.l === "k", pct = (c) => (c.n >= MIN_N ? `${nf(100 * c.p[st.w] / c.n, 1)} %` : "–");
+  const row = (i, role) => { const a = D.areas[i], u = a.n ? (k ? kraje[a.kraj2] : a) : null, x = k ? krajeX[a.kraj2] : a;
+    const chips = u ? [[`1st invitation, ${W[st.w]}`, pct(u.ord[0])], [`All invitations, ${W[st.w]}`, pct(u)], [`Women screened at least once`, pct({ n: u.wn, p: u.wp })], ["12 mo vs expected", `${sgn(adjOf(u))} pp`], ["Round 1 response", `${hazOf(u, 0, "haz") == null ? "–" : nf(hazOf(u, 0, "haz"), 1) + " %"}`]] : [];
+    chips.push(["Distance to centre", `${nf(x.dist, 1)} km`], ["Booking wait", `${nf(x.wait, 1)} days`], ["Foreign women 40+", `${nf(100 * x.forn / x.pop24, 1)} %`]);
+    return `<div class="prow" style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;flex-basis:100%"><span class="who" style="color:${role === "cmp" ? "var(--pt)" : "var(--accent)"}">${esc(k ? a.kraj2 : a.name)}</span>` + chips.map(([l, v]) => `<div class="chip"><span>${l}</span><b>${v}</b></div>`).join("") + `<button data-clear="${role}">${role === "cmp" ? "Remove" : "Clear"}</button></div>`; };
+  box.innerHTML = row(G.sel, "sel") + (G.cmp != null ? row(G.cmp, "cmp") : `<span class="rcap" style="margin:0">Shift-click another area to compare.</span>`);
+  box.hidden = false;
+  box.querySelectorAll("[data-clear]").forEach((b) => b.addEventListener("click", () => (b.dataset.clear === "cmp" ? setCmp(G.cmp) : setSel(G.sel))));
+}
+// search: type a district or kraj name
+const names = [...D.areas.map((a) => a.name), ...Object.keys(krajeX)];
+$("#areas").innerHTML = names.map((n) => `<option value="${esc(n)}">`).join("");
+$("#find").addEventListener("input", (e) => {
+  const v = e.target.value.trim().toLowerCase(); if (!v) return;
+  const di = D.areas.findIndex((a) => a.name.toLowerCase() === v), kr = D.areas.findIndex((a) => a.kraj2.toLowerCase() === v);
+  const i = di >= 0 ? di : kr, level = di >= 0 ? "d" : "k"; if (i < 0) return;
+  if (st.l !== level) $(`#lvlSeg [data-l=${level}]`).click();
+  G.sel = null; setSel(i); e.target.value = ""; e.target.blur();
+});
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (G.cmp != null) setCmp(G.cmp); else if (G.sel != null) setSel(G.sel); });
 secs.forEach((x) => $("#sections").appendChild(x.el));
 $("#nav").innerHTML = titles.map((t, i) => `<button data-i="${i}">${t}</button>`).join("");
 $("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) secs[+b.dataset.i].el.scrollIntoView({ behavior: "smooth" }); });
-const renderAll = () => secs.forEach((x) => x.s.render());
+// ---------- what stands out: computed from the data ----------
+function insights() {
+  const pr = (c, w = 2) => 100 * c.p[w] / c.n, kr = Object.values(kraje).sort((a, b) => pr(b.ord[0]) - pr(a.ord[0])), kS = (n) => n.replace(" kraj", "").replace("Hlavní město ", "").replace("Kraj ", "");
+  const dis = withData.filter((a) => adjCls(a) !== 2), worst = withData.reduce((a, b) => (adjOf(a) < adjOf(b) ? a : b));
+  const hz1 = hazOf(nat, 0, "haz"), hz5 = hazOf(nat, 4, "haz"), cum = hazOf(nat, 4, "cum"), lastShare = 100 * nat.ord[4].n / nat.n;
+  const corr = (f) => { const ps = withData.filter((a) => f(a) != null).map((a) => [f(a), pr(a.ord[0])]), mx = ps.reduce((t2, q) => t2 + q[0], 0) / ps.length, my = ps.reduce((t2, q) => t2 + q[1], 0) / ps.length;
+    return ps.reduce((t2, q) => t2 + (q[0] - mx) * (q[1] - my), 0) / Math.sqrt(ps.reduce((t2, q) => t2 + (q[0] - mx) ** 2, 0) * ps.reduce((t2, q) => t2 + (q[1] - my) ** 2, 0)); };
+  const yr = (y) => 100 * D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[0][4 * i + 3] : 0), 0) / D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[0][4 * i] : 0), 0);
+  const items = [
+    [`${nf(pr(kr[0].ord[0]) - pr(kr.at(-1).ord[0]), 0)} pp`, `Gap in first-invitation response between regions: ${kS(kr[0].name)} ${nf(pr(kr[0].ord[0]), 1)} % and ${kS(kr.at(-1).name)} ${nf(pr(kr.at(-1).ord[0]), 1)} % (12 months).`, "resp"],
+    [`${dis.length} of ${withData.length}`, `Districts clearly differ from what their women's profile predicts. Largest shortfall: ${worst.name} (${sgn(adjOf(worst))} pp).`, "adj"],
+    [`${nf(hz1, 0)} % → ${nf(hz5, 0)} %`, `Share of still-unscreened women who respond falls from the first to the fifth invitation. ${nf(cum, 0)} % are reached by the fifth round.`, "haz"],
+    [`${nf(lastShare, 0)} %`, `Of all invitations go to women on their 5th or later invitation, who respond ${nf(pr(nat.ord[4]), 1)} % of the time.`, "resp"],
+    [`r = ${corr((a) => a.dist).toFixed(2)}`, `Correlation of first-invitation response with distance to the nearest centre across districts (booking wait: r = ${corr((a) => a.wait).toFixed(2)}).`, "rel"],
+    [`${nf(yr("2020"), 1)} % → ${nf(yr("2021"), 1)} %`, `12 month response of all invitations sent in 2020, against 2021. 2020 was the first COVID year.`, "time"],
+  ];
+  $("#insights").innerHTML = items.map(([big, txt, id], i) => `<button class="insight" data-t="${id}"><b>${big}</b><span>${txt}</span><small>12 month figures · open ${id === "resp" ? "response" : id === "adj" ? "adjusted map" : id === "haz" ? "reminders" : id === "rel" ? "access vs response" : "timeline"}</small></button>`).join("");
+  $("#insights").addEventListener("click", (e) => { const b = e.target.closest(".insight"); if (b) $("#" + b.dataset.t).scrollIntoView({ behavior: "smooth" }); });
+}
+insights();
+const renderAll = () => { secs.forEach((x) => x.s.render()); profile(); };
 function bindSeg(id, attr, fn) { document.querySelectorAll(`${id} button`).forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll(`${id} button`).forEach((x) => x.setAttribute("aria-pressed", x === b)); fn(b.dataset[attr]); })); }
 bindSeg("#lvlSeg", "l", (v) => { st.l = v; renderAll(); });
