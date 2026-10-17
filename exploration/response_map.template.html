@@ -3,24 +3,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: control strip on top, map left, ranked list + detail right; stacks on phones.
-   Sequential single-hue blue ramp for magnitude; grey for districts without data. */
+   Sequential single-hue red ramp (VZP colours) for magnitude; grey for districts without data. */
 :root {
-  --bg: #f6f7fb; --surface: #ffffff; --fg: #141a33; --muted: #5a6180; --line: #dde1ee; --accent: #2b2d7e;
-  --s1: #dbe7f6; --s2: #a9c5e6; --s3: #6c9bd3; --s4: #2f66ad; --s5: #14316f;
-  --t1: #14316f; --t2: #14316f; --t3: #0b1b3f; --t4: #ffffff; --t5: #ffffff;
-  --nodata: #e3e4ea; --edge: #ffffff; --hl: #141a33;
+  --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
+  --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
+  --t1: #7e170d; --t2: #5f1009; --t3: #2a0905; --t4: #ffffff; --t5: #ffffff;
+  --nodata: #e6e0de; --edge: #ffffff; --hl: #231a19;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --t1: #dbe7f6; --t2: #e8ebf7; --t3: #ffffff; --t4: #0b1b3f; --t5: #0b1b3f;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; color-scheme: dark; } }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --t1: #f9ddd7; --t2: #f4ecea; --t3: #ffffff; --t4: #2a0905; --t5: #2a0905;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --t1: #dbe7f6; --t2: #e8ebf7; --t3: #ffffff; --t4: #0b1b3f; --t5: #0b1b3f;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; color-scheme: dark; }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --t1: #f9ddd7; --t2: #f4ecea; --t3: #ffffff; --t4: #2a0905; --t5: #2a0905;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45;
   padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -65,19 +65,26 @@ path.a.dim { opacity: .45; }
 .tip { position: fixed; z-index: 20; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12px; line-height: 1.35; max-width: 240px; opacity: 0; transition: opacity .1s; }
 .note { color: var(--muted); font-size: 12px; max-width: 80ch; }
 .theme { margin-left: auto; }
+/* Shared top navigation across the four report pages */
+.site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
+.site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
+.site a:hover { color: var(--fg); }
+.site a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 </style>
 
 <div class="wrap">
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="results.html">Model &amp; segments</a><a href="response_map.html" aria-current="page">Response map</a><a href="response_report.html">Regional report</a></nav>
   <header>
     <h1>Screening response by district</h1>
-    <p class="sub">Share of mammography invitations followed by a screening, by VZP territorial area (okres) and kraj. 1.34 million invitations, 2020 onwards.</p>
+    <p class="sub">Share of mammography invitations followed by a screening, by VZP territorial area (district) and region. 1.34 million invitations, 2020 onwards.</p>
   </header>
 
   <div class="bar">
     <div class="grp"><span>Window</span>
       <div class="seg" id="winSeg"><button data-w="0" aria-pressed="false">3 months</button><button data-w="1" aria-pressed="false">6 months</button><button data-w="2" aria-pressed="true">12 months</button></div></div>
     <div class="grp"><span>Level</span>
-      <div class="seg" id="lvlSeg"><button data-l="d" aria-pressed="true">District</button><button data-l="k" aria-pressed="false">Kraj</button></div></div>
+      <div class="seg" id="lvlSeg"><button data-l="d" aria-pressed="true">District</button><button data-l="k" aria-pressed="false">Region</button></div></div>
     <div class="seg theme"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></div>
   </div>
 
@@ -148,7 +155,7 @@ function renderList() {
   const items = st.l === "k" ? Object.values(kraje) : D.areas.map((a, i) => ({ ...a, i })).filter((a) => a.n);
   items.sort((a, b) => rate(b) - rate(a));
   const max = rate(items[0]);
-  $("#list").innerHTML = `<h2>${st.l === "k" ? "Kraje" : "Districts"} ranked, ${W[st.w]}</h2>` + items.map((u, r) => {
+  $("#list").innerHTML = `<h2>${st.l === "k" ? "Regions" : "Districts"} ranked, ${W[st.w]}</h2>` + items.map((u, r) => {
     const v = rate(u), idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj === u.name) : u.i;
     return `<div class="row" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${u.name}</span>
       <span class="tr"><i style="width:${(100 * v) / max}%;background:var(--s${binOf(v) + 1})"></i></span><span class="v">${v.toFixed(1)}</span></div>`; }).join("");
@@ -176,7 +183,7 @@ function renderDetail() {
     $("#detail").innerHTML = `<div class="nm">Czechia overall</div><div class="kr">Select a district on the map</div><div class="big">${fmt(v)} <small>within ${W[st.w]}</small></div>${stats(total)}`; return; }
   if (!u) { $("#detail").innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP territorial area for this district in the dataset.</div>`; return; }
   const v = rate(u), diff = v - rate(total);
-  $("#detail").innerHTML = `<div class="nm">${label(a)}</div><div class="kr">${st.l === "k" ? "Kraj" : a.kraj}</div>
+  $("#detail").innerHTML = `<div class="nm">${label(a)}</div><div class="kr">${st.l === "k" ? "Region" : a.kraj}</div>
     <div class="big">${fmt(v)} <small>within ${W[st.w]} · ${diff >= 0 ? "+" : "−"}${Math.abs(diff).toFixed(1)} pp vs. Czechia</small></div>${stats(u)}`;
 }
 const stats = (u) => `<div class="stats">${[0, 1, 2].map((w) => `<div><b>${fmt(rate(u, w))}</b><span>${W[w]}</span></div>`).join("")}</div>

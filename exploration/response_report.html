@@ -3,21 +3,21 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: sticky control strip; one section per indicator (headline sentence, ranked bars + okres map), as in the NSC regional slides.
-   Single-hue blue ramp for magnitude, orange only for centre points and the regression line. */
+   Single-hue red ramp (VZP colours) for magnitude, charcoal only for centre points and the regression line. */
 :root {
-  --bg: #f6f7fb; --surface: #ffffff; --fg: #141a33; --muted: #5a6180; --line: #dde1ee; --accent: #2b2d7e;
-  --s1: #dbe7f6; --s2: #a9c5e6; --s3: #6c9bd3; --s4: #2f66ad; --s5: #14316f;
-  --nodata: #e3e4ea; --edge: #ffffff; --hl: #141a33; --pt: #d9631e; --ptring: #ffffff;
+  --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
+  --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
+  --nodata: #e6e0de; --edge: #ffffff; --hl: #231a19; --pt: #3d4451; --ptring: #ffffff;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; --pt: #ff9a4d; --ptring: #161b30; color-scheme: dark; } }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; --pt: #ff9a4d; --ptring: #161b30; color-scheme: dark; }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;

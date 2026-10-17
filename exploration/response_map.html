@@ -3,24 +3,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: control strip on top, map left, ranked list + detail right; stacks on phones.
-   Sequential single-hue blue ramp for magnitude; grey for districts without data. */
+   Sequential single-hue red ramp (VZP colours) for magnitude; grey for districts without data. */
 :root {
-  --bg: #f6f7fb; --surface: #ffffff; --fg: #141a33; --muted: #5a6180; --line: #dde1ee; --accent: #2b2d7e;
-  --s1: #dbe7f6; --s2: #a9c5e6; --s3: #6c9bd3; --s4: #2f66ad; --s5: #14316f;
-  --t1: #14316f; --t2: #14316f; --t3: #0b1b3f; --t4: #ffffff; --t5: #ffffff;
-  --nodata: #e3e4ea; --edge: #ffffff; --hl: #141a33;
+  --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
+  --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
+  --t1: #7e170d; --t2: #5f1009; --t3: #2a0905; --t4: #ffffff; --t5: #ffffff;
+  --nodata: #e6e0de; --edge: #ffffff; --hl: #231a19;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --t1: #dbe7f6; --t2: #e8ebf7; --t3: #ffffff; --t4: #0b1b3f; --t5: #0b1b3f;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; color-scheme: dark; } }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --t1: #f9ddd7; --t2: #f4ecea; --t3: #ffffff; --t4: #2a0905; --t5: #2a0905;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
-  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
-  --t1: #dbe7f6; --t2: #e8ebf7; --t3: #ffffff; --t4: #0b1b3f; --t5: #0b1b3f;
-  --nodata: #262c45; --edge: #161b30; --hl: #ffffff; color-scheme: dark; }
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --t1: #f9ddd7; --t2: #f4ecea; --t3: #ffffff; --t4: #2a0905; --t5: #2a0905;
+  --nodata: #2e2523; --edge: #211918; --hl: #ffffff; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45;
   padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
