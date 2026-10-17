@@ -37,12 +37,12 @@ rakathon/
 │   ├── label_correlations.ipynb  correlation of every attribute with the 3 labels (+ .md export)
 │   ├── covid.ipynb             how COVID-19 shows in the data and the model (+ .md export)
 │   └── playground.ipynb        personal scratch notebook (gitignored)
-├── report/                     the HTML report: four pages sharing one top navigation, light by default
-│   ├── index.html              evidence review & proposed tests (+ styles.css, report.js; README.md)
-│   ├── mammography-report.html single-file copy of index.html (build_single_file.py)
+├── report/                     the HTML report: four pages, one top navigation, light by default (see report/README.md)
 │   ├── exploration.html        the whole exploration as one interactive page (build_exploration.py)
-│   ├── response_report.html    regional report: district maps, access, waits, population (build_report.py)
-│   └── classifiers.html        predictive models, segments, interventions, experiment (build_classifiers.py)
+│   ├── response_report.html    regional report, geospatial only: maps, centres, access (build_report.py)
+│   ├── classifiers.html        predictive models: risk, models, ceiling, drivers, segments (build_classifiers.py)
+│   ├── index.html              interventions & tests: segments + evidence, protocol, planner, sources (build_interventions.py)
+│   └── site.css, evidence.json shared stylesheet; evidence review data (sources, test designs, recommendations)
 ├── features/                   feature engineering and feature experiments
 │   ├── prepare_data.py         raw CSV -> data/Rakhaton2026_prepared.csv (102 columns)
 │   ├── history_features.py     per-woman history features (+ comparison)

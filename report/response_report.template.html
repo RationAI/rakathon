@@ -28,6 +28,7 @@ h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; marg
 h1 { font-size: clamp(28px, 5vw, 46px); line-height: 1.05; color: var(--accent); }
 .hero { padding-block: 40px 24px; display: grid; gap: 14px; }
 .lede { color: var(--muted); max-width: 72ch; font-size: 15px; margin: 0; }
+a { color: var(--accent); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .kpi { border-top: 2px solid var(--accent); padding-top: 8px; }
 .kpi b { display: block; font-family: var(--mono); font-weight: 500; font-size: 26px; font-variant-numeric: tabular-nums; }
@@ -127,10 +128,10 @@ footer { padding-block: 40px 56px; }
 </style>
 
 <div class="wrap">
-  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html" aria-current="page">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html">Evidence &amp; tests</a></nav>
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html" aria-current="page">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html">Interventions &amp; tests</a></nav>
   <header class="hero">
     <h1>Regional evaluation of mammography screening response</h1>
-    <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data. Click any district or region to follow it through every section, shift-click a second one to compare, press Esc to clear.</p>
+    <p class="lede">Where women respond to the screening invitation: maps by district and region, and how response relates to travel distance, booking waits and the share of foreign women. Breakdowns by age, invitation order and time are on <a href="exploration.html">Exploration</a>. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data. Click any district or region to follow it through every section, shift-click a second one to compare, press Esc to clear.</p>
     <div class="kpis" id="kpis"></div>
   </header>
   <div class="method">
@@ -180,18 +181,16 @@ const hideTip = () => (tip.style.opacity = 0);
 // ---------- aggregation ----------
 const wmean = (xs, f) => { let s = 0, n = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.n; n += a.n; } }); return n ? s / n : null; };
 const withData = D.areas.filter((a) => a.n);
-const sumArr = (arrs) => arrs.reduce((acc, a) => acc.map((v, i) => v + a[i]), Array(arrs[0].length).fill(0));
 const kraje = {};
 withData.forEach((a) => (kraje[a.kraj] ||= { name: a.kraj, kraj: a.kraj, members: [] }).members.push(a));
 Object.values(kraje).forEach((k) => { k.n = k.members.reduce((t, a) => t + a.n, 0);
   k.p = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.p[w], 0));
   k.fn = [0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3].map((c) => k.members.reduce((t, a) => t + a.fn[r][c], 0)));
-  k.tl = [0, 1].map((f) => sumArr(k.members.map((a) => a.tl[f])));
   k.e = k.members.reduce((t, a) => t + a.e, 0); k.ev = k.members.reduce((t, a) => t + a.ev, 0);
   k.ord = [0, 1, 2, 3, 4].map((o) => ({ n: k.members.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.ord[o].p[w], 0)) }));
   k.wn = k.members.reduce((t, a) => t + a.wn, 0); k.wp = [0, 1, 2].map((w) => k.members.reduce((t, a) => t + a.wp[w], 0));
   k.pop = k.members.reduce((t, a) => t + a.pop, 0); k.wall = k.members.reduce((t, a) => t + a.wall, 0); k.eth = Object.fromEntries(D.groups.map((g) => [g, k.members.reduce((t, a) => t + a.eth[g], 0)])); k.forn = k.members.reduce((t, a) => t + a.forn, 0); k.pop24 = k.members.reduce((t, a) => t + a.pop24, 0); k.dist = wmean(k.members, (a) => a.dist); k.wait = wmean(k.members, (a) => a.wait); });
-const nat = { name: "Czechia", fn: [0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3].map((c) => withData.reduce((t, a) => t + a.fn[r][c], 0))), tl: [0, 1].map((f) => sumArr(withData.map((a) => a.tl[f]))), e: withData.reduce((t, a) => t + a.e, 0), ev: withData.reduce((t, a) => t + a.ev, 0), wn: withData.reduce((t, a) => t + a.wn, 0), wp: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.wp[w], 0)), ord: [0, 1, 2, 3, 4].map((o) => ({ n: withData.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.ord[o].p[w], 0)) })), wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
+const nat = { name: "Czechia", fn: [0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3].map((c) => withData.reduce((t, a) => t + a.fn[r][c], 0))), e: withData.reduce((t, a) => t + a.e, 0), ev: withData.reduce((t, a) => t + a.ev, 0), wn: withData.reduce((t, a) => t + a.wn, 0), wp: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.wp[w], 0)), ord: [0, 1, 2, 3, 4].map((o) => ({ n: withData.reduce((t, a) => t + a.ord[o].n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.ord[o].p[w], 0)) })), wall: withData.reduce((t, a) => t + a.wall, 0), eth: Object.fromEntries(D.groups.map((g) => [g, withData.reduce((t, a) => t + a.eth[g], 0)])), forn: withData.reduce((t, a) => t + a.forn, 0), pop24: withData.reduce((t, a) => t + a.pop24, 0), pop: withData.reduce((t, a) => t + a.pop, 0), n: withData.reduce((t, a) => t + a.n, 0), p: [0, 1, 2].map((w) => withData.reduce((t, a) => t + a.p[w], 0)),
   dist: wmean(withData, (a) => a.dist), wait: wmean(withData, (a) => a.wait) };
 // external-data indicators (population, foreigners) cover every district, including Bruntál and Jeseník
 const wmean2 = (xs, f) => { let s = 0, w = 0; xs.forEach((a) => { const v = f(a); if (v != null) { s += v * a.wall; w += a.wall; } }); return w ? s / w : null; };  // weighted by women
@@ -398,66 +397,6 @@ function drawAdj(host) {
     c.addEventListener("click", (e) => onPick(ix, e)); });
 }
 
-// ---------- timeline ----------
-function timelineSection() {
-  const el = document.createElement("section"); el.id = "time";
-  el.innerHTML = `<h2>Response over time</h2><p class="head" data-h></p>
-    <div class="card"><div class="tools"><div class="grp"><span>Invitations</span><div class="seg" data-f><button data-v="0" aria-pressed="true">All</button><button data-v="1" aria-pressed="false">1st invitation</button></div></div>
-    <div class="grp"><span>Group by</span><div class="seg" data-by><button data-v="batch" aria-pressed="false">Mailing batch</button><button data-v="half" aria-pressed="true">Half-year</button><button data-v="year" aria-pressed="false">Year</button></div></div></div>
-    <svg viewBox="0 0 720 340" role="img" aria-label="Response by invitation date" data-svg></svg><div class="legend" data-legend></div><p class="rcap" data-note></p></div>`;
-  const ts = { f: 0, by: "half" };
-  const keyOf = (d) => (ts.by === "year" ? d.slice(0, 4) : ts.by === "half" ? `${d.slice(0, 4)} ${+d.slice(5, 7) <= 6 ? "H1" : "H2"}` : d);
-  const buckets = (arr) => { const out = new Map(); D.dates.forEach((d, i) => { const k = keyOf(d), b = out.get(k) || [0, 0, 0, 0]; for (let c = 0; c < 4; c++) b[c] += arr[4 * i + c]; out.set(k, b); }); return out; };
-  function render() {
-    const series = [[nat, "Czechia", "cz"], [unitAt(G.sel), G.sel != null ? nameAt(G.sel) : null, "sel"], [unitAt(G.cmp), G.cmp != null ? nameAt(G.cmp) : null, "cmp"]].filter(([u]) => u).map(([u, n, c]) => ({ n, c, b: buckets(u.tl[ts.f]) }));
-    const keys = [...series[0].b.keys()], val = (b) => (b[0] >= 20 ? 100 * b[1 + st.w] / b[0] : null), half = (b) => (b[0] >= 20 ? 196 * Math.sqrt((b[1 + st.w] / b[0]) * (1 - b[1 + st.w] / b[0]) / b[0]) : 0);
-    const all = series.flatMap((s) => keys.map((k) => { const b = s.b.get(k); return b && val(b) != null ? [val(b) - (s.c === "cz" ? 0 : half(b)), val(b) + (s.c === "cz" ? 0 : half(b))] : []; })).flat();
-    const lo = Math.max(0, Math.floor(Math.min(...all) / 2) * 2), hi = Math.ceil(Math.max(...all) / 2) * 2, X0 = 56, X1 = 700, Y0 = 290, Y1 = 14;
-    const sx = (i) => X0 + (keys.length === 1 ? 0.5 : i / (keys.length - 1)) * (X1 - X0), sy = (v) => Y0 - ((v - lo) / (hi - lo)) * (Y0 - Y1), ys = hi - lo > 30 ? 10 : hi - lo > 12 ? 4 : 2;
-    let g = `<g class="axis">`; for (let v = lo; v <= hi; v += ys) g += `<line x1="${X0}" x2="${X1}" y1="${sy(v)}" y2="${sy(v)}"></line><text x="${X0 - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`;
-    const every = Math.ceil(keys.length / 10); keys.forEach((k, i) => { if (i % every === 0) g += `<text x="${sx(i)}" y="${Y0 + 18}" text-anchor="middle">${k.length > 8 ? k.slice(2, 7) : k}</text>`; });
-    g += `<text x="12" y="${(Y0 + Y1) / 2}" transform="rotate(-90 12 ${(Y0 + Y1) / 2})" text-anchor="middle">Screened within ${W[st.w]}, %</text></g>`;
-    series.forEach((s) => { let d = "", pen = false; const dots = [];
-      keys.forEach((k, i) => { const b = s.b.get(k), v = b ? val(b) : null; if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${sx(i)},${sy(v)}`; pen = true;
-        if (s.c !== "cz") { const h = half(b); g += `<line x1="${sx(i)}" x2="${sx(i)}" y1="${sy(v - h)}" y2="${sy(v + h)}" style="stroke:${colorOf[s.c]};opacity:.45;stroke-width:2"></line>`; }
-        dots.push(`<circle cx="${sx(i)}" cy="${sy(v)}" r="3.4" style="fill:${colorOf[s.c]};stroke:var(--surface)"><title>${esc(s.n)} · ${k}: ${nf(v, 1)} % (${nf(b[0])} invitations)</title></circle>`); });
-      g += `<path d="${d}" class="legendline" style="stroke:${colorOf[s.c]}"></path>` + dots.join(""); });
-    $("[data-svg]", el).innerHTML = g;
-    $("[data-legend]", el).innerHTML = series.map((s) => `<span><i style="background:${colorOf[s.c]}"></i>${esc(s.n)}</span>`).join("") + (series.length > 1 ? `<span>whiskers: 95% interval</span>` : "");
-    const yearN = (y) => D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[ts.f][4 * i] : 0), 0), yearR = (y) => 100 * D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[ts.f][4 * i + 1 + st.w] : 0), 0) / yearN(y), nb = series[0].b, vs0 = keys.map((k) => val(nb.get(k))).filter((v) => v != null);
-    $("[data-h]", el).innerHTML = `Czechia: ${ts.f ? "1st" : "all"} invitations followed by a screening within ${W[st.w]} range from <b>${nf(Math.min(...vs0), 1)} %</b> to <b>${nf(Math.max(...vs0), 1)} %</b> over the periods. Invitations sent in 2020: <b>${nf(yearN("2020"))}</b> with a response of <b>${nf(yearR("2020"), 1)} %</b>, against ${nf(yearN("2021"))} and ${nf(yearR("2021"), 1)} % in 2021.`;
-    $("[data-note]", el).textContent = ts.by === "batch" ? "Mailing batches are not evenly spaced in time. Select an area (or two with shift-click) to see its line with a 95% interval; small areas are noisy per batch." : "Select an area, or shift-click a second one, to compare it with Czechia. Whiskers show the 95% interval, which is wide for small areas.";
-  }
-  el.querySelectorAll("[data-f] button, [data-by] button").forEach((b) => b.addEventListener("click", () => { const g = b.parentElement; g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); if ("f" in g.dataset) ts.f = +b.dataset.v; else ts.by = b.dataset.v; render(); }));
-  syncs.push(render); return { el, s: { render } };
-}
-
-// ---------- region x age band heatmap ----------
-function heatSection() {
-  const el = document.createElement("section"); el.id = "heat";
-  el.innerHTML = `<h2>Region by age band</h2><p class="head" data-h></p>
-    <div class="card"><div class="tools"><div class="grp"><span>Invitations</span><div class="seg" data-f><button data-v="all" aria-pressed="false">All</button><button data-v="first" aria-pressed="true">1st invitation</button></div></div><span class="rcap" style="margin:0">Click a region name to select it. Faded cells have fewer than 100 cases.</span></div>
-    <div class="scroll"><table class="heat" data-table></table></div><div class="legend" data-legend></div></div>`;
-  const hs = { f: "first" }, cell = (c) => (c && c[0] >= MIN_N ? 100 * c[1 + st.w] / c[0] : null);
-  function render() {
-    const rows = D.meta.kraje.map((k) => ({ k, cells: D.ages.map((a) => D.heat[k]?.[a]?.[hs.f]) })), tot = (cs) => cs.reduce((acc, c) => (c ? [acc[0] + c[0], acc[1] + c[1], acc[2] + c[2], acc[3] + c[3]] : acc), [0, 0, 0, 0]);
-    rows.forEach((r) => (r.all = tot(r.cells))); rows.sort((a, b) => cell(b.all) - cell(a.all));
-    const natCells = D.ages.map((a, i) => tot(D.meta.kraje.map((k) => D.heat[k]?.[a]?.[hs.f]))), natAll = tot(natCells);
-    const vals = [...rows.flatMap((r) => r.cells.map(cell)), ...natCells.map(cell)].filter((v) => v != null), bins = binsFor(vals);
-    const td = (c) => { const v = cell(c); return v == null ? `<td>–</td>` : `<td class="${c[0] < 100 ? "faded" : ""}" style="background:var(--s${binOf(bins, v) + 1});color:var(--t${binOf(bins, v) + 1})" title="${nf(c[0])} invitations">${nf(v, 1)}</td>`; };
-    const selK = G.sel != null ? D.areas[G.sel].kraj2 : null;
-    $("[data-table]", el).innerHTML = `<tr><th></th>${D.ages.map((a) => `<th>${a}</th>`).join("")}<th>All ages</th></tr>` +
-      `<tr class="all"><th class="rowh" style="cursor:default">Czechia</th>${natCells.map(td).join("")}${td(natAll)}</tr>` +
-      rows.map((r) => `<tr class="${r.k === selK ? "sel" : ""}" data-k="${esc(r.k)}"><th class="rowh">${esc(r.k.replace(" kraj", "").replace("Hlavní město ", ""))}</th>${r.cells.map(td).join("")}${td(r.all)}</tr>`).join("");
-    el.querySelectorAll("tr[data-k]").forEach((tr) => tr.querySelector("th").addEventListener("click", () => { const i = D.areas.findIndex((a) => a.kraj2 === tr.dataset.k); if (st.l !== "k") $("#lvlSeg [data-l=k]").click(); G.sel = null; setSel(i); }));
-    const dec = bins.step < 1 ? 1 : 0; $("[data-legend]", el).innerHTML = bins.edges.map((b, i) => `<span><i style="background:var(--s${i + 1})"></i>${b[0].toFixed(dec)}–${b[1].toFixed(dec)}</span>`).join("");
-    const best = rows[0], worst = rows.at(-1), ai = D.ages.map((a, i) => [a, cell(natCells[i])]).filter((x) => x[1] != null);
-    $("[data-h]", el).innerHTML = `${hs.f === "first" ? "First" : "All"} invitations, screened within ${W[st.w]}. By age band Czechia runs from <b>${nf(Math.min(...ai.map((x) => x[1])), 1)} %</b> (${ai.reduce((a, b) => (a[1] < b[1] ? a : b))[0]}) to <b>${nf(Math.max(...ai.map((x) => x[1])), 1)} %</b> (${ai.reduce((a, b) => (a[1] > b[1] ? a : b))[0]}). By region the whole-age rate goes from <b>${nf(cell(worst.all), 1)} %</b> in ${esc(worst.k)} to <b>${nf(cell(best.all), 1)} %</b> in ${esc(best.k)}.`;
-  }
-  el.querySelectorAll("[data-f] button").forEach((b) => b.addEventListener("click", () => { el.querySelectorAll("[data-f] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); hs.f = b.dataset.v; render(); }));
-  syncs.push(render); return { el, s: { render } };
-}
-
 // ---------- centre network ----------
 function networkSection() {
   const el = document.createElement("section"); el.id = "net";
@@ -516,37 +455,13 @@ function scatterSection() {
   return { el, s: { render } };
 }
 
-// ---------- who responds ----------
-function whoSection() {
-  const el = document.createElement("section"); el.id = "who";
-  el.innerHTML = `<h2>Who responds</h2><p class="head" data-h></p>
-    <div class="card"><div class="tools"><div class="grp"><span>Break down by</span><div class="seg" data-d><button data-k="age" aria-pressed="true">Age band</button><button data-k="order" aria-pressed="false">Invitation order</button><button data-k="year" aria-pressed="false">Year</button></div></div>
-    <div class="grp"><span>Area</span><select id="whoKraj" aria-label="Region"><option value="ALL">Czechia</option>${D.meta.kraje.map((k) => `<option>${esc(k)}</option>`).join("")}</select></div></div>
-    <div class="list" style="max-height:none" data-list></div></div>`;
-  let dim = "age";
-  const sel = $("#whoKraj", el);
-  const pr = (r) => 100 * r.p[st.w] / r.n;
-  function render() {
-    const rows = D.who[dim][sel.value], max = Math.max(...rows.map(pr));
-    const hi = rows.reduce((a, b) => (pr(b) > pr(a) ? b : a)), lo = rows.reduce((a, b) => (pr(b) < pr(a) ? b : a));
-    const dn = { age: "age band", order: "invitation order", year: "year" }[dim];
-    $("[data-h]", el).innerHTML = `By ${dn}, response within ${W[st.w]} in ${sel.value === "ALL" ? "Czechia" : esc(sel.value)} is highest for <b>${esc(hi.k)}</b> (${nf(pr(hi), 1)} %) and lowest for <b>${esc(lo.k)}</b> (${nf(pr(lo), 1)} %).`;
-    $("[data-list]", el).innerHTML = `<h3>Response, % · invitations</h3>` + rows.map((r) => `<div class="row plain"><span class="nm">${esc(r.k)} <span style="color:var(--muted);font-size:11px">· ${nf(r.n)}</span></span><span class="tr"><i style="width:${100 * pr(r) / max}%;background:var(--s4)"></i></span><span class="v">${nf(pr(r), 1)}</span></div>`).join("");
-  }
-  el.querySelectorAll("[data-d] button").forEach((b) => b.addEventListener("click", () => { dim = b.dataset.k; el.querySelectorAll("[data-d] button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); }));
-  sel.addEventListener("change", render);
-  syncs.push(() => { if (G.sel != null) { sel.value = D.areas[G.sel].kraj2; render(); } });
-  return { el, s: { render } };
-}
-
-
 // ---------- page ----------
 $("#kpis").innerHTML = [[nf(D.meta.rows), "invitations, 2020–2024"], [nf(D.meta.women), "women invited"], [D.meta.centres, "screening centres (mamo.cz)"], [nf(100 * nat.p[0] / nat.n, 1) + " %", "respond within 3 months"], [nf(100 * nat.p[2] / nat.n, 1) + " %", "respond within 12 months"]]
   .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
 $("#scr").textContent = D.meta.scraped;
 const I = Object.fromEntries(IND.map((x) => [x.id, x]));
-const secs = [indicatorSection(I.resp), indicatorSection(I.adj), indicatorSection(I.haz), timelineSection(), heatSection(), indicatorSection(I.dist), indicatorSection(I.wait), networkSection(), scatterSection(), whoSection(), indicatorSection(I.vol), indicatorSection(I.eth), indicatorSection(I.imm)];
-const titles = ["Response", "Adjusted", "Reminders", "Timeline", "Region × age", "Distance", "Waiting time", "Centres", "Access vs response", "Who responds", "Volume", "Citizenship", "Immigration"];
+const secs = [indicatorSection(I.resp), indicatorSection(I.adj), indicatorSection(I.haz), indicatorSection(I.dist), indicatorSection(I.wait), networkSection(), scatterSection(), indicatorSection(I.vol), indicatorSection(I.eth), indicatorSection(I.imm)];
+const titles = ["Response", "Adjusted", "Reminders", "Distance", "Waiting time", "Centres", "Access vs response", "Volume", "Citizenship", "Immigration"];
 
 // selected-area bar: the same area across all indicators
 function profile() {
@@ -579,19 +494,14 @@ $("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"
 function insights() {
   const pr = (c, w = 2) => 100 * c.p[w] / c.n, kr = Object.values(kraje).sort((a, b) => pr(b.ord[0]) - pr(a.ord[0])), kS = (n) => n.replace(" kraj", "").replace("Hlavní město ", "").replace("Kraj ", "");
   const dis = withData.filter((a) => adjCls(a) !== 2), worst = withData.reduce((a, b) => (adjOf(a) < adjOf(b) ? a : b));
-  const hz1 = hazOf(nat, 0, "haz"), hz5 = hazOf(nat, 4, "haz"), cum = hazOf(nat, 4, "cum"), lastShare = 100 * nat.ord[4].n / nat.n;
   const corr = (f) => { const ps = withData.filter((a) => f(a) != null).map((a) => [f(a), pr(a.ord[0])]), mx = ps.reduce((t2, q) => t2 + q[0], 0) / ps.length, my = ps.reduce((t2, q) => t2 + q[1], 0) / ps.length;
     return ps.reduce((t2, q) => t2 + (q[0] - mx) * (q[1] - my), 0) / Math.sqrt(ps.reduce((t2, q) => t2 + (q[0] - mx) ** 2, 0) * ps.reduce((t2, q) => t2 + (q[1] - my) ** 2, 0)); };
-  const yr = (y) => 100 * D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[0][4 * i + 3] : 0), 0) / D.dates.reduce((t2, d, i) => t2 + (d.startsWith(y) ? nat.tl[0][4 * i] : 0), 0);
   const items = [
     [`${nf(pr(kr[0].ord[0]) - pr(kr.at(-1).ord[0]), 0)} pp`, `Gap in first-invitation response between regions: ${kS(kr[0].name)} ${nf(pr(kr[0].ord[0]), 1)} % and ${kS(kr.at(-1).name)} ${nf(pr(kr.at(-1).ord[0]), 1)} % (12 months).`, "resp"],
     [`${dis.length} of ${withData.length}`, `Districts clearly differ from what their women's profile predicts. Largest shortfall: ${worst.name} (${sgn(adjOf(worst))} pp).`, "adj"],
-    [`${nf(hz1, 0)} % → ${nf(hz5, 0)} %`, `Share of still-unscreened women who respond falls from the first to the fifth invitation. ${nf(cum, 0)} % are reached by the fifth round.`, "haz"],
-    [`${nf(lastShare, 0)} %`, `Of all invitations go to women on their 5th or later invitation, who respond ${nf(pr(nat.ord[4]), 1)} % of the time.`, "resp"],
     [`r = ${corr((a) => a.dist).toFixed(2)}`, `Correlation of first-invitation response with distance to the nearest centre across districts (booking wait: r = ${corr((a) => a.wait).toFixed(2)}).`, "rel"],
-    [`${nf(yr("2020"), 1)} % → ${nf(yr("2021"), 1)} %`, `12 month response of all invitations sent in 2020, against 2021. 2020 was the first COVID year.`, "time"],
   ];
-  $("#insights").innerHTML = items.map(([big, txt, id], i) => `<button class="insight" data-t="${id}"><b>${big}</b><span>${txt}</span><small>12 month figures · open ${id === "resp" ? "response" : id === "adj" ? "adjusted map" : id === "haz" ? "reminders" : id === "rel" ? "access vs response" : "timeline"}</small></button>`).join("");
+  $("#insights").innerHTML = items.map(([big, txt, id], i) => `<button class="insight" data-t="${id}"><b>${big}</b><span>${txt}</span><small>12 month figures · open ${id === "resp" ? "response" : id === "adj" ? "adjusted map" : id === "haz" ? "reminders" : "access vs response"}</small></button>`).join("");
   $("#insights").addEventListener("click", (e) => { const b = e.target.closest(".insight"); if (b) $("#" + b.dataset.t).scrollIntoView({ behavior: "smooth" }); });
 }
 insights();

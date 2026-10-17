@@ -249,7 +249,7 @@ data = {
     "corr": corr,
     "cramers": cramers,
 }
-html = (HERE / "exploration.template.html").read_text(encoding="utf-8")
+html = (HERE / "exploration.template.html").read_text(encoding="utf-8").replace("/*__SITE_CSS__*/", (HERE / "site.css").read_text(encoding="utf-8"))
 out = HERE / "exploration.html"
 out.write_text(
     html.replace(

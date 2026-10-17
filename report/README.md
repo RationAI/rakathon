@@ -1,10 +1,22 @@
-# From invitation to attendance
+# Rakathon 2026 report
 
-Open `index.html` in a browser. It works offline with the adjacent `styles.css` and `report.js`; no installation, account, server or external assets are required. A single-file copy is supplied as `mammography-report.html` for sharing.
+Four self-contained pages sharing one top navigation. Open `index.html` in a browser; every page is a single file
+(fonts load from Google Fonts and fall back to system fonts offline). Light by default; the theme button switches to dark.
 
-The report includes seven proposed Czech A/B tests, six system recommendations, national comparisons, 28 annotated sources, downloadable test briefs, a sample-size planner and print styles. In Print / save PDF, all seven plans and all references are included even when a different tab or bibliography filter is active.
+| page | content | built by (from `report/`) |
+|---|---|---|
+| `exploration.html` | labels, time and COVID, invitation history, response by attribute, correlations | `build_exploration.py` |
+| `response_report.html` | regional report, geospatial only: district and region maps, centres, access vs response, population | `build_report.py` |
+| `classifiers.html` | predictive models: risk score, the models and their ceiling, drivers, segments | `build_classifiers.py` (~1 min) |
+| `index.html` | interventions and tests: segment → barrier → intervention → A/B test, shared protocol, sample-size planner, system changes, 28 sources | `build_interventions.py` |
 
-This is a focused narrative evidence review, not a registered systematic review. Study findings, observational barriers and our proposed experiments are explicitly distinguished. No private patient records or model predictions are used. References link to original publications or official datasets; some publishers may restrict access.
+Each builder fills `<page>.template.html` with data (`__DATA__`) and inlines the shared stylesheet `site.css`
+(except the regional report, which keeps its own CSS with the same tokens). Run with `PYTHONUTF8=1 uv run python build_*.py`.
+
+`evidence.json` holds the evidence review: the 28 annotated sources, the seven mechanism-specific test designs and the six
+system recommendations. It is a focused narrative review, not a registered systematic review; study findings, observational
+barriers and our proposed experiments are kept apart. The primary outcome of every test is completed mammography within
+12 months (our label), read early at 3 and 6 months, except the record-correction test (verified correction within 90 days).
 
 ## Public Czech coverage calculation
 

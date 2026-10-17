@@ -6,101 +6,7 @@
 <title>Predictive Models</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Same design tokens as response_report.html: single-hue red ramp (VZP colours)
-   for magnitude, charcoal only as the second series (3-month response) and for negative correlations. */
-:root {
-  --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
-  --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
-  --nodata: #e6e0de; --pt: #3d4451; --band: #fbece8;
-  --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
-}
-:root[data-theme="dark"] {
-  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
-  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
-  --nodata: #2e2523; --pt: #c9ced8; --band: #2a1c19; color-scheme: dark; }
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.wrap { max-width: 1240px; margin: 0 auto; }
-h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
-h1 { font-size: clamp(28px, 5vw, 46px); line-height: 1.05; color: var(--accent); }
-.hero { padding-block: 40px 24px; display: grid; gap: 14px; }
-.lede { color: var(--muted); max-width: 72ch; font-size: 15px; margin: 0; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-.kpi { border-top: 2px solid var(--accent); padding-top: 8px; }
-.kpi b { display: block; font-family: var(--mono); font-weight: 500; font-size: 26px; font-variant-numeric: tabular-nums; }
-.kpi span { color: var(--muted); font-size: 12px; }
-.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-h3.cap { margin: 0 0 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-ul.sq { margin: 0; padding-left: 0; list-style: none; }
-ul.sq li { padding-left: 14px; position: relative; margin-bottom: 4px; }
-ul.sq li::before { content: "▪"; position: absolute; left: 0; color: var(--accent); }
-.bar { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line);
-  display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding-block: 10px; }
-.grp { display: flex; align-items: center; gap: 8px; }
-.grp > span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
-.seg button { font: inherit; font-weight: 500; padding: 6px 12px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
-.seg button + button { border-left: 1px solid var(--line); }
-.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
-.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
-.nav button, .chip { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; text-decoration: none; }
-.nav button:hover, .chip:hover { border-color: var(--accent); }
-select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
-button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-section { padding-block: 40px 8px; scroll-margin-top: 70px; }
-section h2 { font-size: clamp(20px, 3vw, 28px); text-transform: uppercase; letter-spacing: .01em; color: var(--accent); }
-.head { margin: 8px 0 16px; max-width: 80ch; }
-.head b, .mono { font-family: var(--mono); font-weight: 500; }
-.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 860px) { .two, .main { grid-template-columns: minmax(0, 1fr); } }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
-.card + .card { margin-top: 20px; }
-.two .card + .card, .main .card + .card, .method .card + .card { margin-top: 0; }
-svg { display: block; width: 100%; height: auto; }
-.axis text { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
-.grid line { stroke: var(--line); }
-.rows { display: grid; align-content: start; }
-.row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) 4.4em 5.4em; gap: 8px; align-items: center;
-  padding: 4px 4px; border-radius: 6px; font-size: 13px; }
-.row:hover { background: var(--bg); }
-.row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row .tr { height: 10px; background: var(--bg); border-radius: 0 4px 4px 0; position: relative; }
-.row .tr i { position: absolute; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
-.row .v { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.row .n { text-align: right; font-family: var(--mono); color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
-.row.hdr { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.row.hdr:hover { background: transparent; }
-.row.ref { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 6px; font-weight: 500; }
-.row.div .tr { border-radius: 0; }
-.row.div .tr::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; border-left: 1px solid var(--muted); }
-.row.div .tr i { border-radius: 0; }
-.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; align-items: center; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
-.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-.big { font-family: var(--mono); font-size: 30px; font-weight: 500; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.big small { font-size: 12px; color: var(--muted); font-family: var(--body); }
-table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.t th { text-align: right; font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
-table.t th:first-child, table.t td:first-child { text-align: left; }
-table.t td { text-align: right; padding: 4px 6px; font-family: var(--mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
-table.t td:first-child { font-family: var(--body); }
-table.t td.low { color: var(--pt); font-weight: 500; }
-.note { color: var(--muted); font-size: 12px; max-width: 90ch; }
-.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12px; line-height: 1.35; max-width: 260px; opacity: 0; transition: opacity .1s; }
-.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
-/* Shared top navigation across the four report pages */
-.site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
-.site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
-.site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
-.site a:hover { color: var(--fg); }
-.site a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-/* Results page only: text colours on the ramp steps (leaf boxes of the segment tree) */
-:root { --t1: #7e170d; --t2: #5f1009; --t3: #2a0905; --t4: #fff; --t5: #fff; }
-:root[data-theme="dark"] { --t1: #f9ddd7; --t2: #f4ecea; --t3: #fff; --t4: #2a0905; --t5: #2a0905; }
+/*__SITE_CSS__*/
 .tree text { font-family: var(--body); font-size: 12px; }
 .tree .q rect { fill: var(--surface); stroke: var(--muted); }
 .tree .q text { fill: var(--fg); }
@@ -108,38 +14,25 @@ footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
 .tree .yn { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
 .tree .leaf { cursor: default; }
 .tree .leaf b, .tree .leaf .ttl { font-weight: 600; }
-.scroll { overflow-x: auto; }
-table.t td.l, #segTable th:nth-child(2) { text-align: left; font-family: var(--body); }
-table.t td.hi { color: var(--accent); font-weight: 500; }
-.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-.steps li { counter-increment: s; padding-left: 34px; position: relative; }
-.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--bg); font-family: var(--mono); font-size: 12px; display: grid; place-items: center; }
+#segTable th:nth-child(2) { text-align: left; }
 .heat { border-collapse: collapse; width: 100%; font-size: 12px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .heat th { font-family: var(--body); font-weight: 500; font-size: 11px; color: var(--muted); padding: 4px 6px; text-align: center; vertical-align: bottom; }
 .heat th.rowh { text-align: left; white-space: nowrap; color: var(--fg); font-size: 12px; }
 .heat td { text-align: center; padding: 5px 4px; border: 2px solid var(--surface); min-width: 52px; }
-.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
-.chart .lab { font-family: var(--body); font-size: 12px; fill: var(--fg); }
-.segcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-.segcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; border-left: 6px solid var(--s3); }
-.segcard h4 { margin: 0 0 4px; font-family: var(--display); font-weight: 600; font-size: 16px; }
-.segcard p { margin: 4px 0 0; font-size: 13px; }
-.segcard .mono { color: var(--muted); font-size: 12px; }
-details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html" aria-current="page">Predictive models</a><a href="index.html">Evidence &amp; tests</a></nav>
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html" aria-current="page">Predictive models</a><a href="index.html">Interventions &amp; tests</a></nav>
   <header class="hero">
-    <h1>Predictive models: who will not come, why, and what to do about it</h1>
+    <h1>Predictive models: who will not come, and why</h1>
     <p class="lede" id="lede"></p>
     <div class="kpis" id="kpis"></div>
     <div class="method">
       <div><h3 class="cap">Task</h3><ul class="sq">
         <li><b>Who:</b> score every invitation by its chance of a screening.</li>
         <li><b>Why:</b> the drivers and eight explainable segments.</li>
-        <li><b>What:</b> one intervention per segment. <b>How to verify:</b> a randomised test.</li></ul></div>
+        <li><b>What</b> to do and <b>how to verify</b> it: <a href="index.html">Interventions &amp; tests</a>.</li></ul></div>
       <div><h3 class="cap">Evaluation</h3><ul class="sq">
         <li>Label: screened within <b>12 months</b> of the invitation (all numbers on this page).</li>
         <li>Split by woman, 70 / 15 / 15; numbers are on the held-out test women.</li>
@@ -213,30 +106,9 @@ details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-
     <div class="card"><h3 class="cap">Segment rules: answer the questions top to bottom (all invitations 2020–2024)</h3><div class="scroll"><div id="tree" style="min-width:760px"></div></div>
       <div class="legend" id="treeLegend"></div></div>
     <div class="card"><h3 class="cap">Segments</h3><div class="scroll"><table class="t" id="segTable"></table></div></div>
+    <div class="card"><h3 class="cap">What to do for each segment</h3><p class="note" style="max-width:none">Each segment has an intervention, the barrier behind it with citations, a ready A/B test and its sample size on <a href="index.html#segments">Interventions &amp; tests →</a></p></div>
     <div class="card"><h3 class="cap">Every ignored letter lowers the next response (12 months, by invitation number)</h3><div class="scroll"><table class="t" id="decayTable"></table></div>
       <p class="note">Repeat invitations of women not screened in 5 years; cells with fewer than 500 invitations are left out.</p></div>
-  </section>
-
-  <section id="interventions" data-nav="Interventions">
-    <h2>03 What: an intervention per segment</h2>
-    <p class="head">Hypotheses to test, not proven effects. The segment says why the woman does not come; the intervention uses the channel she already uses.</p>
-    <div class="segcards" id="segCards"></div>
-  </section>
-
-  <section id="experiment" data-nav="Experiment">
-    <h2>04 How to verify: the experiment</h2>
-    <p class="head">A randomised test per segment: half of the invitations get the intervention, half the standard letter. The table shows the invitations needed per arm to detect +2 percentage points (two-sided α = 5%, power 80%) and how many a year of invitations provides.</p>
-    <div class="two">
-      <div class="card"><h3 class="cap">Design</h3><ol class="steps">
-        <li><b>Assign</b> every new invitation its segment with the rules above (no model needed, explainable to a doctor).</li>
-        <li><b>Randomise by woman</b> within each segment: intervention or control (standard letter). Keep the woman in her arm on later invitations.</li>
-        <li><b>Measure</b> screening within 3, 6 and 12 months; the primary outcome is 12 months.</li>
-        <li><b>Size</b> each arm from the table; segments with too few invitations run longer or pool regions.</li>
-        <li><b>Decide</b> per segment: keep, change or drop the intervention; cost per extra screened woman.</li>
-        <li><b>Re-score</b> with the model to target the next round within each segment.</li></ol></div>
-      <div class="card"><h3 class="cap">Invitations per arm needed vs. available in a year</h3><div class="rows" id="expRows"></div>
-        <p class="note">Available = half of the segment's 2024 invitations (the other half is the control). Hover for numbers.</p></div>
-    </div>
   </section>
 
   <section id="experts" data-nav="Per-group models">
@@ -249,7 +121,7 @@ details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-
   <section id="caveats" data-nav="Caveats">
     <h2>Caveats</h2>
     <div class="card" style="margin-top:12px"><ul class="sq">
-      <li>Observational data: the drivers and segments describe who comes, not what makes her come. Only the experiment shows the effect of an intervention.</li>
+      <li>Observational data: the drivers and segments describe who comes, not what makes her come. Only the <a href="index.html#protocol">experiment</a> shows the effect of an intervention.</li>
       <li>The 12-month label of invitations from late 2024 may be incomplete; 2020 is lower because of COVID (see <a href="exploration.html#time">exploration</a>).</li>
       <li>Women aged 40–44 appear only as first invitations, so age and first invitation are confounded.</li>
       <li>Response by region and district is in the <a href="response_report.html">regional report</a>; location shifts the level, not the drivers.</li></ul></div>
@@ -475,15 +347,6 @@ table($("#segTable"), ["segment", "rule", "invitations", "share", "women", "3 m"
 const bins = D.decay[0].points.map((p) => p[0]);
 table($("#decayTable"), ["segment", ...bins.map((b) => `invitation ${b}`)],
   D.decay.map((s) => { const m = Object.fromEntries(s.points.map((p) => [p[0], p])); return [`<td><b>${s.letter}</b> ${s.k}</td>`, ...bins.map((b) => `<td>${m[b] ? pct(m[b][1]) : "–"}</td>`)]; }));
-
-/* ---------- 03 interventions ---------- */
-$("#segCards").innerHTML = SEG.map((s) => { const k = STEP(s.rates[2]);
-  return `<div class="segcard" style="border-left-color:var(--s${Math.max(k, 2)})"><h4>${s.letter} ${s.k}</h4><span class="mono">${pct(s.share)} of invitations · ${pct(s.rates[2])} respond in 12 months</span><p>${s.rule}</p><p><b>→ ${s.intervention}</b></p></div>`; }).join("");
-
-/* ---------- 04 experiment ---------- */
-rows($("#expRows"), D.experiment.map((e) => ({ ...e, k: `${e.letter} ${e.k}`, value: e.need / e.available, text: num(e.need), n: num(e.available), color: e.need > e.available ? "var(--pt)" : "var(--s4)" })),
-  { max: 1.6, header: ["segment", "needed / available", "need", "have"],
-    tipFn: (e) => `<b>${e.k}</b><br>baseline 12-month response: ${pct(e.baseline)}<br>needed per arm: ${num(e.need)}<br>available per arm in 2024: ${e.n}<br>${e.need > e.available ? "more than a year of invitations: run longer" : `enough in ${Math.max(1, Math.ceil(e.need / e.available * 12))} months`}` });
 
 /* ---------- per-group experts ---------- */
 const EX = D.experts, other = EX.filter((e) => e.criterion !== "region"), reg = EX.filter((e) => e.criterion === "region");

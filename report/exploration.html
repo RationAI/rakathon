@@ -6,6 +6,8 @@
 <title>Screening Data Exploration</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+/* Shared stylesheet of the report pages (exploration, classifiers, index); each builder inlines it at
+   the template's site-CSS marker, so every page stays a single self-contained file. */
 /* Same design tokens as response_report.html: single-hue red ramp (VZP colours)
    for magnitude, charcoal only as the second series (3-month response) and for negative correlations. */
 :root {
@@ -98,11 +100,32 @@ footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
 .site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
 .site a:hover { color: var(--fg); }
 .site a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+/* Shared components */
+:root { --t1: #7e170d; --t2: #5f1009; --t3: #2a0905; --t4: #fff; --t5: #fff; }  /* text on the ramp steps s1..s5 */
+:root[data-theme="dark"] { --t1: #f9ddd7; --t2: #f4ecea; --t3: #fff; --t4: #2a0905; --t5: #2a0905; }
+.scroll { overflow-x: auto; }
+table.t td.l, table.t th.l { text-align: left; font-family: var(--body); }
+table.t td.hi { color: var(--accent); font-weight: 500; }
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.steps li { counter-increment: s; padding-left: 34px; position: relative; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--bg); font-family: var(--mono); font-size: 12px; display: grid; place-items: center; }
+.segcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.segcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; border-left: 6px solid var(--s3); }
+.segcard h4 { margin: 0 0 4px; font-family: var(--display); font-weight: 600; font-size: 16px; }
+.segcard p { margin: 4px 0 0; font-size: 13px; }
+.segcard .mono { color: var(--muted); font-size: 12px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.chart .lab { font-family: var(--body); font-size: 12px; fill: var(--fg); }
+.cite { font-family: var(--mono); font-size: 11px; color: var(--accent); text-decoration: none; vertical-align: super; margin-left: 2px; }
+.cite:hover { text-decoration: underline; }
+a { color: var(--accent); }
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html" aria-current="page">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html">Evidence &amp; tests</a></nav>
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html" aria-current="page">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html">Interventions &amp; tests</a></nav>
   <header class="hero">
     <h1>Who comes to mammography screening after an invitation?</h1>
     <p class="lede" id="lede"></p>

@@ -1,5 +1,7 @@
 """Build report/response_report.html: regional evaluation of invitation response, in the style of the NSC
 'Regionální hodnocení dostupnosti mamografického screeningu' slides (kraj bar chart + okres map per indicator).
+Only the geospatial view: maps by district and region, access to centres and how it relates to response;
+breakdowns by age, invitation order and time are on exploration.html.
 
 Run: uv run python build_report.py
 Needs data/okresy.geojson, data/praha.geojson, data/area_spatial_features.csv, data/mamo_centers.csv,
@@ -88,32 +90,6 @@ risk = df[(df["round"] <= 5) & ~df.earlier_ok]
 funnel = risk.groupby(["VZP_TERRITORIAL_AREA", "round"])[P].sum().join(risk.groupby(["VZP_TERRITORIAL_AREA", "round"]).size().rename("n"))
 funnel.index = pd.MultiIndex.from_tuples([(fix.get(key(a), key(a)), r) for a, r in funnel.index])
 
-# --- timeline: invitation date x area, all invitations and 1st invitations ---
-dates = sorted(df.INVITATION_DATE.unique())
-df["di"] = df.INVITATION_DATE.map({d: i for i, d in enumerate(dates)})
-df["first"] = (df.order == 1)
-
-
-def timeline(frame: pd.DataFrame) -> dict:
-    g = frame.groupby(["VZP_TERRITORIAL_AREA", "di"])[P].sum().join(frame.groupby(["VZP_TERRITORIAL_AREA", "di"]).size().rename("n"))
-    out = {}
-    for (a, di), r in g.iterrows():
-        out.setdefault(fix.get(key(a), key(a)), [0] * (4 * len(dates)))[4 * di:4 * di + 4] = [int(r.n), *[int(r[c]) for c in P]]
-    return out
-
-
-tl_all, tl_first = timeline(df), timeline(df[df["first"]])
-
-# --- heatmap: kraj x age band, all and 1st invitations ---
-age_order = df.drop_duplicates("AGE_BAND").sort_values("AGE_BAND_MEAN").AGE_BAND.tolist()
-age_bands = age_order
-heat = {}
-for flag, frame in (("all", df), ("first", df[df["first"]])):
-    g = frame.groupby(["KRAJ", "AGE_BAND"])[P].sum().join(frame.groupby(["KRAJ", "AGE_BAND"]).size().rename("n"))
-    for (k, a), r in g.iterrows():
-        heat.setdefault(k, {}).setdefault(a, {})[flag] = [int(r.n), *[int(r[c]) for c in P]]
-
-
 spatial = spatial.rename(index=fix)
 
 pop = pd.read_csv(DATA / "population" / "women40plus.csv")
@@ -169,7 +145,6 @@ for f in feats:
         a["e"], a["ev"] = round(float(r.e), 1), round(float(r.ev), 1)
         a["wn"], a["wp"] = int(women.loc[k, "wn"]), [int(women.loc[k, f"w{m}"]) for m in (3, 6, 12)]
         a["fn"] = [[int(funnel.loc[(k, r), "n"]), *[int(funnel.loc[(k, r), c]) for c in P]] for r in range(1, 6)]
-        a["tl"] = [tl_all.get(k, [0] * 4 * 60), tl_first.get(k, [0] * 4 * 60)]
         a["ord"] = [{"n": int(by_order.loc[(k, o), "n"]), "p": [int(by_order.loc[(k, o), c]) for c in P]} for o in range(1, 6)]
         a.update(kraj=r.kraj, n=int(r.n), p=[int(r[c]) for c in P], dist=round(float(s.SPATIAL_DIST_NEAREST_KM), 1),
                  wait=None if pd.isna(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS) else round(float(s.SPATIAL_WAIT_MEAN_NEAREST3_DAYS), 1))
@@ -182,31 +157,9 @@ assert sum(a["n"] is not None for a in areas) == len(agg)
 cen = [{"name": r["name"], "city": r.city, "kraj": r.region, "x": xy(r.lon, r.lat)[0], "y": xy(r.lon, r.lat)[1],
         "wait": None if pd.isna(r.wait_days_primary) else float(r.wait_days_primary)} for _, r in centres.iterrows()]
 
-# who responds: kraj x dimension
-df["order"] = df.INVITATION_SEQUENCE.clip(upper=5)
-age_order = df.drop_duplicates("AGE_BAND").sort_values("AGE_BAND_MEAN").AGE_BAND.tolist()
-
-
-def breakdown(col: str, labels: dict | None = None) -> dict:
-    out = {}
-    for kraj, sub in [("ALL", df)] + list(df.groupby("KRAJ")):
-        g = sub.groupby(col).agg(n=(col, "size"), **{c: (c, "sum") for c in P})
-        out[kraj] = [{"k": (labels or {}).get(i, str(i)), "n": int(r.n), "p": [int(r[c]) for c in P]} for i, r in g.iterrows()]
-    return out
-
-
-who = {"age": breakdown("AGE_BAND"), "order": breakdown("order", {5: "5th+"}), "year": breakdown("INVITATION_YEAR")}
-for k, rows in who["age"].items():
-    rows.sort(key=lambda r: age_order.index(r["k"]))
-for k, rows in who["order"].items():
-    for r in rows:
-        if r["k"] in "1234":
-            r["k"] = {"1": "1st", "2": "2nd", "3": "3rd", "4": "4th"}[r["k"]]
-
-
 meta = {"women": int(df.PERSON_ID.nunique()), "rows": len(df), "centres": len(centres),
         "kraje": sorted(df.KRAJ.unique()), "scraped": str(centres.scraped.max())}
-data = {"areas": areas, "centres": cen, "who": who, "meta": meta, "dates": dates, "heat": heat, "ages": age_bands, "groups": [*GROUPS.values(), "Other"], "w": round(7.1 * KX * SCALE, 1), "h": round(2.6 * SCALE, 1)}
+data = {"areas": areas, "centres": cen, "meta": meta, "groups": [*GROUPS.values(), "Other"], "w": round(7.1 * KX * SCALE, 1), "h": round(2.6 * SCALE, 1)}
 html = (HERE / "response_report.template.html").read_text(encoding="utf-8")
 out = HERE / "response_report.html"
 out.write_text(html.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interventions and Tests</title>
+<meta name="description" content="What to do for each group of women who miss mammography after an invitation, and how to test it: segments from the VZP data joined with the published evidence.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*__SITE_CSS__*/
+/* Interventions page */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip.on, .chip[aria-selected="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.badge { display: inline-block; font-size: 11px; letter-spacing: .04em; border-radius: 6px; padding: 3px 8px; font-weight: 500; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+.badge.evidence { background: var(--s1); color: var(--t1); border-color: transparent; }
+.tests { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .tests { grid-template-columns: minmax(0, 1fr); } }
+.tablist { display: grid; gap: 6px; }
+.tab { text-align: left; font: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--fg); cursor: pointer; display: grid; gap: 2px; }
+.tab b { font-weight: 600; }
+.tab small { color: var(--muted); font-size: 12px; }
+.tab .segs { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.tab[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.tab:hover { border-color: var(--accent); }
+.panel h3.quote { font-family: var(--display); font-weight: 600; font-size: 24px; margin: 8px 0 6px; }
+.panel .evid { border-left: 2px solid var(--s2); padding-left: 12px; margin: 14px 0; font-size: 13px; }
+.ab { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 14px; }
+@media (max-width: 640px) { .ab { grid-template-columns: 1fr; } }
+.arm { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13px; background: var(--bg); }
+.arm.b { background: var(--band); border-color: var(--s2); }
+.arm .cap { margin-bottom: 4px; }
+dl.plan { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin: 0; font-size: 13px; }
+@media (max-width: 640px) { dl.plan { grid-template-columns: 1fr; } }
+dl.plan dt { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+dl.plan dd { margin: 2px 0 0; }
+.where { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.btn { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; }
+.btn:hover { background: var(--accent); color: var(--bg); }
+.ctl { display: grid; gap: 4px; margin-bottom: 14px; }
+.ctl label { display: flex; justify-content: space-between; font-size: 13px; }
+.ctl output { font-family: var(--mono); }
+.ctl input[type=range] { width: 100%; accent-color: var(--accent); }
+.res .big { font-size: 48px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.pair .mono { font-size: 22px; }
+.pair i { display: block; height: 6px; border-radius: 3px; background: var(--bg); margin-top: 4px; position: relative; overflow: hidden; }
+.pair i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--pt); border-radius: 3px; }
+.pair .b i::after { background: var(--s4); }
+tr.pick { cursor: pointer; }
+tr.pick:hover td { background: var(--bg); }
+tr.pick.on td { background: var(--band); }
+.sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.src { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 13px; scroll-margin-top: 80px; }
+.src:target { outline: 2px solid var(--accent); }
+.src .top { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.src .num { font-family: var(--mono); color: var(--accent); margin-right: auto; }
+.src h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.src h4 a { color: var(--fg); text-decoration: none; }
+.src h4 a:hover { text-decoration: underline; }
+.src p { margin: 6px 0 0; }
+input.find { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); min-width: 300px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html">Predictive models</a><a href="index.html" aria-current="page">Interventions &amp; tests</a></nav>
+  <header class="hero">
+    <h1>Interventions and tests: what to do, and how to know it worked</h1>
+    <p class="lede" id="lede"></p>
+    <div class="kpis" id="kpis"></div>
+    <div class="method">
+      <div><h3 class="cap">Our data</h3><ul class="sq">
+        <li>Eight explainable <b>segments</b> of invitations from the <a href="classifiers.html#segments">predictive models</a>, each with its response and yearly volume.</li>
+        <li>Segments say <i>who</i> does not come; the barrier behind each one is a hypothesis.</li></ul></div>
+      <div><h3 class="cap">The evidence</h3><ul class="sq">
+        <li>A focused narrative review of <span id="nSrc"></span> sources: Czech studies, trials abroad, surveys and methods.</li>
+        <li>Each citation leads to its finding and its limitation (<a href="#sources">sources</a>).</li></ul></div>
+      <div><h3 class="cap">Limits</h3><ul class="sq">
+        <li>Not a registered systematic review. Observational associations and stated barriers do not prove causation.</li>
+        <li>The interventions and test designs are our synthesis, to be evaluated in Czechia, not proven local effects.</li></ul></div>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="nav" id="nav" style="margin-left:0"></div>
+    <button class="chip" id="themeBtn" type="button" aria-label="Toggle light / dark theme" style="margin-left:auto">◐ theme</button>
+  </div>
+
+  <section id="segments" data-nav="Segments">
+    <h2>03 What: an intervention for each segment</h2>
+    <p class="head" id="segHead"></p>
+    <div class="card"><div class="scroll"><table class="t" id="segTable"></table></div>
+      <p class="note">Response within 12 months of the invitation, 2020–2024. Click a test to open its design below. The repeated-letter decay and the rules behind the segments are on the <a href="classifiers.html#segments">predictive models</a> page.</p></div>
+  </section>
+
+  <section id="barriers" data-nav="Barriers">
+    <h2>Why women miss screening</h2>
+    <p class="head">A missed examination can reflect a belief, a difficult experience, an access problem or an inaccurate record. A non-response alone cannot tell which. <a class="cite" href="#ref-3">[3]</a><a class="cite" href="#ref-9">[9]</a></p>
+    <div class="two">
+      <div class="card"><h3 class="cap">Keep the denominators straight</h3>
+        <p>Czech insurer invitations target women already overdue. Their response rate is not the same as coverage among all eligible women. <a class="cite" href="#ref-1">[1]</a><a class="cite" href="#ref-18">[18]</a></p>
+        <p id="denomData"></p>
+        <p><b>Coverage is a separate measure: 59.9%.</b> Our calculation from the public Czech dataset for women aged 45–69 in 2024: 1,111,008 examined of 1,856,010, using the dataset's two-year coverage definition. <a class="cite" href="#ref-16">[16]</a></p></div>
+      <div class="card"><h3 class="cap">What women report (selected findings, not pooled)</h3>
+        <table class="t">
+          <tr><th class="l">reason</th><th class="l">where</th><th>share</th><th></th></tr>
+          <tr><td class="l">No symptoms</td><td class="l note">Czechia · breast-screening non-attendees · abstract</td><td>29.2%</td><td><a class="cite" href="#ref-2">[2]</a></td></tr>
+          <tr><td class="l">Screening feels unnecessary</td><td class="l note">Canada · no mammogram within 3 years · 2024</td><td>32%</td><td><a class="cite" href="#ref-8">[8]</a></td></tr>
+          <tr><td class="l">Healthy, so no perceived need</td><td class="l note">Singapore · never-screened, aged 50–69 · 2022</td><td>40.5%</td><td><a class="cite" href="#ref-7">[7]</a></td></tr>
+          <tr><td class="l">Expecting a painful test</td><td class="l note">Singapore · same group · 2022</td><td>16.9%</td><td><a class="cite" href="#ref-7">[7]</a></td></tr>
+          <tr><td class="l">Time problems</td><td class="l note">Germany · selected counselled non-attendees · 2023</td><td>26.6%</td><td><a class="cite" href="#ref-9">[9]</a></td></tr>
+        </table>
+        <p class="note">Different populations and questions: not comparable and not to be added together.</p></div>
+    </div>
+    <div class="card"><details><summary>Beyond Europe: six national snapshots and what each number measures</summary>
+      <div class="scroll"><table class="t">
+        <tr><th class="l">country · year</th><th>rate</th><th class="l">what it measures</th><th></th></tr>
+        <tr><td class="l">United States · 2023</td><td>80.0%</td><td class="l">Ages 50–74; self-reported mammography within 2 years; may include diagnostic tests.</td><td><a class="cite" href="#ref-21">[21]</a></td></tr>
+        <tr><td class="l">Canada · 2024</td><td>79%</td><td class="l">Ages 50–74; within 3 years; self-report; ten provinces.</td><td><a class="cite" href="#ref-8">[8]</a></td></tr>
+        <tr><td class="l">Australia · 2023–24</td><td>52.4%</td><td class="l">Ages 50–74; recorded participation in BreastScreen Australia over 2 years.</td><td><a class="cite" href="#ref-22">[22]</a></td></tr>
+        <tr><td class="l">South Korea · 2023</td><td>72.7%</td><td class="l">National survey; mammography within 2 years; definition starts at age 40.</td><td><a class="cite" href="#ref-23">[23]</a></td></tr>
+        <tr><td class="l">Singapore · 2024</td><td>35.2%</td><td class="l">Ages 50–69; self-reported mammography within 2 years.</td><td><a class="cite" href="#ref-24">[24]</a></td></tr>
+        <tr><td class="l">Brazil · 2019</td><td>58.3%</td><td class="l">Ages 50–69; self-reported mammography within 2 years.</td><td><a class="cite" href="#ref-12">[12]</a></td></tr>
+      </table></div>
+      <p class="note">Context only, not a ranking. In lower-resource settings the opportunity to be screened may be missing; an East African review mixed self-examination, clinical examination and mammography. <a class="cite" href="#ref-25">[25]</a></p></details></div>
+  </section>
+
+  <section id="tests" data-nav="Tests">
+    <h2>Seven tests, one per barrier</h2>
+    <p class="head">Each test changes one thing against the current letter. All seven are proposals for Czech evaluation; a trial estimates the effect of the offered intervention, not, by itself, the psychological mechanism. Women may have several barriers at once.</p>
+    <div class="tests"><div class="tablist" role="tablist" aria-label="Tests" id="tabs"></div><div class="card panel" id="panel" role="tabpanel"></div></div>
+  </section>
+
+  <section id="protocol" data-nav="Protocol">
+    <h2>04 How to verify: one shared protocol</h2>
+    <p class="head">Every test follows the same protocol, so results can be compared and the segments can be targeted next round.</p>
+    <div class="two">
+      <div class="card"><h3 class="cap">Steps</h3><ol class="steps">
+        <li><b>Population.</b> Verify eligibility and prior mammograms before allocation; route women with symptoms to clinical care. Assign each invitation its segment with the rules (no model needed). <a class="cite" href="#ref-18">[18]</a></li>
+        <li><b>Allocation.</b> Randomise 1:1 by woman, stratified by segment, centre and prior attendance; keep her in her arm on later invitations. The control is the current letter. <a class="cite" href="#ref-19">[19]</a></li>
+        <li><b>Primary outcome.</b> Claims-confirmed mammography <b>within 12 months</b> among everyone assigned, as in our labels; read it early at 3 and 6 months. <span id="lateNote"></span> <a class="cite" href="#ref-10">[10]</a><a class="cite" href="#ref-16">[16]</a></li>
+        <li><b>Size.</b> Fix the smallest worthwhile improvement, power and number of comparisons in advance; size each arm with the planner below.</li>
+        <li><b>Analysis.</b> Intention to treat; absolute percentage-point difference with a 95% interval, relative effect, cost per additional screened woman, complaints and equity comparisons. <a class="cite" href="#ref-4">[4]</a><a class="cite" href="#ref-19">[19]</a></li>
+        <li><b>Decide and re-target.</b> Keep, change or drop the intervention per segment; use the model score to prioritise within a segment next round, not as evidence of why women do not come.</li></ol></div>
+      <div>
+        <div class="card"><h3 class="cap">Decide the question first</h3><p class="note" style="max-width:none">Pre-register the outcome, follow-up, minimum worthwhile improvement, sample size, stopping rule and analysis. Keep women in their group even if they never read the message, and handle missing outcomes explicitly. <a class="cite" href="#ref-19">[19]</a></p></div>
+        <div class="card"><h3 class="cap">A booking is a step, not the endpoint</h3><p class="note" style="max-width:none">An Australian phone trial found 64.2% booked versus 6.0% without a call, but measured bookings within 14 days; its effect on completed mammography was not established. Track delivery, contact, booking and attendance separately. <a class="cite" href="#ref-11">[11]</a></p></div>
+        <div class="card"><h3 class="cap">Know what a null result means</h3><p class="note" style="max-width:none">In Singapore, adding rewards, videos or a hotline to reminders did not significantly improve uptake. A null result is useful; it is not proof that two approaches are equivalent. <a class="cite" href="#ref-13">[13]</a></p></div>
+        <div class="card"><h3 class="cap">Respect the unit of change</h3><p class="note" style="max-width:none">An intervention that changes a whole centre or practice (opening hours, a doctor's recommendation) needs centres or practices randomised, clustering in the analysis and a separate sample-size calculation. Prevent women receiving conflicting variants across overlapping trials. <a class="cite" href="#ref-20">[20]</a></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="size" data-nav="Sample size">
+    <h2>How many women a test needs</h2>
+    <p class="head">Pick a segment to start from its own response, then set the smallest improvement worth detecting. The table recomputes how many women each segment needs per arm and how long one year of its invitations takes to supply them.</p>
+    <div class="main">
+      <div class="card">
+        <div class="tools"><div class="grp"><span>Outcome window</span><div class="seg" id="winSeg"></div></div></div>
+        <div class="scroll"><table class="t" id="sizeTable"></table></div>
+        <p class="note">Available = half of the segment's 2024 invitations (the other half is the control). Click a row to load its response into the planner.</p></div>
+      <div class="card res">
+        <div class="ctl"><label for="base">Control response <output id="baseOut"></output></label><input id="base" type="range" min="1" max="60" step="0.5"></div>
+        <div class="ctl"><label for="lift">Smallest improvement worth detecting <output id="liftOut"></output></label><input id="lift" type="range" min="0.5" max="8" step="0.5" value="2"></div>
+        <div class="tools"><div class="grp"><span>Power</span><select id="power"><option value="0.8">80%</option><option value="0.9">90%</option></select></div>
+          <div class="grp"><span>Comparisons</span><select id="comp"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="7">7</option></select></div></div>
+        <h3 class="cap">Women per arm</h3>
+        <div class="big" id="perArm"></div>
+        <div class="pair"><div><span class="cap">control A</span><div class="mono" id="rateA"></div><i id="barA"></i></div><div class="b"><span class="cap">variant B</span><div class="mono" id="rateB"></div><i id="barB"></i></div></div>
+        <p id="total"></p><p class="note" id="alpha"></p>
+        <details><summary>Assumptions and formula</summary><p class="note">Two equal independent arms, two-sided test, family-wise α = 0.05 with a Bonferroni split over the planned comparisons. Normal approximation with pooled null and unpooled alternative variance; no continuity correction; rounded up per arm: n = [z(1−α/2)·√(2p̄(1−p̄)) + z(power)·√(pA(1−pA)+pB(1−pB))]² / (pB−pA)². No allowance for missing outcomes, clustering or unequal allocation; undelivered letters stay in the analysis. Not for centre-randomised trials. A planning aid; finalise with a statistician. <a class="cite" href="#ref-19">[19]</a><a class="cite" href="#ref-26">[26]</a><a class="cite" href="#ref-27">[27]</a></p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="system" data-nav="System changes">
+    <h2>Improve the system around the letter</h2>
+    <p class="head">Recommendations derived from the evidence, with what our data adds. Their order is a proposed implementation sequence, not a ranking of effectiveness.</p>
+    <div class="segcards" id="recs"></div>
+    <div class="card" style="margin-top:20px"><h3 class="cap">Suggested rollout</h3><ol class="steps">
+      <li><b>Fix the denominator.</b> Stop letters to women screened less than two years ago (segment A); validate overdue status, contact details, outcome capture and capacity; interview a sample of non-attendees.</li>
+      <li><b>Run focused pilots.</b> Start with the gynaecologist's recommendation in segment E and timed reminders in C and D; test the relevance message separately; keep balanced information.</li>
+      <li><b>Scale selectively.</b> Decide on completed visits, uncertainty, cost, experience and equity; check repeat attendance at the next eligible round.</li></ol></div>
+  </section>
+
+  <section id="sources" data-nav="Sources">
+    <h2>Sources</h2>
+    <p class="head">Every numbered citation leads here, with the finding and the limitation that matters for this report. Sources were checked through 17 October 2026; data years differ from publication years.</p>
+    <div class="tools"><input class="find" type="search" id="find" placeholder="Search studies, countries or findings" aria-label="Search sources"><div class="chips" id="filters"></div><span class="note" id="srcStatus" role="status"></span></div>
+    <div class="sources" id="srcList"></div>
+  </section>
+
+  <footer>Rakathon 2026 · segments from the VZP invitation data (<span class="mono">segmentation/segments.py</span>) and a focused evidence review (<span class="mono">report/evidence.json</span>) · built by <span class="mono">report/build_interventions.py</span></footer>
+</div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const D = __DATA__;
+const $ = (s, el = document) => el.querySelector(s);
+const pct = (x, d = 1) => (x == null || isNaN(x) ? "–" : (x * 100).toFixed(d) + "%");
+const num = (n) => Math.round(n).toLocaleString("en-US");
+const tip = $("#tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + "px"; tip.style.top = Math.max(8, e.clientY - h - 10) + "px"; }
+function hideTip() { tip.style.opacity = 0; }
+const cite = (ids) => ids.map((i) => `<a class="cite" href="#ref-${i}">[${i}]</a>`).join("");
+const SEG = D.segments, MECH = D.mechanisms, M = D.meta, byKey = Object.fromEntries(MECH.map((m, i) => [m.key, i]));
+const WIN = ["3 months", "6 months", "12 months"];
+
+/* ---------- nav & theme ---------- */
+const secs = [...document.querySelectorAll("section[data-nav]")];
+$("#nav").innerHTML = secs.map((s, i) => `<button type="button" data-i="${i}">${s.dataset.nav}</button>`).join("");
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) secs[+b.dataset.i].scrollIntoView({ behavior: "smooth" }); });
+$("#themeBtn").addEventListener("click", () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === "dark" ? "light" : "dark"; });
+
+/* ---------- hero ---------- */
+const lo = Math.min(...SEG.map((s) => s.rates[2])), hi = Math.max(...SEG.map((s) => s.rates[2]));
+$("#lede").textContent = `Only ${pct(M.rates[2])} of ${num(M.rows)} invitations lead to a screening within 12 months. The segments say which women do not come; the evidence suggests why, and gives one testable intervention for each.`;
+$("#nSrc").textContent = D.sources.length;
+$("#kpis").innerHTML = [[pct(M.rates[2]), "of invitations screened within 12 months"], [`${pct(lo, 0)}–${pct(hi, 0)}`, "response across the 8 segments"],
+  ["29.2%", "of Czech non-attendees cite no symptoms [2]"], ["+10 pp", "from a second fixed appointment, England [4]"],
+  [String(MECH.length), "proposed A/B tests"], [String(D.sources.length), "annotated sources"]]
+  .map(([b, s]) => `<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+
+/* ---------- 03 segments ---------- */
+const STEP = (r) => (r < 0.05 ? 1 : r < 0.15 ? 2 : r < 0.25 ? 3 : r < 0.4 ? 4 : 5);
+$("#segHead").innerHTML = `Each segment points to a different barrier, so each gets its own channel and its own test. Response ranges from <b>${pct(lo)}</b> to <b>${pct(hi)}</b>; the largest groups, G and E, are a third and a sixth of all invitations.`;
+$("#segTable").innerHTML = `<tr><th class="l">segment</th><th>invitations</th><th>12 m</th><th class="l">likely barrier</th><th class="l">intervention</th><th class="l">test</th></tr>` +
+  SEG.map((s) => `<tr><td class="l"><b>${s.letter}</b> ${s.k}</td><td>${pct(s.share)}</td><td><span class="badge" style="background:var(--s${STEP(s.rates[2])});color:var(--t${STEP(s.rates[2])});border:0">${pct(s.rates[2])}</span></td>` +
+    `<td class="l note">${s.barrier}</td><td class="l">${s.intervention}</td><td class="l"><div class="chips">${s.tests.map((k) => `<button class="chip" data-test="${k}">${MECH[byKey[k]].name}</button>`).join("")}</div></td></tr>`).join("");
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-test]"); if (!b) return; select(byKey[b.dataset.test]); $("#tests").scrollIntoView({ behavior: "smooth" }); });
+
+/* ---------- barriers ---------- */
+$("#denomData").innerHTML = `<b>In our data</b> ${pct(M.rates[2])} of 2020–2024 invitations led to a screening within 12 months, ${pct(M.rates[0])} within 3 months; the 2014–2017 evaluation found 22.3% after a first invitation, with response falling over repeated letters. <a class="cite" href="#ref-1">[1]</a>`;
+
+/* ---------- tests ---------- */
+const segsOf = (key) => SEG.filter((s) => s.tests.includes(key));
+$("#tabs").innerHTML = MECH.map((m, i) => `<button class="tab" role="tab" data-i="${i}" aria-selected="false"><b>${String(i + 1).padStart(2, "0")} ${m.name}</b><small>${m.sub}</small><span class="segs">segments ${segsOf(m.key).map((s) => s.letter).join(", ") || "–"}</span></button>`).join("");
+$("#tabs").addEventListener("click", (e) => { const b = e.target.closest(".tab"); if (b) select(+b.dataset.i); });
+function select(i) {
+  const m = MECH[i];
+  document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(+t.dataset.i === i)));
+  const where = segsOf(m.key).map((s) => `<tr><td class="l"><b>${s.letter}</b> ${s.k}</td><td>${num(s.per_arm_year)}</td><td>${pct(s.rates[0])}</td><td>${pct(s.rates[2])}</td></tr>`).join("");
+  $("#panel").innerHTML = `<div class="chips"><span class="badge ${m.grade}">${m.label}</span><span class="badge">${m.priority}</span></div>
+    <h3 class="quote">${m.quote}</h3><p>${m.description}</p>
+    <div class="evid"><b>What the evidence says.</b> ${m.evidence}</div>
+    <h3 class="cap">Proposed Czech A/B test</h3>
+    <div class="ab"><div class="arm"><div class="cap">A · control</div>${m.a}</div><div class="arm b"><div class="cap">B · one change</div>${m.b}</div></div>
+    <dl class="plan"><div><dt>Who enters the test</dt><dd>${m.audience}</dd></div><div><dt>Primary outcome</dt><dd>${m.outcome}</dd></div>
+      <div><dt>Check the pathway</dt><dd>${m.check}</dd></div><div><dt>Watch out for</dt><dd>${m.guard}</dd></div></dl>
+    <div class="where"><h3 class="cap">Where to run it in our data</h3>${where ? `<div class="scroll"><table class="t"><tr><th class="l">segment</th><th>per arm / year</th><th>3 m</th><th>12 m</th></tr>${where}</table></div>` : "<p class=\"note\">No segment maps to this test directly.</p>"}</div>
+    <p class="note">Follows the <a href="#protocol">shared protocol</a>; size it in the <a href="#size">planner</a>. <button class="btn" type="button" id="brief">Download test brief</button></p>`;
+  $("#brief").addEventListener("click", () => brief(i));
+}
+select(byKey.trust);
+
+function plain(html) { const d = document.createElement("div"); d.innerHTML = html; return d.textContent; }
+function brief(i) {
+  const m = MECH[i], segs = segsOf(m.key);
+  const refs = [...new Set([...m.refs, 19, 20])].map((id) => { const s = D.sources.find((x) => x.id === id);
+    return `[${id}] ${s.meta}. ${s.title}\n${s.url}\nFinding: ${s.finding}\nLimit: ${s.limit}`; }).join("\n\n");
+  const text = `PROPOSED CZECH MAMMOGRAPHY TEST: ${m.name}\nPlanning brief, not an approved or implemented trial.\n\nHYPOTHESIS\n${m.description}\n\nEVIDENCE\n${plain(m.evidence)}\n\nCONTROL A\n${m.a}\n\nVARIANT B\n${m.b}\n\nPOPULATION\n${m.audience}\n` +
+    (segs.length ? `Segments in the VZP data: ${segs.map((s) => `${s.letter} ${s.k} (${num(s.per_arm_year)} women per arm per year, ${pct(s.rates[2])} respond within 12 months)`).join("; ")}.\n` : "") +
+    `\nPRIMARY OUTCOME\n${m.outcome}\n\nPATHWAY MEASURES\n${m.check}\n\nLIMITS\n${plain(m.guard)}\n\nSHARED PROTOCOL\nVerify eligibility before allocation; symptomatic women need a clinical pathway. Randomise 1:1 by woman, stratified by segment, centre and prior attendance; the control is the current letter. Pre-register the outcome, follow-up, sample size, analysis and stopping rule. Analyse everyone as assigned; report absolute and relative effects with 95% intervals, cost per additional screened woman, experience and equity. A centre-wide intervention needs cluster allocation and its own calculation.\n\nREFERENCES\n${refs}\n`;
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = `mammography-test-${m.key}.txt`; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const t = $("#toast"); t.textContent = "Test brief downloaded"; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2500);
+}
+
+/* ---------- protocol ---------- */
+$("#lateNote").textContent = `In our data ${pct(M.late_share, 0)} of the women screened within 12 months came only after month 6, so a 90-day window would miss many.`;
+
+/* ---------- sample size ---------- */
+function invNormal(p) { const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472, 2.50662827745924],
+  b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197, -13.2806815528857],
+  c = [-.00778489400243029, -.322396458041136, -2.40075827716184, -2.54973253934373, 4.37466414146497, 2.93816398269878],
+  d = [.00778469570904146, .32246712907004, 2.445134137143, 3.75440866190742];
+  if (p < .02425) { const q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (p > 1 - .02425) return -invNormal(1 - p);
+  const q = p - .5, r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); }
+function sampleSize(pA, pB, power, k) { const alpha = .05 / k, pb = (pA + pB) / 2;
+  return Math.ceil((invNormal(1 - alpha / 2) * Math.sqrt(2 * pb * (1 - pb)) + invNormal(power) * Math.sqrt(pA * (1 - pA) + pB * (1 - pB))) ** 2 / (pB - pA) ** 2); }
+let W = 2, PICK = "E";
+$("#winSeg").innerHTML = WIN.map((w, i) => `<button type="button" data-w="${i}" aria-pressed="${i === W}">${w}</button>`).join("");
+$("#winSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; W = +b.dataset.w;
+  $("#winSeg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); pick(PICK); });
+function pick(letter) { PICK = letter; const s = SEG.find((x) => x.letter === letter); if (s) $("#base").value = Math.round(s.rates[W] * 200) / 2; update(); }
+$("#sizeTable").addEventListener("click", (e) => { const r = e.target.closest("tr.pick"); if (r) pick(r.dataset.l); });
+["base", "lift", "power", "comp"].forEach((id) => $("#" + id).addEventListener("input", () => { if (id === "base") PICK = null; update(); }));
+function update() {
+  const base = +$("#base").value / 100, lift = +$("#lift").value / 100, power = +$("#power").value, k = +$("#comp").value;
+  const n = sampleSize(base, Math.min(base + lift, 0.999), power, k);
+  $("#baseOut").textContent = pct(base); $("#liftOut").textContent = `+${(lift * 100).toFixed(1)} pp`;
+  $("#perArm").textContent = num(n); $("#rateA").textContent = pct(base); $("#rateB").textContent = pct(base + lift);
+  $("#barA").style.setProperty("--w", `${Math.min(100, base * 100 / 0.7)}%`); $("#barB").style.setProperty("--w", `${Math.min(100, (base + lift) * 100 / 0.7)}%`);
+  $("#total").innerHTML = `<b>${num(2 * n)}</b> women in this two-arm test; target ${Math.round(lift * 1000)} additional screened women per 1,000 offered the variant.`;
+  $("#alpha").textContent = `${power * 100}% power · two-sided α = ${(.05 / k).toFixed(k === 1 ? 2 : 4)}${k > 1 ? ` per comparison in a prespecified family of ${k}` : ""}.`;
+  $("#sizeTable").innerHTML = `<tr><th class="l">segment</th><th>${WIN[W]}</th><th>needed per arm</th><th>available / year</th><th>time</th></tr>` +
+    SEG.map((s) => { const need = sampleSize(s.rates[W], Math.min(s.rates[W] + lift, 0.999), power, k), months = need / s.per_arm_year * 12;
+      return `<tr class="pick${s.letter === PICK ? " on" : ""}" data-l="${s.letter}"><td class="l"><b>${s.letter}</b> ${s.k}</td><td>${pct(s.rates[W])}</td><td>${num(need)}</td><td>${num(s.per_arm_year)}</td><td class="${months > 12 ? "hi" : ""}">${months < 1 ? "< 1 month" : months > 36 ? "> 3 years" : `${Math.ceil(months)} months`}</td></tr>`; }).join("");
+}
+pick("E");
+
+/* ---------- system ---------- */
+const OURS = {  // what the VZP data adds to each recommendation (by order)
+  0: `In our data ${pct(SEG[0].share)} of invitations (segment A) go to women screened less than two years ago; only ${pct(SEG[0].rates[2])} of them respond.`,
+  2: `Booking waits and travel distance by district are in the <a href="response_report.html">regional report</a>; distance barely changes response.`,
+  3: `Segment H, ${pct(SEG[7].share)} of invitations, has no healthcare contact in a year and responds at ${pct(SEG[7].rates[2])}.`,
+  5: `In segment E response falls from ${pct(M.e_second)} at the 2nd invitation to ${pct(M.e_ninth)} at the 9th and later.`,
+};
+$("#recs").innerHTML = D.recommendations.map((r, i) => `<div class="segcard"><h4>${String(i + 1).padStart(2, "0")} ${r.title}</h4><p>${r.text}</p>${OURS[i] ? `<p><b>Our data:</b> ${OURS[i]}</p>` : ""}<p class="mono">${r.metric}</p></div>`).join("");
+
+/* ---------- sources ---------- */
+const FILTERS = [["all", "All"], ["Czechia", "Czechia"], ["Trial", "Trials"], ["Methods", "Methods"]];
+let F = "all";
+$("#filters").innerHTML = FILTERS.map(([k, l]) => `<button class="chip${k === F ? " on" : ""}" type="button" data-f="${k}">${l}</button>`).join("");
+$("#srcList").innerHTML = D.sources.map((s) => `<article class="src" id="ref-${s.id}" tabindex="-1"><div class="top"><span class="num">[${s.id}]</span><span class="badge">${s.country}</span><span class="badge">${s.type}</span></div>
+  <h4><a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.title} ↗</a></h4><div class="note">${s.meta}</div><p><b>Finding.</b> ${s.finding}</p><p class="note"><b>Limit.</b> ${s.limit}</p></article>`).join("");
+function filter() { const q = $("#find").value.trim().toLowerCase(); let shown = 0;
+  D.sources.forEach((s) => { const ok = (F === "all" || s.country === F || s.type === F) && Object.values(s).join(" ").toLowerCase().includes(q);
+    document.getElementById(`ref-${s.id}`).hidden = !ok; shown += ok; });
+  $("#srcStatus").textContent = shown ? `${shown} of ${D.sources.length} sources` : "No matching sources";
+  $("#filters").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.f === F)); }
+$("#filters").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { F = b.dataset.f; filter(); } });
+$("#find").addEventListener("input", filter);
+document.addEventListener("click", (e) => { const a = e.target.closest("a.cite"); if (!a) return; F = "all"; $("#find").value = ""; filter(); });
+filter();
+</script>
+</body>
+</html>

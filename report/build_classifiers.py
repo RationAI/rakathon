@@ -1,4 +1,4 @@
-"""Build report/classifiers.html: the predictive models, segments, interventions and experiment.
+"""Build report/classifiers.html: the predictive models, their ceiling, drivers and segments.
 
 Companion to exploration.html (same style and navigation). Collects the saved results of
 training/classifiers (explain/, ablation/), training/per_group_experts and the segment
@@ -13,7 +13,6 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
@@ -175,10 +174,9 @@ effects = [{"k": FEATURE_NAMES[f], "points": [[float(v), float(m)] for v, m in z
 
 # ---------------------------------------------------------------- segments
 print("Segments...", flush=True)
-cols = [*COLUMNS, *LABELS, "INVITATION_SEQUENCE", "INVITATION_DATE", "PERSON_ID"]
+cols = [*COLUMNS, *LABELS, "INVITATION_SEQUENCE", "PERSON_ID"]
 df = pd.read_csv(ROOT / "data" / "Rakhaton2026_prepared.csv", usecols=cols, dtype={"PERSON_ID": str})
 seg = assign(df)
-year = pd.to_datetime(df.INVITATION_DATE).dt.year
 segments = []
 for s, g in df.groupby(seg, observed=False):
     segments.append({"letter": s[0], "k": s.split(" ", 1)[1], "rule": SEGMENTS[s], "intervention": INTERVENTIONS[s],
@@ -195,15 +193,6 @@ for s in list(SEGMENTS)[4:]:
     decay.append({"letter": s[0], "k": s.split(" ", 1)[1],
                   "points": [[str(b), float(r["mean"]), int(r["size"])] for b, r in g.iterrows() if r["size"] >= 500]})
 
-# ---------------------------------------------------------------- experiment sizes (+2 p.p., alpha 5 %, power 80 %)
-z, delta = 1.959964 + 0.841621, 0.02
-experiment = []
-for s in list(SEGMENTS)[2:]:
-    p0 = float(df.loc[seg == s, LABEL].mean())
-    need = z**2 * (p0 * (1 - p0) + (p0 + delta) * (1 - p0 - delta)) / delta**2
-    experiment.append({"letter": s[0], "k": s.split(" ", 1)[1], "baseline": p0, "need": int(np.ceil(need)),
-                       "available": int(((seg == s) & (year == 2024)).sum() // 2)})
-
 # ---------------------------------------------------------------- per-group experts
 groups = pd.read_csv(ROOT / "training" / "per_group_experts" / "results" / "group_scores.csv")
 experts = [{"criterion": r.criterion, "k": r.group, "n": int(r.n_test), "rate": float(r.base_rate),
@@ -215,9 +204,9 @@ out_data = {
              "rate": float(y.mean())},
     "deciles": deciles, "comparison": comparison, "ablation": ablation, "drivers": drivers, "effects": effects,
     "descriptions": descriptions, "importance": importance, "sequence": sequence,
-    "segments": segments, "tree": tree, "decay": decay, "experiment": experiment, "experts": experts,
+    "segments": segments, "tree": tree, "decay": decay, "experts": experts,
 }
-html = (HERE / "classifiers.template.html").read_text(encoding="utf-8")
+html = (HERE / "classifiers.template.html").read_text(encoding="utf-8").replace("/*__SITE_CSS__*/", (HERE / "site.css").read_text(encoding="utf-8"))
 out = HERE / "classifiers.html"
 out.write_text(html.replace("__DATA__", json.dumps(out_data, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print("wrote", out, f"{out.stat().st_size / 1e6:.2f} MB")
