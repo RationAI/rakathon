@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictive Models</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same design tokens as response_report.html: single-hue red ramp (VZP colours)
+   for magnitude, charcoal only as the second series (3-month response) and for negative correlations. */
+:root {
+  --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
+  --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
+  --nodata: #e6e0de; --pt: #3d4451; --band: #fbece8;
+  --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --nodata: #2e2523; --pt: #c9ced8; --band: #2a1c19; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
+  --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
+  --nodata: #2e2523; --pt: #c9ced8; --band: #2a1c19; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 46px); line-height: 1.05; color: var(--accent); }
+.hero { padding-block: 40px 24px; display: grid; gap: 14px; }
+.lede { color: var(--muted); max-width: 72ch; font-size: 15px; margin: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi { border-top: 2px solid var(--accent); padding-top: 8px; }
+.kpi b { display: block; font-family: var(--mono); font-weight: 500; font-size: 26px; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: 12px; }
+.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+h3.cap { margin: 0 0 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+ul.sq { margin: 0; padding-left: 0; list-style: none; }
+ul.sq li { padding-left: 14px; position: relative; margin-bottom: 4px; }
+ul.sq li::before { content: "▪"; position: absolute; left: 0; color: var(--accent); }
+.bar { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding-block: 10px; }
+.grp { display: flex; align-items: center; gap: 8px; }
+.grp > span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-weight: 500; padding: 6px 12px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.nav button, .chip { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; text-decoration: none; }
+.nav button:hover, .chip:hover { border-color: var(--accent); }
+select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section { padding-block: 40px 8px; scroll-margin-top: 70px; }
+section h2 { font-size: clamp(20px, 3vw, 28px); text-transform: uppercase; letter-spacing: .01em; color: var(--accent); }
+.head { margin: 8px 0 16px; max-width: 80ch; }
+.head b, .mono { font-family: var(--mono); font-weight: 500; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .two, .main { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+.card + .card { margin-top: 20px; }
+.two .card + .card, .main .card + .card, .method .card + .card { margin-top: 0; }
+svg { display: block; width: 100%; height: auto; }
+.axis text { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.grid line { stroke: var(--line); }
+.rows { display: grid; align-content: start; }
+.row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) 4.4em 5.4em; gap: 8px; align-items: center;
+  padding: 4px 4px; border-radius: 6px; font-size: 13px; }
+.row:hover { background: var(--bg); }
+.row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .tr { height: 10px; background: var(--bg); border-radius: 0 4px 4px 0; position: relative; }
+.row .tr i { position: absolute; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
+.row .v { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.row .n { text-align: right; font-family: var(--mono); color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.row.hdr { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.row.hdr:hover { background: transparent; }
+.row.ref { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 6px; font-weight: 500; }
+.row.div .tr { border-radius: 0; }
+.row.div .tr::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; border-left: 1px solid var(--muted); }
+.row.div .tr i { border-radius: 0; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; align-items: center; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.big { font-family: var(--mono); font-size: 30px; font-weight: 500; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.big small { font-size: 12px; color: var(--muted); font-family: var(--body); }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: right; font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.t th:first-child, table.t td:first-child { text-align: left; }
+table.t td { text-align: right; padding: 4px 6px; font-family: var(--mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
+table.t td:first-child { font-family: var(--body); }
+table.t td.low { color: var(--pt); font-weight: 500; }
+.note { color: var(--muted); font-size: 12px; max-width: 90ch; }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12px; line-height: 1.35; max-width: 260px; opacity: 0; transition: opacity .1s; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
+/* Shared top navigation across the four report pages */
+.site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
+.site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
+.site a:hover { color: var(--fg); }
+.site a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+/* Results page only: text colours on the ramp steps (leaf boxes of the segment tree) */
+:root { --t1: #7e170d; --t2: #5f1009; --t3: #2a0905; --t4: #fff; --t5: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --t1: #f9ddd7; --t2: #f4ecea; --t3: #fff; --t4: #2a0905; --t5: #2a0905; } }
+:root[data-theme="dark"] { --t1: #f9ddd7; --t2: #f4ecea; --t3: #fff; --t4: #2a0905; --t5: #2a0905; }
+.tree text { font-family: var(--body); font-size: 12px; }
+.tree .q rect { fill: var(--surface); stroke: var(--muted); }
+.tree .q text { fill: var(--fg); }
+.tree .edge { stroke: var(--muted); fill: none; stroke-width: 1.2; }
+.tree .yn { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+.tree .leaf { cursor: default; }
+.tree .leaf b, .tree .leaf .ttl { font-weight: 600; }
+.scroll { overflow-x: auto; }
+table.t td.l, #segTable th:nth-child(2) { text-align: left; font-family: var(--body); }
+table.t td.hi { color: var(--accent); font-weight: 500; }
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.steps li { counter-increment: s; padding-left: 34px; position: relative; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--bg); font-family: var(--mono); font-size: 12px; display: grid; place-items: center; }
+.heat { border-collapse: collapse; width: 100%; font-size: 12px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.heat th { font-family: var(--body); font-weight: 500; font-size: 11px; color: var(--muted); padding: 4px 6px; text-align: center; vertical-align: bottom; }
+.heat th.rowh { text-align: left; white-space: nowrap; color: var(--fg); font-size: 12px; }
+.heat td { text-align: center; padding: 5px 4px; border: 2px solid var(--surface); min-width: 52px; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.chart .lab { font-family: var(--body); font-size: 12px; fill: var(--fg); }
+.segcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.segcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; border-left: 6px solid var(--s3); }
+.segcard h4 { margin: 0 0 4px; font-family: var(--display); font-weight: 600; font-size: 16px; }
+.segcard p { margin: 4px 0 0; font-size: 13px; }
+.segcard .mono { color: var(--muted); font-size: 12px; }
+details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html">Regional report</a><a href="classifiers.html" aria-current="page">Predictive models</a></nav>
+  <header class="hero">
+    <h1>Predictive models: who will not come, why, and what to do about it</h1>
+    <p class="lede" id="lede"></p>
+    <div class="kpis" id="kpis"></div>
+    <div class="method">
+      <div><h3 class="cap">Task</h3><ul class="sq">
+        <li><b>Who:</b> score every invitation by its chance of a screening.</li>
+        <li><b>Why:</b> the drivers and eight explainable segments.</li>
+        <li><b>What:</b> one intervention per segment. <b>How to verify:</b> a randomised test.</li></ul></div>
+      <div><h3 class="cap">Evaluation</h3><ul class="sq">
+        <li>Label: screened within <b>12 months</b> of the invitation (all numbers on this page).</li>
+        <li>Split by woman, 70 / 15 / 15; numbers are on the held-out test women.</li>
+        <li>ROC AUC: chance that a screened invitation scores above a non-screened one.</li></ul></div>
+      <div><h3 class="cap">Source</h3><ul class="sq">
+        <li>Models: <span class="mono">training/classifiers</span> (explain, ablation), <span class="mono">training/per_group_experts</span>.</li>
+        <li>Segments: <span class="mono">segmentation/segments.py</span>.</li>
+        <li>Built by <span class="mono">build_classifiers.py</span>.</li></ul></div>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="nav" id="nav" style="margin-left:0"></div>
+    <button class="chip" id="themeBtn" type="button" aria-label="Toggle light / dark theme" style="margin-left:auto">◐ theme</button>
+  </div>
+
+  <section id="risk" data-nav="Risk score">
+    <h2>01 Who: the risk score</h2>
+    <p class="head" id="riskHead"></p>
+    <div class="main">
+      <div class="card"><h3 class="cap">Actual 12-month response by score decile (test women)</h3><div class="rows" id="decileRows"></div>
+        <p class="note">Decile 1 = the 10% of invitations with the lowest predicted chance. Hover a row for the predicted average: the score is calibrated.</p></div>
+      <div class="card"><h3 class="cap">Model comparison: test ROC AUC</h3><div class="rows" id="compRows"></div>
+        <p class="note">Bars start at 0.75. The eight segment rules alone (charcoal) keep most of the ranking power.</p></div>
+    </div>
+  </section>
+
+  <section id="models" data-nav="Models">
+    <h2>The eight models</h2>
+    <p class="head">Eight model families, from a single readable tree to a neural network, trained on the same 19 attributes of the invitation and the woman's history. Train vs. test ROC AUC shows how much each one memorises.</p>
+    <div class="segcards" id="modelCards"></div>
+  </section>
+
+  <section id="ceiling" data-nav="Model ceiling">
+    <h2>The data limit</h2>
+    <p class="head" id="ceilingHead"></p>
+    <div class="card"><h3 class="cap">More data: every model levels off at about 0.84 (test ROC AUC by training rows)</h3><div id="lcChart"></div>
+      <div class="legend" id="lcLegend"></div></div>
+    <div class="card"><h3 class="cap">More capacity: test stops rising at about 0.84 while train keeps climbing</h3>
+      <div class="method" id="sweeps"></div>
+      <div class="legend"><span><i style="background:var(--s4)"></i>test</span><span><i style="background:var(--pt)"></i>train (dashed)</span><span><i style="background:var(--muted)"></i>0.84 (dotted)</span></div></div>
+    <div class="two" style="margin-top:20px">
+      <div class="card"><h3 class="cap">Best setting per model family</h3><div class="rows" id="bestRows"></div>
+        <p class="note">Gap to the best model with a 95% bootstrap interval (resampling women).</p></div>
+      <div>
+        <div class="card"><h3 class="cap">More capacity only overfits</h3><div class="scroll"><table class="t" id="ofTable"></table></div></div>
+        <div class="card"><h3 class="cap">Engineered features add little</h3><div class="scroll"><table class="t" id="featTable"></table></div>
+          <p class="note">Engineered = history of the woman's earlier invitations, spatial access, region and flags (on top of the 19 raw attributes).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="drivers" data-nav="Drivers">
+    <h2>02 Why: the drivers</h2>
+    <p class="head">Permutation importance of the gradient-boosting model: how much test ROC AUC drops when one attribute is shuffled, as a share of the total. Below: the average predicted chance as one attribute changes and the rest stays as observed (partial dependence).</p>
+    <div class="main">
+      <div class="card"><h3 class="cap">Share of importance (top 10)</h3><div class="rows" id="driverRows"></div></div>
+      <div class="card"><h3 class="cap">What the drivers mean</h3><ul class="sq" id="driverNotes"></ul></div>
+    </div>
+    <div class="method" style="margin-top:20px" id="effects"></div>
+    <div class="card" style="margin-top:20px"><h3 class="cap">Predictive attributes across the eight models: share of each model's permutation importance</h3>
+      <p class="note" id="impNote"></p><div class="scroll"><table class="heat" id="impTable"></table></div>
+      <div class="legend" id="impLegend"></div></div>
+  </section>
+
+  <section id="segments" data-nav="Segments">
+    <h2>Eight segments</h2>
+    <p class="head" id="segHead"></p>
+    <div class="card"><h3 class="cap">Segment rules: answer the questions top to bottom (all invitations 2020–2024)</h3><div class="scroll"><div id="tree" style="min-width:760px"></div></div>
+      <div class="legend" id="treeLegend"></div></div>
+    <div class="card"><h3 class="cap">Segments</h3><div class="scroll"><table class="t" id="segTable"></table></div></div>
+    <div class="card"><h3 class="cap">Every ignored letter lowers the next response (12 months, by invitation number)</h3><div class="scroll"><table class="t" id="decayTable"></table></div>
+      <p class="note">Repeat invitations of women not screened in 5 years; cells with fewer than 500 invitations are left out.</p></div>
+  </section>
+
+  <section id="interventions" data-nav="Interventions">
+    <h2>03 What: an intervention per segment</h2>
+    <p class="head">Hypotheses to test, not proven effects. The segment says why the woman does not come; the intervention uses the channel she already uses.</p>
+    <div class="segcards" id="segCards"></div>
+  </section>
+
+  <section id="experiment" data-nav="Experiment">
+    <h2>04 How to verify: the experiment</h2>
+    <p class="head">A randomised test per segment: half of the invitations get the intervention, half the standard letter. The table shows the invitations needed per arm to detect +2 percentage points (two-sided α = 5%, power 80%) and how many a year of invitations provides.</p>
+    <div class="two">
+      <div class="card"><h3 class="cap">Design</h3><ol class="steps">
+        <li><b>Assign</b> every new invitation its segment with the rules above (no model needed, explainable to a doctor).</li>
+        <li><b>Randomise by woman</b> within each segment: intervention or control (standard letter). Keep the woman in her arm on later invitations.</li>
+        <li><b>Measure</b> screening within 3, 6 and 12 months; the primary outcome is 12 months.</li>
+        <li><b>Size</b> each arm from the table; segments with too few invitations run longer or pool regions.</li>
+        <li><b>Decide</b> per segment: keep, change or drop the intervention; cost per extra screened woman.</li>
+        <li><b>Re-score</b> with the model to target the next round within each segment.</li></ol></div>
+      <div class="card"><h3 class="cap">Invitations per arm needed vs. available in a year</h3><div class="rows" id="expRows"></div>
+        <p class="note">Available = half of the segment's 2024 invitations (the other half is the control). Hover for numbers.</p></div>
+    </div>
+  </section>
+
+  <section id="experts" data-nav="Per-group models">
+    <h2>One model is enough</h2>
+    <p class="head" id="expertsHead"></p>
+    <div class="card"><div class="scroll"><table class="t" id="expertTable"></table></div>
+      <details><summary>Show the 14 regions</summary><div class="scroll"><table class="t" id="regionTable"></table></div></details></div>
+  </section>
+
+  <section id="caveats" data-nav="Caveats">
+    <h2>Caveats</h2>
+    <div class="card" style="margin-top:12px"><ul class="sq">
+      <li>Observational data: the drivers and segments describe who comes, not what makes her come. Only the experiment shows the effect of an intervention.</li>
+      <li>The 12-month label of invitations from late 2024 may be incomplete; 2020 is lower because of COVID (see <a href="exploration.html#time">exploration</a>).</li>
+      <li>Women aged 40–44 appear only as first invitations, so age and first invitation are confounded.</li>
+      <li>Response by region and district is in the <a href="response_report.html">regional report</a>; location shifts the level, not the drivers.</li></ul></div>
+  </section>
+
+  <footer>Rakathon 2026 · VZP dataset of addressed mammography-screening invitations · built from the saved results of <span class="mono">training/</span> and <span class="mono">segmentation/</span></footer>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+const D = {"meta":{"test_rows":201851,"auc":0.8411895195255829,"segment_auc":0.7931762208797559,"rate":0.19292943805083948},"deciles":[{"k":1,"n":20186,"rate":0.015010403249777073,"pred":0.016523668609778882},{"k":2,"n":20185,"rate":0.027247956403269755,"pred":0.0281049602843672},{"k":3,"n":20185,"rate":0.03923705722070845,"pred":0.03949451464665095},{"k":4,"n":20185,"rate":0.05885558583106267,"pred":0.0579915474439579},{"k":5,"n":20185,"rate":0.08526133267277682,"pred":0.08674813314132451},{"k":6,"n":20185,"rate":0.12340847163735447,"pred":0.12478501942438189},{"k":7,"n":20185,"rate":0.1795888035670052,"pred":0.180868488196921},{"k":8,"n":20185,"rate":0.2792667822640575,"pred":0.2788686216717669},{"k":9,"n":20185,"rate":0.43983155808768887,"pred":0.44133829717319273},{"k":10,"n":20185,"rate":0.6815952439930641,"pred":0.6712482706244703}],"comparison":[{"k":"Gradient boosting","auc":0.8411895195255829},{"k":"Random forest","auc":0.8400074879562879},{"k":"Neural network (MLP)","auc":0.8397288662151661},{"k":"Decision tree","auc":0.8363902401088472},{"k":"Spline logistic regression","auc":0.8345757618722445},{"k":"Logistic regression","auc":0.831856481653583},{"k":"k-nearest neighbours","auc":0.8313594106025485},{"k":"Naive Bayes","auc":0.7998019978399409},{"k":"8 segment rules","auc":0.7931762208797559,"rules":true}],"ablation":{"fits":57,"families":9,"best":[{"k":"Gradient boosting","setting":"63 leaves, lr .05, 1000 iter","auc":0.8413220152338443,"gap":0.0,"lo":0.0,"hi":0.0},{"k":"Neural network (MLP)","setting":"3 layers, strong L2 (alpha 1e-2)","auc":0.8404255839868497,"gap":-0.0008964312469945,"lo":-0.0012939574629731,"hi":-0.0004526225404197},{"k":"Random forest","setting":"depth 16, leaf 20","auc":0.8400074876410356,"gap":-0.0013145275928087,"lo":-0.0018093328899368,"hi":-0.0008963506408046},{"k":"Decision tree","setting":"depth 12","auc":0.8372870455602492,"gap":-0.004034969673595,"lo":-0.0045610253555452,"hi":-0.0035109947347569},{"k":"Logistic regression","setting":"splines (additive)","auc":0.8345757618722445,"gap":-0.0067462533615998,"lo":-0.0072816217595873,"hi":-0.0061870781602406},{"k":"kNN (50k rows)","setting":"k=250","auc":0.8313594106025485,"gap":-0.0099626046312958,"lo":-0.0106816748835055,"hi":-0.0092135942896979},{"k":"few-feature LR","setting":"5 features","auc":0.818112925544109,"gap":-0.0232090896897353,"lo":-0.0243482850350769,"hi":-0.0220731527073998},{"k":"Naive Bayes","setting":"smoothing 1e-2","auc":0.7998019978399409,"gap":-0.0415200173939034,"lo":-0.0428067297946886,"hi":-0.0402620431784492},{"k":"constant","setting":"base rate","auc":0.5,"gap":-0.3413220152338443,"lo":-0.3435351169707871,"hi":-0.3388214351400576}],"learning":[{"k":"Gradient boosting","points":[[9410,0.8151225231986413,0.9562519839945288],[27914,0.8278564729803634,0.8843020073608363],[93761,0.8356096883339386,0.8628594979503733],[282256,0.8391208419811513,0.8508097797164631],[941822,0.8411895195255829,0.8445384159871433]]},{"k":"Neural network (MLP)","points":[[9410,0.818281265825958,0.8172849224446814],[27914,0.8280003115429807,0.8357249553926044],[93761,0.8358129937144422,0.8412595500676545],[282256,0.8378746123671874,0.8417023185251005],[941822,0.839787630729878,0.841231806200123]]},{"k":"Decision tree","points":[[9410,0.8071344609264052,0.8097480557301778],[27914,0.8264911815805913,0.835777690438593],[93761,0.8328858189096275,0.8386910382367929],[282256,0.8349838086860113,0.8366633777089744],[941822,0.8363902401088472,0.8357001469701861]]},{"k":"Logistic regression","points":[[9410,0.8265480712114279,0.834980558198093],[27914,0.8301871067715783,0.8374498653060211],[93761,0.8316070271283839,0.8344355568900491],[282256,0.8318079799390574,0.8320065865128188],[941822,0.831856481653583,0.8307886693401993]]}],"overfit":[{"k":"Decision tree: unlimited, leaf 1","train":0.9999686975120644,"test":0.6346375858784061},{"k":"Random forest: unlimited, leaf 1","train":0.9638165432833664,"test":0.8295124769115487},{"k":"Gradient boosting: 255 leaves, 500 iter, no early stop","train":0.9131753926945756,"test":0.834198941423209},{"k":"Neural network (MLP): 3 layers, 25 epochs, no early stop","train":0.8670343010911117,"test":0.8237170135828085}],"features":[{"k":"Logistic regression","raw":0.831856481653583,"eng":0.8350712828280219},{"k":"Gradient boosting","raw":0.8411895195255829,"eng":0.8422915650604762},{"k":"Neural network (MLP)","raw":0.839787630729878,"eng":0.8416448268269989}],"sweeps":[{"k":"Decision tree: depth","points":[["2",0.779899008422065,0.7780093895565666],["4",0.8224619533595775,0.8206203494536605],["6",0.8329756215834848,0.8315533528989912],["8",0.8363902401088472,0.8357001469701861],["12",0.8372870455602492,0.8393799198678777],["16",0.8368357107522907,0.8405197586940717],["∞",0.6346375858784061,0.9999686975120644]]},{"k":"k-nearest neighbours: k","points":[["1000",0.8247167819127655,0.8230295477571081],["250",0.8313594106025485,0.8341621450589246],["50",0.8264875150394311,0.8466841782734952],["5",0.7614961454414588,0.9093970838966096]]},{"k":"Gradient boosting: leaves per tree","points":[["7",0.8392872329007832,0.8386791642317567],["31",0.8411895195255829,0.8445384159871433],["63",0.8413220152338443,0.848297378565491],["255",0.8404341285835233,0.8599817143318396],["255, no stop",0.834198941423209,0.9131753926945756]]},{"k":"Neural network: layers","points":[["3 narrow",0.8392506366870465,0.839631022197866],["1",0.8389514073011565,0.839338109559075],["2",0.839787630729878,0.841231806200123],["3",0.8397288662939792,0.8411320128480073],["4",0.8399059332306691,0.842619997583659],["3, no stop",0.8237170135828085,0.8670343010911117]]}]},"drivers":[{"k":"Months since last screen","share":0.29676819280024486},{"k":"Invitation number (current run)","share":0.23665403984955147},{"k":"Previous invitations","share":0.1265520606820396},{"k":"Gynaecologist prevention (2 y)","share":0.10770166410956482},{"k":"Other screening (3 y)","share":0.05400222934458847},{"k":"Months since last invitation","share":0.047012818879614594},{"k":"Healthcare contacts (12 m)","share":0.040712832912753495},{"k":"Dental prevention (2 y)","share":0.02054737902488974},{"k":"VZP area","share":0.020113804410169404},{"k":"Age band","share":0.015140476589722835}],"effects":[{"k":"Previous invitations","points":[[1.0,0.226899170412846],[2.0,0.226899170412846],[3.0,0.1909460891155808],[4.0,0.1574149079775691],[5.0,0.1446052380766687],[6.0,0.1378009234193132],[7.0,0.1375548769903413],[8.0,0.1363360331957159],[9.0,0.1359051892055951],[10.0,0.1311485172759921],[11.0,0.1307433067552005]]},{"k":"Months since last screen","points":[[0.0,0.0291152994318503],[1.0,0.020084606351462],[36.0,0.4155502467323252],[37.0,0.396942050460781],[38.0,0.3848051640414474],[40.0,0.37986063504273],[41.0,0.3712694496857929],[42.0,0.3627034108814491],[44.0,0.364197782063788],[45.0,0.3639322363534639],[46.0,0.3601298217411788],[47.0,0.3560879141478918],[49.0,0.3495062570563659],[51.0,0.3352759661895907],[53.0,0.3268108453028178],[55.0,0.3249677294826665],[57.0,0.3187219245620194],[59.0,0.312184708300162]]},{"k":"Gynaecologist prevention (2 y)","points":[[0.0,0.1571047212885493],[1.0,0.2270117767833549],[2.0,0.2355576441435582],[3.0,0.2342605280475144],[4.0,0.2342605280475144],[5.0,0.2342605280475144]]}],"descriptions":[{"k":"Gradient boosting","how":"Hundreds of small decision trees, each one correcting the errors of the trees before it. Handles categories and missing values natively.","setting":"sklearn HistGradientBoosting, default 31 leaves, early stopping","auc":0.8411895195255829,"train":0.8445384159871433},{"k":"Random forest","how":"100 deep trees grown on random samples of rows and features; the prediction is their average.","setting":"depth 16, at least 20 rows per leaf, 25% of rows per tree","auc":0.8400074879562879,"train":0.847869623752104},{"k":"Neural network (MLP)","how":"A neural network: three layers of neurons learn combinations of the scaled, one-hot encoded inputs.","setting":"256-128-64 ReLU, Adam, early stopping","auc":0.8397288662151661,"train":0.8411320128480073},{"k":"Decision tree","how":"A single tree of yes/no questions; each leaf is a group of similar invitations. Readable as rules.","setting":"depth 8, at least 500 rows per leaf","auc":0.8363902401088472,"train":0.8357001469701861},{"k":"Spline logistic regression","how":"Logistic regression where every number gets its own smooth curve; effects add up, no interactions between attributes.","setting":"cubic splines, 6 knots per attribute","auc":0.8345757618722445,"train":0.8335780169214402},{"k":"Logistic regression","how":"One weight per (transformed) attribute; the weighted sum gives the log-odds. The simplest model with readable odds ratios.","setting":"L2, C = 1, log-scaled and standardised inputs","auc":0.831856481653583,"train":0.8307886693401993},{"k":"k-nearest neighbours","how":"Looks up the 250 most similar invitations from training and returns their share screened.","setting":"k = 250 on a 50k-row sample","auc":0.8313594106025485,"train":0.8341621450589246},{"k":"Naive Bayes","how":"Treats every attribute as independent given the outcome; fast but ignores how attributes combine.","setting":"Gaussian, variance smoothing 1e-2","auc":0.7998019978399409,"train":0.7978914804917587}],"importance":{"models":["Gradient boosting","Random forest","Neural network (MLP)","Decision tree","Spline logistic regression","Logistic regression","k-nearest neighbours","Naive Bayes"],"rows":[{"k":"Months since last screen","v":[0.29676819280024486,0.19029401066676388,0.35708672005891434,0.21585505672706842,0.43187903576263104,0.24606953740528212,0.25906631130813684,0.06618850096500102]},{"k":"Invitation number (current run)","v":[0.23665403984955147,0.17361076609781206,0.17421006489941554,0.18870817835625142,0.1542420174365691,0.10246084888304635,0.09415761658595491,0.12034496131681353]},{"k":"Previous invitations","v":[0.1265520606820396,0.14306394622567623,0.09172596859368878,0.3314701963234551,0.025918521063413448,0.31482767495382136,0.09444756101241439,0.09754865885335792]},{"k":"Gynaecologist prevention (2 y)","v":[0.10770166410956482,0.1530647238723284,0.08303074303951148,0.12652504812877396,0.05994394232117575,0.09941571904616626,0.14770919585385425,0.080539302018621]},{"k":"Months since last invitation","v":[0.047012818879614594,0.016445768852186425,0.03481020158399795,0.03289351224815264,0.08159663387594306,0.014698428187892533,0.16519688376414124,0.17716973529485872]},{"k":"Other screening (3 y)","v":[0.05400222934458847,0.09473984381770673,0.06737975151526024,0.04413500368922379,0.026544562100881342,0.05032657881721857,0.06917012088221827,0.05117167139955044]},{"k":"Healthcare contacts (12 m)","v":[0.040712832912753495,0.05052957660304814,0.045378823415724585,0.02546502184888573,0.0359973973429929,0.046828857637971816,0.03843372484634561,0.05327647564618552]},{"k":"Age band","v":[0.015140476589722835,0.03161839547517845,0.028324839875351077,0.007258766446037557,0.0016972011135622858,0.007132921080259888,0.002743553237701912,0.1882300674583287]},{"k":"Never screened (5 y)","v":[0.0,0.03903398714861266,0.002736027356151657,0.0,0.14142609500083364,0.011798336884733418,0.0,0.0]},{"k":"Screens in last 5 years","v":[0.008557327227308134,0.04001435135963365,0.050092575238061314,0.0001608469152976672,0.0028673816874023005,0.003571498005646126,0.08403948371855127,0.0]},{"k":"Dental prevention (2 y)","v":[0.02054737902488974,0.027742438824971474,0.02289027094987764,0.01739860880526609,0.012284496518206576,0.020975529409077143,0.03696886453581754,0.02131115843679719]},{"k":"Gynaecologist registration","v":[0.012121063849311359,0.007522340652739164,0.007195141457322266,0.0063453279175880225,0.015278922266363003,0.054600141959680874,0.0,0.05862172438711962]},{"k":"VZP area","v":[0.020113804410169404,0.0035768676860885723,0.019289757689996277,0.0002141091428824045,0.006841442856374587,0.012112047398719107,0.0022872176862607342,0.021373806272783593]},{"k":"First invitation","v":[0.0,0.016247501565555607,0.0017907191649345305,0.0,0.0,0.000857959155765949,6.763866867654286e-06,0.03886982019305252]},{"k":"Insurance duration","v":[0.013898053366374341,0.012495481151698589,0.011239358656429345,0.0035703234511172627,0.0011825256819916665,0.0,0.005772702701735364,0.00021803225568255074]},{"k":"Registered with a gynaecologist","v":[0.0,0.0,0.002552800402382134,0.0,0.001298221288508679,0.010188877492957556,0.0,0.024205483518642077]},{"k":"GP registration","v":[0.00021805695386691064,0.0,0.00026616740575340043,0.0,0.0005769286126365145,0.0019816681064746882,0.0,0.0]},{"k":"Registered with a GP","v":[0.0,0.0,6.869722754716286e-08,0.0,0.00042467507051411203,0.0021533755752863723,0.0,0.0]},{"k":"GP prevention (2 y)","v":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0009306019832054721]}]},"segments":[{"letter":"A","k":"not due yet","rule":"screened < 24 months before the invitation","intervention":"don't send yet; invite ~24 months after the last screen","n":36490,"share":0.027139070444072246,"women":36193,"rates":[0.013812003288572211,0.02044395724856125,0.02359550561797753]},{"letter":"B","k":"first invitation","rule":"first invitation of the woman","intervention":"standard letter + easy online booking","n":218177,"share":0.16226694908951356,"women":218177,"rates":[0.2218565659991658,0.3731557405226032,0.5305325492604628]},{"letter":"C","k":"lapsed screener, gynaecologist","rule":"screened before (>= 24 months ago), gynaecologist prevention visit in 2 years","intervention":"reminder at the due date + gynaecologist","n":65256,"share":0.04853349358449927,"women":51648,"rates":[0.16919516979281599,0.279912958195415,0.4122532793919333]},{"letter":"D","k":"lapsed screener, no gynaecologist","rule":"screened before (>= 24 months ago), no gynaecologist prevention visit","intervention":"reminder at the due date + GP","n":97647,"share":0.0726239740107515,"women":70979,"rates":[0.06631028090980778,0.13581574446731595,0.23344291171259743]},{"letter":"E","k":"never screened, gynaecologist","rule":"repeat invitation, not screened in 5 years, gynaecologist prevention visit","intervention":"recommendation by her gynaecologist","n":240849,"share":0.17912902102999056,"women":117331,"rates":[0.0790868967693451,0.13496838267960423,0.21078351996479122]},{"letter":"F","k":"never screened, other screening","rule":"repeat, not screened, no gynaecologist visit, but other screening programme in 3 years","intervention":"bundle with the screening she already does","n":170195,"share":0.12658081924441972,"women":92037,"rates":[0.02437791944534211,0.04920826111225359,0.08838685037750815]},{"letter":"G","k":"never screened, healthcare user","rule":"repeat, not screened, no prevention, but some healthcare contact in 12 months","intervention":"personal nudge by GP / pharmacist","n":443099,"share":0.3295504240805143,"women":168278,"rates":[0.013267915296581577,0.03013547762463919,0.05827817259799729]},{"letter":"H","k":"disconnected","rule":"repeat, not screened, no prevention and no healthcare contact","intervention":"stop letters; phone, navigator or mobile unit","n":72843,"share":0.05417624851623882,"women":37506,"rates":[0.0036928737147014813,0.009582252241121315,0.021896407341817335]}],"tree":{"nodes":{"q1":{"n":1344556,"rate":0.19302728930591215},"q2":{"n":1308066,"rate":0.1977537830659921},"q3":{"n":1089889,"rate":0.13113720755049368},"q4a":{"n":162903,"rate":0.30507111594016073},"q4b":{"n":926986,"rate":0.10057109816113728},"q5":{"n":686137,"rate":0.06188414267121581},"q6":{"n":515942,"rate":0.0531416321989681},"A not due yet":{"n":36490,"rate":0.02359550561797753},"B first invitation":{"n":218177,"rate":0.5305325492604628},"C lapsed screener, gynaecologist":{"n":65256,"rate":0.4122532793919333},"D lapsed screener, no gynaecologist":{"n":97647,"rate":0.23344291171259743},"E never screened, gynaecologist":{"n":240849,"rate":0.21078351996479122},"F never screened, other screening":{"n":170195,"rate":0.08838685037750815},"G never screened, healthcare user":{"n":443099,"rate":0.05827817259799729},"H disconnected":{"n":72843,"rate":0.021896407341817335}},"questions":{"q1":"Screened less than\n24 months ago?","q2":"First invitation?","q3":"Screened in the\nlast 5 years?","q4a":"Gynaecologist\nprevention visit (2 y)?","q4b":"Gynaecologist\nprevention visit (2 y)?","q5":"Other screening\nprogramme (3 y)?","q6":"Any healthcare\ncontact (12 m)?"},"edges":[["q1","A not due yet","yes"],["q1","q2","no"],["q2","B first invitation","yes"],["q2","q3","no"],["q3","q4a","yes"],["q3","q4b","no"],["q4a","C lapsed screener, gynaecologist","yes"],["q4a","D lapsed screener, no gynaecologist","no"],["q4b","E never screened, gynaecologist","yes"],["q4b","q5","no"],["q5","F never screened, other screening","yes"],["q5","q6","no"],["q6","G never screened, healthcare user","yes"],["q6","H disconnected","no"]],"positions":{"q1":[7.0,0.0],"A not due yet":[2.5,-3.0],"q2":[10.0,-3.0],"B first invitation":[6.5,-6.0],"q3":[13.0,-6.0],"q4a":[8.5,-9.0],"q4b":[17.0,-9.0],"C lapsed screener, gynaecologist":[5.5,-12.0],"D lapsed screener, no gynaecologist":[10.5,-12.0],"E never screened, gynaecologist":[14.5,-12.0],"q5":[20.0,-12.0],"F never screened, other screening":[17.0,-15.0],"q6":[23.0,-15.0],"G never screened, healthcare user":[20.0,-18.0],"H disconnected":[25.5,-18.0]}},"decay":[{"letter":"E","k":"never screened, gynaecologist","points":[["2",0.4109611418536745,48973],["3",0.265823102608521,39831],["4",0.19503222763716396,31805],["5-6",0.15327309530268568,47921],["7-8",0.09495200769754289,42611],["9-11",0.08006311745334797,29152]]},{"letter":"F","k":"never screened, other screening","points":[["2",0.25628891656288916,8030],["3",0.18049177469046096,17203],["4",0.13406848520023215,15507],["5-6",0.10880023684405299,27022],["7-8",0.051347062364336137,54823],["9-11",0.042152485346086295,47257]]},{"letter":"G","k":"never screened, healthcare user","points":[["2",0.11894968631850097,24069],["3",0.11588125192503614,42207],["4",0.09778846153846153,41600],["5-6",0.07484084880636604,75400],["7-8",0.03568035702450125,135789],["9-11",0.027975144007583184,123431]]},{"letter":"H","k":"disconnected","points":[["2",0.043945068664169785,4005],["3",0.04556267154620311,5465],["4",0.03435647017788629,5734],["5-6",0.029455337690631807,11475],["7-8",0.015170202269363591,24324],["9-11",0.012162658344042593,21788]]}],"experiment":[{"letter":"C","k":"lapsed screener, gynaecologist","baseline":0.4122532793919333,"need":9570,"available":6409},{"letter":"D","k":"lapsed screener, no gynaecologist","baseline":0.23344291171259743,"need":7225,"available":7879},{"letter":"E","k":"never screened, gynaecologist","baseline":0.21078351996479122,"need":6748,"available":25523},{"letter":"F","k":"never screened, other screening","baseline":0.08838685037750815,"need":3478,"available":16926},{"letter":"G","k":"never screened, healthcare user","baseline":0.05827817259799729,"need":2493,"available":40561},{"letter":"H","k":"disconnected","baseline":0.021896407341817335,"need":1208,"available":8403}],"experts":[{"criterion":"age","k":"<50","n":63458,"rate":0.34627627722273,"global":0.813899952080007,"expert":0.8136159215986685,"gain":-0.0002840304813385,"lo":-0.0007015558932436,"hi":0.0002050504181956},{"criterion":"age","k":"50-64","n":96817,"rate":0.1279114205149922,"global":0.8038086852598536,"expert":0.8027138158121245,"gain":-0.001094869447729,"lo":-0.0017077446219755,"hi":-0.0004072767080351},{"criterion":"age","k":"65+","n":41576,"rate":0.1102799692130075,"global":0.8222657861868431,"expert":0.8203959040170902,"gain":-0.0018698821697529,"lo":-0.003494477166247,"hi":-0.0003301096834268},{"criterion":"first invitation","k":"first","n":34232,"rate":0.5105456882449171,"global":0.76017493904723,"expert":0.7586244423693863,"gain":-0.0015504966778436,"lo":-0.0025840627553653,"hi":-0.0004070093801066},{"criterion":"first invitation","k":"repeat","n":167619,"rate":0.1280642409273411,"global":0.7920927356649511,"expert":0.7917014719802128,"gain":-0.0003912636847382,"lo":-0.0007182648564717,"hi":-2.5153705853172943e-05},{"criterion":"screening history","k":"never screened (5y)","n":165340,"rate":0.1700254022015241,"global":0.8484772921480902,"expert":0.8484342334097726,"gain":-4.305873831755847e-05,"lo":-0.0002918969347724,"hi":0.0001936151031519},{"criterion":"screening history","k":"screened before","n":36511,"rate":0.2966503245597217,"global":0.7492006222188474,"expert":0.7480047931243854,"gain":-0.001195829094462,"lo":-0.002575767054401,"hi":-0.0001181567620996},{"criterion":"invitation sequence","k":"1","n":43110,"rate":0.4674321503131524,"global":0.7699388444285152,"expert":0.7692303828253574,"gain":-0.0007084616031578,"lo":-0.0014081688850229,"hi":-7.001060678545056e-05},{"criterion":"invitation sequence","k":"2-3","n":44360,"rate":0.245356176735798,"global":0.7222201875641494,"expert":0.7189948259047747,"gain":-0.0032253616593747,"lo":-0.0046328677763629,"hi":-0.0019411519295041},{"criterion":"invitation sequence","k":"4-6","n":41204,"rate":0.1171002815260654,"global":0.6708042147529457,"expert":0.6644602512951231,"gain":-0.0063439634578226,"lo":-0.0096472636705656,"hi":-0.0032175391304319},{"criterion":"invitation sequence","k":"7+","n":73177,"rate":0.0421307241346324,"global":0.6795398336366825,"expert":0.6780849826970226,"gain":-0.0014548509396599,"lo":-0.0046631053619788,"hi":0.0019289956395692},{"criterion":"gynaecologist","k":"registered","n":158617,"rate":0.2266528808387499,"global":0.827604988837003,"expert":0.8274855597811512,"gain":-0.0001194290558517,"lo":-0.0003382636360317,"hi":7.307213188743345e-05},{"criterion":"gynaecologist","k":"not registered","n":43234,"rate":0.069204792524402,"global":0.808081457283701,"expert":0.801579679237405,"gain":-0.0065017780462959,"lo":-0.0090467071166114,"hi":-0.0041372659821715},{"criterion":"healthcare contact (12m)","k":"0","n":13952,"rate":0.0375573394495412,"global":0.7569013818681256,"expert":0.7396684636409735,"gain":-0.0172329182271521,"lo":-0.0273147952622958,"hi":-0.0059079103109485},{"criterion":"healthcare contact (12m)","k":"1-10","n":79470,"rate":0.1541462186988801,"global":0.8279415055043142,"expert":0.8267871290735872,"gain":-0.001154376430727,"lo":-0.0016445588997983,"hi":-0.0006096187803454},{"criterion":"healthcare contact (12m)","k":"11+","n":108429,"rate":0.2413468721467504,"global":0.8314289453642685,"expert":0.8309190339008827,"gain":-0.0005099114633857,"lo":-0.0008321363281306,"hi":-0.0001950385532546},{"criterion":"distance to centre","k":"<=10 km","n":125106,"rate":0.1940354579316739,"global":0.8388325535908853,"expert":0.8387627740357138,"gain":-6.977955517151191e-05,"lo":-0.0003366284157985,"hi":0.0001825603441752},{"criterion":"distance to centre","k":"10-25 km","n":60462,"rate":0.192782243392544,"global":0.8421681704891815,"expert":0.8415762286377417,"gain":-0.0005919418514397,"lo":-0.0010015666148307,"hi":-0.0001228609296732},{"criterion":"distance to centre","k":">25 km","n":16283,"rate":0.1849781981207394,"global":0.8552407680207761,"expert":0.8539992692931087,"gain":-0.0012414987276674,"lo":-0.002489549040392,"hi":6.088986314874703e-05},{"criterion":"region","k":"Jihomoravský kraj","n":21663,"rate":0.2054655403222083,"global":0.8432321621448475,"expert":0.8424540519269054,"gain":-0.0007781102179421,"lo":-0.0016924001781182,"hi":0.0002669569943797},{"criterion":"region","k":"Jihočeský kraj","n":13271,"rate":0.194785622786527,"global":0.8427440266933978,"expert":0.8408292489205675,"gain":-0.0019147777728302,"lo":-0.0033733116135334,"hi":-0.0004936855864406},{"criterion":"region","k":"Karlovarský kraj","n":6557,"rate":0.191245996644807,"global":0.8564391796524551,"expert":0.852155395775194,"gain":-0.0042837838772611,"lo":-0.0067834812120093,"hi":-0.0020155101128853},{"criterion":"region","k":"Kraj Vysočina","n":10712,"rate":0.2113517550410754,"global":0.8638372653071127,"expert":0.8608132834250187,"gain":-0.0030239818820939,"lo":-0.0044192278746344,"hi":-0.0014888130415698},{"criterion":"region","k":"Královéhradecký kraj","n":10494,"rate":0.2099294835143891,"global":0.8420525064422135,"expert":0.8377728629937585,"gain":-0.0042796434484549,"lo":-0.0060540134724656,"hi":-0.0023250565682603},{"criterion":"region","k":"Liberecký kraj","n":11898,"rate":0.209867204572197,"global":0.8293426422951026,"expert":0.827140574220391,"gain":-0.0022020680747115,"lo":-0.003945303689022,"hi":-0.0004072830767824},{"criterion":"region","k":"Moravskoslezský kraj","n":12741,"rate":0.1669413703790911,"global":0.8414980958964436,"expert":0.8392713042154808,"gain":-0.0022267916809628,"lo":-0.0039810030881344,"hi":-0.0006674433935161},{"criterion":"region","k":"Olomoucký kraj","n":7780,"rate":0.1754498714652956,"global":0.8404635997932958,"expert":0.8345074930265889,"gain":-0.0059561067667068,"lo":-0.0082113677824647,"hi":-0.0032716205640113},{"criterion":"region","k":"Pardubický kraj","n":11285,"rate":0.2093043863535666,"global":0.8504565544920353,"expert":0.8491068045427324,"gain":-0.0013497499493029,"lo":-0.0030691556969195,"hi":0.0003554188596388},{"criterion":"region","k":"Plzeňský kraj","n":10711,"rate":0.1856035850994304,"global":0.8443068706864597,"expert":0.8425670957996056,"gain":-0.001739774886854,"lo":-0.0033661452562375,"hi":0.0002091269127924},{"criterion":"region","k":"Praha","n":29481,"rate":0.1808961704148434,"global":0.817837019702335,"expert":0.8176023078011863,"gain":-0.0002347119011487,"lo":-0.0012089912936138,"hi":0.0006845112827999},{"criterion":"region","k":"Středočeský kraj","n":23444,"rate":0.1885343797986691,"global":0.8447838512628962,"expert":0.843627173486979,"gain":-0.0011566777759172,"lo":-0.0020806839806231,"hi":-0.000111831742832},{"criterion":"region","k":"Zlínský kraj","n":12691,"rate":0.2000630367977307,"global":0.8399959450538502,"expert":0.8373359826268914,"gain":-0.0026599624269588,"lo":-0.0041073497022701,"hi":-0.0011496151803119},{"criterion":"region","k":"Ústecký kraj","n":19123,"rate":0.1859017936516237,"global":0.8437965450424472,"expert":0.8436857205013566,"gain":-0.0001108245410905,"lo":-0.0012414274270204,"hi":0.001072213182824}]};
+const $ = (s, el = document) => el.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const pct = (x, d = 1) => (x == null || isNaN(x) ? "–" : (x * 100).toFixed(d) + "%");
+const pp = (x, d = 1) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d) + " pp";
+const num = (n) => Math.round(n).toLocaleString("en-US");
+const auc = (x) => x.toFixed(3);
+const tip = $("#tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + "px"; tip.style.top = Math.max(8, e.clientY - h - 10) + "px"; }
+function hideTip() { tip.style.opacity = 0; }
+function el(tag, attrs = {}, parent) { const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; }
+function onTip(node, html) { node.addEventListener("mousemove", (e) => showTip(e, html)); node.addEventListener("mouseleave", hideTip); }
+
+/* ---------- rows: name | bar | value | n ---------- */
+function rows(container, items, { max, header = ["", "", "", ""], tipFn } = {}) {
+  const top = max ?? Math.max(...items.map((r) => r.value)) * 1.05;
+  container.innerHTML = `<div class="row hdr"><span>${header[0]}</span><span>${header[1]}</span><span class="v">${header[2]}</span><span class="n">${header[3]}</span></div>`;
+  for (const r of items) {
+    const d = document.createElement("div");
+    d.className = "row" + (r.ref ? " ref" : "");
+    const w = Math.max(0, Math.min(1, r.value / top)) * 100;
+    d.innerHTML = `<span class="nm" title="${r.k}">${r.k}</span><span class="tr"><i style="left:0;width:${w}%;background:${r.color || "var(--s4)"}"></i></span><span class="v">${r.text ?? pct(r.value)}</span><span class="n">${r.n ?? ""}</span>`;
+    if (tipFn) onTip(d, tipFn(r));
+    container.appendChild(d);
+  }
+}
+function table(t, head, body) {
+  t.innerHTML = `<tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr>` + body.map((r) => `<tr>${r.join("")}</tr>`).join("");
+}
+
+/* ---------- nav & theme ---------- */
+const secs = [...document.querySelectorAll("section[data-nav]")];
+$("#nav").innerHTML = secs.map((s, i) => `<button type="button" data-i="${i}">${s.dataset.nav}</button>`).join("");
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) secs[+b.dataset.i].scrollIntoView({ behavior: "smooth" }); });
+$("#themeBtn").addEventListener("click", () => { const r = document.documentElement,
+  dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; });
+
+/* ---------- hero ---------- */
+const M = D.meta, DEC = D.deciles, SEG = D.segments;
+const lowest = DEC[0], highest = DEC[DEC.length - 1];
+$("#lede").textContent = `A gradient-boosting model ranks invitations by their chance of a screening (test ROC AUC ${auc(M.auc)}); ` +
+  `eight rule-based segments explain the ranking and carry one intervention each, to be checked in a randomised test.`;
+$("#kpis").innerHTML = [[auc(M.auc), "test ROC AUC, gradient boosting"], [auc(M.segment_auc), "ROC AUC, 8 segment rules"],
+  [pct(lowest.rate), "response, lowest score decile"], [pct(highest.rate), "response, highest score decile"],
+  [String(SEG.length), "explainable segments"], [num(D.ablation.fits), "model fits in the ablation"]]
+  .map(([b, s]) => `<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+
+/* ---------- 01 risk ---------- */
+const low3 = DEC.slice(0, 3);
+const share3 = low3.reduce((a, d) => a + d.n * d.rate, 0) / DEC.reduce((a, d) => a + d.n * d.rate, 0);
+$("#riskHead").innerHTML = `The score separates invitations sharply: the lowest decile responds at <b>${pct(lowest.rate)}</b>, the highest at <b>${pct(highest.rate)}</b> (all: ${pct(M.rate)}). ` +
+  `The lowest 30% of scores hold only <b>${pct(share3, 0)}</b> of the screened women: these are the invitations a standard letter does not reach.`;
+rows($("#decileRows"), DEC.map((d) => ({ k: `decile ${d.k}`, value: d.rate, n: num(d.n), pred: d.pred })),
+  { max: 0.75, header: ["score decile", "", "actual", "n"], tipFn: (r) => `<b>${r.k}</b><br>actual: ${pct(r.value)}<br>predicted: ${pct(r.pred)}<br>${r.n} test invitations` });
+rows($("#compRows"), [...D.comparison].sort((a, b) => b.auc - a.auc).map((c) => ({ k: c.k, value: c.auc - 0.75, text: auc(c.auc), color: c.rules ? "var(--pt)" : "var(--s4)" })),
+  { max: 0.1, header: ["model", "", "AUC", ""] });
+
+/* ---------- ceiling ---------- */
+const A = D.ablation, best = A.best.filter((b) => b.k !== "constant");
+$("#ceilingHead").innerHTML = `${num(A.fits)} fits of ${A.families} model families with different capacity, regularisation, features and training size. ` +
+  `The six strongest families end within <b>${Math.abs(best[5].gap).toFixed(3)}</b> ROC AUC of each other, at about <b>${auc(best[0].auc)}</b>: the limit is the information in the 19 attributes, not the model.`;
+rows($("#bestRows"), best.map((b) => ({ ...b, value: b.auc - 0.75, text: auc(b.auc), n: b.gap ? (b.gap * 100).toFixed(2) : "best" })),
+  { max: 0.1, header: ["family", "", "AUC", "gap ×100"], tipFn: (b) => `<b>${b.k}</b><br>${b.setting}<br>gap to best: ${(b.gap * 100).toFixed(2)} (95%: ${(b.lo * 100).toFixed(2)} to ${(b.hi * 100).toFixed(2)})` });
+const CEIL = 0.84;
+function frame(svg, P, W, H, y0, y1, yTicks) {
+  const Y = (v) => P.t + (1 - (v - y0) / (y1 - y0)) * (H - P.t - P.b);
+  const g = el("g", { class: "grid" }, svg);
+  for (const t of yTicks) { el("line", { x1: P.l, x2: W - P.r, y1: Y(t), y2: Y(t) }, g);
+    el("text", { x: P.l - 6, y: Y(t) + 4, "text-anchor": "end" }, svg).textContent = t.toFixed(2); }
+  el("line", { x1: P.l, x2: W - P.r, y1: Y(CEIL), y2: Y(CEIL), stroke: "var(--muted)", "stroke-dasharray": "2 3", "stroke-width": 1.2 }, svg);
+  return Y;
+}
+function line(svg, pts, color, dash) {
+  el("path", { d: pts.map(([x, y], i) => (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1)).join(""), fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": dash || "none" }, svg);
+}
+function dot(svg, x, y, color, html) { const c = el("circle", { cx: x, cy: y, r: 4, fill: color, stroke: "var(--surface)", "stroke-width": 2 }, svg); onTip(c, html); }
+(function learningChart() {
+  const W = 1000, H = 300, P = { l: 52, r: 200, t: 14, b: 34 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Learning curves" });
+  const xs = A.learning[0].points.map((p) => p[0]), lx0 = Math.log10(xs[0]), lx1 = Math.log10(xs[xs.length - 1]);
+  const X = (n) => P.l + (Math.log10(n) - lx0) / (lx1 - lx0) * (W - P.l - P.r);
+  const Y = frame(svg, P, W, H, 0.80, 0.85, [0.80, 0.81, 0.82, 0.83, 0.84, 0.85]);
+  for (const n of xs) el("text", { x: X(n), y: H - 12, "text-anchor": "middle" }, svg).textContent = n >= 1e5 ? Math.round(n / 1000) + "k rows" : (n / 1000).toFixed(1) + "k rows";
+  const STY = [["var(--s4)", ""], ["var(--s5)", "6 3"], ["var(--pt)", ""], ["var(--pt)", "6 3"]];
+  const ends = A.learning.map((f, i) => ({ i, y: Y(f.points[f.points.length - 1][1]) })).sort((a, b) => a.y - b.y);
+  ends.forEach((e, j) => { if (j && e.y - ends[j - 1].y < 15) e.y = ends[j - 1].y + 15; });
+  A.learning.forEach((f, i) => { const [c, d] = STY[i];
+    line(svg, f.points.map((p) => [X(p[0]), Y(p[1])]), c, d);
+    f.points.forEach((p) => dot(svg, X(p[0]), Y(p[1]), c, `<b>${f.k}</b><br>${num(p[0])} training rows<br>test ${auc(p[1])} · train ${auc(p[2])}`));
+    const e = ends.find((e) => e.i === i); el("text", { class: "lab", x: W - P.r + 14, y: e.y + 4 }, svg).textContent = f.k; });
+  $("#lcChart").replaceChildren(svg);
+  $("#lcLegend").innerHTML = A.learning.map((f, i) => `<span><i style="background:${STY[i][0]}"></i>${f.k}${STY[i][1] ? " (dashed)" : ""}</span>`).join("") + "<span>dotted line: 0.84</span>";
+})();
+for (const sw of A.sweeps) {
+  const W = 380, H = 220, P = { l: 44, r: 12, t: 12, b: 30 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": sw.k });
+  const X = (i) => P.l + (i + 0.5) * (W - P.l - P.r) / sw.points.length;
+  const Y = frame(svg, P, W, H, 0.6, 1.0, [0.6, 0.7, 0.8, 0.9, 1.0]);
+  sw.points.forEach((p, i) => { el("text", { x: X(i), y: H - 10, "text-anchor": "middle" }, svg).textContent = p[0]; });
+  line(svg, sw.points.map((p, i) => [X(i), Y(p[2])]), "var(--pt)", "5 3");
+  line(svg, sw.points.map((p, i) => [X(i), Y(p[1])]), "var(--s4)", "");
+  sw.points.forEach((p, i) => { const html = `<b>${sw.k.split(":")[0]}: ${p[0]}</b><br>test ${auc(p[1])}<br>train ${auc(p[2])}`;
+    dot(svg, X(i), Y(p[2]), "var(--pt)", html); dot(svg, X(i), Y(p[1]), "var(--s4)", html); });
+  const bi = sw.points.reduce((b, p, i) => (p[1] > sw.points[b][1] ? i : b), 0);
+  el("text", { x: X(bi), y: Y(sw.points[bi][1]) + 20, "text-anchor": "middle", class: "lab" }, svg).textContent = "best " + auc(sw.points[bi][1]);
+  const c = document.createElement("div"); c.innerHTML = `<h3 class="cap">${sw.k}</h3>`; c.appendChild(svg); $("#sweeps").appendChild(c);
+}
+table($("#ofTable"), ["setting", "train", "test"],
+  A.overfit.map((o) => [`<td>${o.k}</td>`, `<td class="hi">${auc(o.train)}</td>`, `<td>${auc(o.test)}</td>`]));
+table($("#featTable"), ["model", "raw", "engineered", "gain ×100"],
+  A.features.map((f) => [`<td>${f.k}</td>`, `<td>${auc(f.raw)}</td>`, `<td>${auc(f.eng)}</td>`, `<td>+${((f.eng - f.raw) * 100).toFixed(2)}</td>`]));
+
+/* ---------- model cards ---------- */
+$("#modelCards").innerHTML = [...D.descriptions].sort((a, b) => b.auc - a.auc).map((m) =>
+  `<div class="segcard" style="border-left-color:var(--s${m.auc >= 0.838 ? 4 : m.auc >= 0.83 ? 3 : 2})"><h4>${m.k}</h4><span class="mono">test ${auc(m.auc)}${m.train == null ? "" : ` · train ${auc(m.train)}`}</span><p>${m.how}</p><p class="note">${m.setting}</p></div>`).join("");
+
+/* ---------- predictive attributes across models ---------- */
+(function importance() {
+  const I = D.importance, bin = (v) => (v < 0.02 ? 0 : v < 0.05 ? 1 : v < 0.1 ? 2 : v < 0.2 ? 3 : 4);
+  const top = I.rows.slice(0, 5).map((r) => r.k.toLowerCase());
+  $("#impNote").innerHTML = `How much each model's test ROC AUC drops when one attribute is shuffled, as a share of that model's total. All eight models rely on the same few attributes: <b>${top.slice(0, 4).join(", ")}</b> and ${top[4]}. Rows are ordered by the average share.`;
+  const short = (k) => k.replace("Neural network (MLP)", "MLP").replace("Spline logistic regression", "Spline LR").replace("Logistic regression", "Logistic reg.").replace("k-nearest neighbours", "kNN").replace("Gradient boosting", "Gradient boost.");
+  $("#impTable").innerHTML = `<tr><th></th>${I.models.map((m) => `<th>${short(m)}</th>`).join("")}</tr>` + I.rows.map((r) => `<tr><th class="rowh">${r.k}</th>${r.v.map((v, j) => { const b = bin(v);
+    return `<td style="background:${b ? `var(--s${b})` : "transparent"};color:${b ? `var(--t${b})` : "var(--muted)"}" title="${I.models[j]}: ${pct(v, 1)}">${v < 0.005 ? "·" : pct(v, 0)}</td>`; }).join("")}</tr>`).join("");
+  $("#impLegend").innerHTML = ["< 2%", "2–5%", "5–10%", "10–20%", "≥ 20%"].map((t, i) => `<span><i style="background:${i ? `var(--s${i})` : "var(--surface)"};border:1px solid var(--line)"></i>${t}</span>`).join("");
+})();
+
+/* ---------- 02 drivers ---------- */
+rows($("#driverRows"), D.drivers.map((d) => ({ k: d.k, value: d.share, text: pct(d.share, 0) })), { header: ["attribute", "", "share", ""] });
+$("#driverNotes").innerHTML = [
+  `<b>Timing of the last screen</b>: right after a screen almost nobody comes; women screened about 3 years ago (due) come most often.`,
+  `<b>Ignored invitations</b>: the invitation number and the count of previous invitations; every unanswered letter lowers the next response.`,
+  `<b>Preventive habits</b>: a gynaecologist prevention visit or another screening programme is the strongest sign that she will come.`,
+  `<b>Contact with healthcare</b>: women with no contact in a year are the hardest to reach.`,
+  `Age, region and access to a centre add little once the history is known.`,
+].map((t) => `<li>${t}</li>`).join("");
+function effectChart(f) {
+  const W = 360, H = 190, P = { l: 40, r: 10, t: 10, b: 30 };
+  const xs = f.points.map((p) => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs), yMax = 0.5;
+  const X = (v) => P.l + (v - x0) / (x1 - x0) * (W - P.l - P.r), Y = (v) => P.t + (1 - v / yMax) * (H - P.t - P.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": f.k });
+  const g = el("g", { class: "grid" }, svg), ax = el("g", { class: "axis" }, svg);
+  for (const t of [0, 0.1, 0.2, 0.3, 0.4, 0.5]) { el("line", { x1: P.l, x2: W - P.r, y1: Y(t), y2: Y(t) }, g);
+    el("text", { x: P.l - 6, y: Y(t) + 4, "text-anchor": "end" }, ax).textContent = Math.round(t * 100) + "%"; }
+  const raw = (x1 - x0) / 5, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 5, 10].map((m) => m * mag).find((m) => m >= raw);
+  const ticks = []; for (let t = Math.ceil(x0 / step) * step; t <= x1; t += step) ticks.push(t);
+  for (const t of ticks) el("text", { x: X(t), y: H - 12, "text-anchor": "middle" }, ax).textContent = t;
+  let d = "", prev = null;
+  for (const [x, y] of f.points) { d += (prev !== null && x - prev <= 6 ? "L" : "M") + X(x).toFixed(1) + " " + Y(y).toFixed(1); prev = x; }
+  el("path", { d, fill: "none", stroke: "var(--s4)", "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+  for (const [x, y] of f.points) { const c = el("circle", { cx: X(x), cy: Y(y), r: f.points.length > 12 ? 3 : 4, fill: "var(--s4)", stroke: "var(--surface)", "stroke-width": 2 }, svg);
+    onTip(c, `<b>${f.k}: ${x}</b><br>average predicted: ${pct(y)}`); }
+  return svg;
+}
+for (const f of D.effects) {
+  const c = document.createElement("div"); c.className = "card";
+  c.innerHTML = `<h3 class="cap">${f.k}</h3>`; c.appendChild(effectChart(f));
+  if (f.k.startsWith("Months since")) c.insertAdjacentHTML("beforeend", `<p class="note">No invitations between 2 and 35 months after a screen (line broken).</p>`);
+  $("#effects").appendChild(c);
+}
+
+/* ---------- segments ---------- */
+const STEP = (r) => (r < 0.05 ? 1 : r < 0.15 ? 2 : r < 0.25 ? 3 : r < 0.4 ? 4 : 5);
+const T = D.tree, NODES = T.nodes, TOTAL = NODES.q1.n;
+const byName = Object.fromEntries(SEG.map((s) => [`${s.letter} ${s.k}`, s]));
+$("#segHead").innerHTML = `Seven yes/no questions on five attributes put every invitation into one of eight segments (rules in priority order, no model). ` +
+  `They rank invitations with ROC AUC <b>${auc(M.segment_auc)}</b> vs. <b>${auc(M.auc)}</b> for the full model, and each one says <i>why</i> a woman does not come.`;
+function tree() {
+  const SX = 48, SY = 36, OX = 8 - 0.4 * SX, OY = 30, QW = 170, QH = 42, LW = 178, LH = 76;
+  const pos = (n) => [OX + T.positions[n][0] * SX, OY - T.positions[n][1] * SY];
+  const W = Math.ceil(OX + 25.5 * SX + LW / 2 + 8), H = Math.ceil(OY + 18 * SY + LH / 2 + 8);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "tree", role: "img", "aria-label": "Segment rule tree" });
+  for (const [a, b, yn] of T.edges) { const [x1, y1] = pos(a), [x2, y2] = pos(b);
+    el("path", { class: "edge", d: `M${x1} ${y1 + QH / 2} L${x1} ${(y1 + y2) / 2} L${x2} ${(y1 + y2) / 2} L${x2} ${y2 - (b.startsWith("q") ? QH : LH) / 2}` }, svg);
+    el("text", { class: "yn", x: x2 + (x2 < x1 ? -6 : 6), y: (y1 + y2) / 2 - 5, "text-anchor": x2 < x1 ? "end" : "start" }, svg).textContent = yn; }
+  for (const [n, [qx, qy]] of Object.entries(T.positions).map(([n]) => [n, pos(n)])) {
+    const node = NODES[n];
+    if (n.startsWith("q")) {
+      const g = el("g", { class: "q" }, svg);
+      el("rect", { x: qx - QW / 2, y: qy - QH / 2, width: QW, height: QH, rx: 8 }, g);
+      const lines = T.questions[n].split("\n");
+      lines.forEach((t, i) => { el("text", { x: qx, y: qy + (i - (lines.length - 1) / 2) * 15 + 4, "text-anchor": "middle" }, g).textContent = t; });
+      onTip(g, `<b>${T.questions[n].replace("\n", " ")}</b><br>${num(node.n)} invitations reach this question<br>12-month response: ${pct(node.rate)}`);
+    } else {
+      const s = byName[n], k = STEP(node.rate), g = el("g", { class: "leaf" }, svg);
+      el("rect", { x: qx - LW / 2, y: qy - LH / 2, width: LW, height: LH, rx: 10, fill: `var(--s${k})`, stroke: "var(--surface)", "stroke-width": 2 }, g);
+      const name = s.k.split(", ");
+      const lines = [[`${s.letter} ${name[0]}`, "ttl"], ...(name[1] ? [[name[1], "ttl"]] : []), [`${pct(node.n / TOTAL)} of invitations`, ""], [`12-month response ${pct(node.rate)}`, ""]];
+      lines.forEach(([t, c], i) => { el("text", { x: qx, y: qy + (i - (lines.length - 1) / 2) * 15 + 4, "text-anchor": "middle", fill: `var(--t${k})`, class: c }, g).textContent = t; });
+      onTip(g, `<b>${s.letter} ${s.k}</b><br>${s.rule}<br>${num(node.n)} invitations (${pct(node.n / TOTAL)})<br>12-month response: ${pct(node.rate)}<br>intervention: ${s.intervention}`);
+    }
+  }
+  $("#tree").replaceChildren(svg);
+  $("#treeLegend").innerHTML = ["< 5%", "5–15%", "15–25%", "25–40%", "≥ 40%"].map((t, i) => `<span><i style="background:var(--s${i + 1})"></i>${t}</span>`).join("") + "<span>12-month response</span>";
+}
+tree();
+table($("#segTable"), ["segment", "rule", "invitations", "share", "women", "3 m", "6 m", "12 m"],
+  SEG.map((s) => [`<td><b>${s.letter}</b> ${s.k}</td>`, `<td class="l note">${s.rule}</td>`, `<td>${num(s.n)}</td>`, `<td>${pct(s.share)}</td>`, `<td>${num(s.women)}</td>`,
+    ...s.rates.map((r, i) => `<td class="${i === 2 ? "hi" : ""}">${pct(r)}</td>`)]));
+const bins = D.decay[0].points.map((p) => p[0]);
+table($("#decayTable"), ["segment", ...bins.map((b) => `invitation ${b}`)],
+  D.decay.map((s) => { const m = Object.fromEntries(s.points.map((p) => [p[0], p])); return [`<td><b>${s.letter}</b> ${s.k}</td>`, ...bins.map((b) => `<td>${m[b] ? pct(m[b][1]) : "–"}</td>`)]; }));
+
+/* ---------- 03 interventions ---------- */
+$("#segCards").innerHTML = SEG.map((s) => { const k = STEP(s.rates[2]);
+  return `<div class="segcard" style="border-left-color:var(--s${Math.max(k, 2)})"><h4>${s.letter} ${s.k}</h4><span class="mono">${pct(s.share)} of invitations · ${pct(s.rates[2])} respond in 12 months</span><p>${s.rule}</p><p><b>→ ${s.intervention}</b></p></div>`; }).join("");
+
+/* ---------- 04 experiment ---------- */
+rows($("#expRows"), D.experiment.map((e) => ({ ...e, k: `${e.letter} ${e.k}`, value: e.need / e.available, text: num(e.need), n: num(e.available), color: e.need > e.available ? "var(--pt)" : "var(--s4)" })),
+  { max: 1.6, header: ["segment", "needed / available", "need", "have"],
+    tipFn: (e) => `<b>${e.k}</b><br>baseline 12-month response: ${pct(e.baseline)}<br>needed per arm: ${num(e.need)}<br>available per arm in 2024: ${e.n}<br>${e.need > e.available ? "more than a year of invitations: run longer" : `enough in ${Math.max(1, Math.ceil(e.need / e.available * 12))} months`}` });
+
+/* ---------- per-group experts ---------- */
+const EX = D.experts, other = EX.filter((e) => e.criterion !== "region"), reg = EX.filter((e) => e.criterion === "region");
+const better = EX.filter((e) => e.lo > 0).length;
+$("#expertsHead").innerHTML = `Would separate models per group of women beat the single global model? We trained an expert on each group and compared it with the global model on the same test women. ` +
+  `In <b>${better || "none"}</b> of the ${EX.length} groups is the expert significantly better; the global model already learns the groups.`;
+const exRow = (e) => [`<td>${e.criterion}</td>`, `<td class="l">${e.k}</td>`, `<td>${num(e.n)}</td>`, `<td>${pct(e.rate)}</td>`, `<td>${auc(e.global)}</td>`, `<td>${auc(e.expert)}</td>`,
+  `<td>${(e.gain * 100).toFixed(2)} <span class="note">(${(e.lo * 100).toFixed(2)} to ${(e.hi * 100).toFixed(2)})</span></td>`];
+const exHead = ["split by", "group", "test inv.", "response", "global", "expert", "gain ×100 (95%)"];
+table($("#expertTable"), exHead, other.map(exRow));
+table($("#regionTable"), exHead, reg.map(exRow));
+</script>
+</body>
+</html>

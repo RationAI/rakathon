@@ -1,12 +1,12 @@
-"""Build exploration/results.html: model, segments, interventions and experiment as one page.
+"""Build exploration/classifiers.html: the predictive models, segments, interventions and experiment.
 
 Companion to exploration.html (same style and navigation). Collects the saved results of
 training/classifiers (explain/, ablation/), training/per_group_experts and the segment
 rules (segmentation/), fits the gradient-boosting model once for the risk deciles, and
-embeds everything into results.template.html. All model numbers are for the 12-month
+embeds everything into classifiers.template.html. All model numbers are for the 12-month
 label (screened within 12 months of the invitation), as in the presentation.
 
-Run: uv run python build_results.py   (~1 min; needs the prepared data and the splits)
+Run: uv run python build_classifiers.py   (~1 min; needs the prepared data and the splits)
 """
 
 import json
@@ -44,6 +44,31 @@ FEATURE_NAMES = {
     "AGE_BAND": "Age band", "GYN_REG_DURATION_BAND": "Gynaecologist registration", "VZP_TERRITORIAL_AREA": "VZP area",
     "PRIOR_SCREEN_COUNT_5Y": "Screens in last 5 years", "NEVER_SCREENED_BEFORE_FLAG": "Never screened (5 y)",
     "FIRST_INVITATION": "First invitation", "INSURANCE_DURATION_YEARS": "Insurance duration",
+    "GP_PREVENTION_24M_CNT": "GP prevention (2 y)", "GP_REG_DURATION_BAND": "GP registration",
+    "GP_REGISTERED": "Registered with a GP", "GYN_REGISTERED_FLAG": "Registered with a gynaecologist",
+}
+# family -> (how it works, setting used, ablation family, ablation setting of that model)
+DESCRIPTIONS = {
+    "gradient boosting": (("Hundreds of small decision trees, each one correcting the errors of the trees before it. "
+                           "Handles categories and missing values natively."),
+                          "sklearn HistGradientBoosting, default 31 leaves, early stopping",
+                          "gradient boosting", "31 leaves (default)"),
+    "random forest": ("100 deep trees grown on random samples of rows and features; the prediction is their average.",
+                      "depth 16, at least 20 rows per leaf, 25% of rows per tree", "random forest", "depth 16, leaf 20"),
+    "MLP": ("A neural network: three layers of neurons learn combinations of the scaled, one-hot encoded inputs.",
+            "256-128-64 ReLU, Adam, early stopping", "MLP", "3 layers (256-128-64)"),
+    "decision tree": ("A single tree of yes/no questions; each leaf is a group of similar invitations. Readable as rules.",
+                      "depth 8, at least 500 rows per leaf", "decision tree", "depth 8"),
+    "spline logistic regression": (("Logistic regression where every number gets its own smooth curve; effects add "
+                                    "up, no interactions between attributes."),
+                                   "cubic splines, 6 knots per attribute", "logistic regression", "splines (additive)"),
+    "logistic regression": (("One weight per (transformed) attribute; the weighted sum gives the log-odds. The "
+                             "simplest model with readable odds ratios."), "L2, C = 1, log-scaled and standardised inputs",
+                            "logistic regression", "C=1"),
+    "kNN": ("Looks up the 250 most similar invitations from training and returns their share screened.",
+            "k = 250 on a 50k-row sample", "kNN (50k rows)", "k=250"),
+    "naive Bayes": ("Treats every attribute as independent given the outcome; fast but ignores how attributes combine.",
+                    "Gaussian, variance smoothing 1e-2", "naive Bayes", "smoothing 1e-2"),
 }
 
 # ---------------------------------------------------------------- model: risk deciles
@@ -84,11 +109,34 @@ overfit = [{"k": f"{MODEL_NAMES[f]}: {s}", "train": float(cap.loc[(f, s), "train
 feats = abl[abl.study == "features"].merge(cap.reset_index(), on=["family", "setting"], suffixes=("_eng", "_raw"))
 features_gain = [{"k": MODEL_NAMES[r.family], "raw": float(r.test_roc_auc_raw), "eng": float(r.test_roc_auc_eng)}
                  for r in feats.itertuples()]
+cap_all = abl[abl.study == "capacity"]
+descriptions = []
+for m, a in zip(models.model, models.test_roc_auc, strict=True):
+    if m not in DESCRIPTIONS:  # also lists the shallow trees drawn for the explanations
+        continue
+    how, setting, fam, abl_setting = DESCRIPTIONS[m]
+    r = cap_all[(cap_all.family == fam) & (cap_all.setting == abl_setting)]
+    descriptions.append({"k": MODEL_NAMES[m], "how": how, "setting": setting, "auc": float(a),
+                         "train": float(r.train_roc_auc.iloc[0]) if len(r) else None})
+SWEEPS = [  # (family, title, [(setting, short label)]): test and train AUC as capacity grows
+    ("decision tree", "Decision tree: depth", [("depth 2", "2"), ("depth 4", "4"), ("depth 6", "6"), ("depth 8", "8"),
+                                               ("depth 12", "12"), ("depth 16", "16"), ("unlimited, leaf 1", "∞")]),
+    ("kNN (50k rows)", "k-nearest neighbours: k",
+     [("k=1000", "1000"), ("k=250", "250"), ("k=50", "50"), ("k=5", "5")]),
+    ("gradient boosting", "Gradient boosting: leaves per tree",
+     [("7 leaves", "7"), ("31 leaves (default)", "31"), ("63 leaves, lr .05, 1000 iter", "63"),
+      ("255 leaves, lr .05, 1000 iter", "255"), ("255 leaves, 500 iter, no early stop", "255, no stop")]),
+    ("MLP", "Neural network: layers",
+     [("3 layers narrow (32-16-8)", "3 narrow"), ("1 layer (64)", "1"), ("2 layers (128-64)", "2"),
+      ("3 layers (256-128-64)", "3"), ("4 layers (512-256-128-64)", "4"), ("3 layers, 25 epochs, no early stop", "3, no stop")]),
+]
+sweeps = [{"k": title, "points": [[lab, float(cap.loc[(fam, st), "test_roc_auc"]), float(cap.loc[(fam, st), "train_roc_auc"])]
+                                  for st, lab in steps]} for fam, title, steps in SWEEPS]
 ablation = {
     "fits": len(abl), "families": int(abl.family.nunique()),
     "best": [{"k": MODEL_NAMES.get(r.family, r.family), "setting": r.setting, "auc": float(r.test_roc_auc),
               "gap": float(r.gap_to_best), "lo": float(r.gap_low), "hi": float(r.gap_high)} for r in best.itertuples()],
-    "learning": learning, "overfit": overfit, "features": features_gain,
+    "learning": learning, "overfit": overfit, "features": features_gain, "sweeps": sweeps,
 }
 
 # ---------------------------------------------------------------- drivers & effects
@@ -96,6 +144,12 @@ perm = pd.read_csv(expl / "permutation_importance.csv")
 gb = perm[perm.model == "gradient boosting"].set_index("feature").importance.clip(lower=0)
 share = (gb / gb.sum()).sort_values(ascending=False).head(10)
 drivers = [{"k": FEATURE_NAMES.get(f, f), "share": float(v)} for f, v in share.items()]
+# share of each model's (positive) permutation importance, features ordered by the mean share
+imp = perm.pivot(index="feature", columns="model", values="importance").clip(lower=0)
+imp = imp / imp.sum()
+imp = imp.loc[imp.mean(axis=1).sort_values(ascending=False).index, [m for m in models.model if m in imp.columns]]
+importance = {"models": [MODEL_NAMES[m] for m in imp.columns],
+              "rows": [{"k": FEATURE_NAMES.get(f, f), "v": [float(v) for v in r]} for f, r in imp.iterrows()]}
 pdp = pd.read_csv(expl / "partial_dependence.csv")
 pdp = pdp[pdp.model == "gradient boosting"]
 effects = [{"k": FEATURE_NAMES[f], "points": [[float(v), float(m)] for v, m in zip(g.value.astype(float), g.mean_prediction, strict=True)]}
@@ -143,9 +197,10 @@ out_data = {
     "meta": {"test_rows": len(y), "auc": float(roc_auc_score(y, p)), "segment_auc": segment_auc,
              "rate": float(y.mean())},
     "deciles": deciles, "comparison": comparison, "ablation": ablation, "drivers": drivers, "effects": effects,
+    "descriptions": descriptions, "importance": importance,
     "segments": segments, "tree": tree, "decay": decay, "experiment": experiment, "experts": experts,
 }
-html = (HERE / "results.template.html").read_text(encoding="utf-8")
-out = HERE / "results.html"
+html = (HERE / "classifiers.template.html").read_text(encoding="utf-8")
+out = HERE / "classifiers.html"
 out.write_text(html.replace("__DATA__", json.dumps(out_data, ensure_ascii=False, separators=(",", ":"))), encoding="utf-8")
 print("wrote", out, f"{out.stat().st_size / 1e6:.2f} MB")

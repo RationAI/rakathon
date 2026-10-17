@@ -1,6 +1,6 @@
 """Build exploration/exploration.html: the whole exploration as one interactive page.
 
-Same approach and style as build_report.py / build_web_map.py: every number is computed
+Same approach and style as build_report.py: every number is computed
 here from the prepared data and embedded into exploration.template.html, so the page is
 self-contained. Covers the labels, time and COVID, invitation history, response by
 attribute, correlations with the labels, regions and the data-quality notes.

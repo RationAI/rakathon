@@ -8,7 +8,7 @@
   --bg: #f8f5f4; --surface: #ffffff; --fg: #231a19; --muted: #6e605d; --line: #ebe1de; --accent: #c62d1f;
   --s1: #f9ddd7; --s2: #f0a596; --s3: #e0624f; --s4: #c62d1f; --s5: #7e170d;
   --nodata: #e6e0de; --edge: #ffffff; --hl: #231a19; --pt: #3d4451; --ptring: #ffffff;
-  --dv1: #7b3fa0; --dv2: #c9a9e0; --dv3: #e6e0de; --dv4: #8fd0c8; --dv5: #0f766e;
+  --dv1: #3d4451; --dv2: #aeb4c0; --dv3: #d3c9c6; --dv4: #f0a596; --dv5: #c62d1f;
   --t1: #7e170d; --t2: #5a1209; --t3: #2b0d09; --t4: #ffffff; --t5: #ffffff;
   --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
@@ -16,13 +16,13 @@
   --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
   --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
   --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark;
-  --dv1: #c79cf0; --dv2: #5a3a75; --dv3: #2e2523; --dv4: #1f5a54; --dv5: #5fd3c6;
+  --dv1: #c9ced8; --dv2: #5b6270; --dv3: #4a3d3a; --dv4: #6e241b; --dv5: #e0584a;
   --t1: #ffd9d3; --t2: #ffe6e2; --t3: #ffffff; --t4: #2b0d09; --t5: #2b0d09; } }
 :root[data-theme="dark"] {
   --bg: #17110f; --surface: #211918; --fg: #f4ecea; --muted: #b5a7a3; --line: #3b2e2b; --accent: #ff6a5a;
   --s1: #3d1a15; --s2: #6e241b; --s3: #a8352a; --s4: #e0584a; --s5: #ffb4a9;
   --nodata: #2e2523; --edge: #211918; --hl: #ffffff; --pt: #c9ced8; --ptring: #211918; color-scheme: dark;
-  --dv1: #c79cf0; --dv2: #5a3a75; --dv3: #2e2523; --dv4: #1f5a54; --dv5: #5fd3c6;
+  --dv1: #c9ced8; --dv2: #5b6270; --dv3: #4a3d3a; --dv4: #6e241b; --dv5: #e0584a;
   --t1: #ffd9d3; --t2: #ffe6e2; --t3: #ffffff; --t4: #2b0d09; --t5: #2b0d09; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -124,7 +124,7 @@ path.a.cmp { stroke: var(--pt); stroke-width: 1.8; stroke-dasharray: 3 2; }
 .legendline { stroke-width: 2; fill: none; }
 .note { color: var(--muted); font-size: 12px; max-width: 90ch; }
 footer { padding-block: 40px 56px; }
-/* Shared top navigation across the four report pages */
+/* Shared top navigation across the three report pages */
 .site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
 .site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
 .site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
@@ -133,7 +133,7 @@ footer { padding-block: 40px 56px; }
 </style>
 
 <div class="wrap">
-  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="results.html">Model &amp; segments</a><a href="response_map.html">Response map</a><a href="response_report.html" aria-current="page">Regional report</a></nav>
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="response_report.html" aria-current="page">Regional report</a><a href="classifiers.html">Predictive models</a></nav>
   <header class="hero">
     <h1>Regional evaluation of mammography screening response</h1>
     <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data. Click any district or region to follow it through every section, shift-click a second one to compare, press Esc to clear.</p>

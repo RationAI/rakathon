@@ -37,10 +37,9 @@ rakathon/
 │   ├── label_correlations.ipynb  correlation of every attribute with the 3 labels (+ .md export)
 │   ├── covid.ipynb             how COVID-19 shows in the data and the model (+ .md export)
 │   ├── exploration.html        the whole exploration as one interactive page (build_exploration.py)
-│   ├── results.html            model, segments, interventions and experiment (build_results.py)
-│   ├── response_map.html       district / region map (build_web_map.py)
-│   ├── response_report.html    regional report: access, waits, population (build_report.py)
-│                               the four pages share a top navigation; *.template.html + build_*.py
+│   ├── classifiers.html        predictive models, segments, interventions, experiment (build_classifiers.py)
+│   ├── response_report.html    regional report: district maps, access, waits, population (build_report.py)
+│                               the three pages share a top navigation; *.template.html + build_*.py
 │   └── playground.ipynb        personal scratch notebook (gitignored)
 ├── features/                   feature engineering and feature experiments
 │   ├── prepare_data.py         raw CSV -> data/Rakhaton2026_prepared.csv (102 columns)
