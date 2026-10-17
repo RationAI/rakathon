@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mamo · Hlasová asistentka</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <header><a class="brand" href="/">mamo<span>●</span></a><span class="header-label">PODPORA PREVENCE</span><span id="connection" class="badge">Připojuji…</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">ČESKÁ HLASOVÁ ASISTENTKA</p><h1>Od rozhovoru<br>k dalšímu kroku.</h1><p class="lead">Zodpovědět otázky. Pomoci s objednáním.<br>Pomoci s návratem k prevenci.</p></div><aside class="notice"><span class="notice-icon">↗</span><div><strong>Ukázkové objednání.</strong><p>Vyberte centrum, dopoledne nebo odpoledne a ukázkový termín. Potvrzení je simulované; skutečná rezervace nevzniká.</p></div></aside></section>
+    <div id="workspace">
+      <div class="stats"><div><span id="center-count">—</span><p>pracovišť z mamo.cz</p></div><div><span>Čeština</span><p>krátké odpovědi, prostor pro přerušení</p></div><div><span id="voice-model">GPT-Live</span><p id="model-status">Hlasový model</p></div></div>
+      <div class="layout">
+        <section class="card call-panel"><div class="section-top"><p class="eyebrow">01 / ROZHOVOR</p><span id="call-status" class="badge">Připraveno</span></div><h2>Začněte rozhovorem.</h2><p class="muted">Hlasový test probíhá přes váš mikrofon. Ukázkový průchod funguje bez API klíče a používá smyšlené odpovědi.</p>
+          <div class="voice-art" aria-hidden="true"><div class="orb"></div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span>Klára · AI asistentka</span></div>
+          <div class="voice-settings"><div><label for="voice-choice">Hlas asistentky</label><select id="voice-choice" disabled></select></div><div><label for="tone-choice">Tón hovoru</label><select id="tone-choice" disabled></select></div><p class="muted">Volba platí pro celý nový hovor včetně úvodu.</p></div>
+          <div class="audio-routing"><label for="audio-input">Vstup zvuku pro asistentku</label><select id="audio-input"><option value="">Výchozí mikrofon</option></select><button id="refresh-devices" class="text-button" type="button">Načíst zvuková zařízení</button><label class="check"><input id="virtual-input" type="checkbox">Zvuk z FaceTime / virtuálního zařízení</label><p class="muted">Pro FaceTime vyberte „FaceTime to Agent“. Ve FaceTime nastavte mikrofon „Agent to FaceTime“. Hovor ve FaceTime zahajujete a ukončujete sami.</p></div>
+          <div class="actions"><button id="start-voice" disabled>Vyzkoušet hlasem <span>↗</span></button><button id="stop" class="danger" disabled>Ukončit asistentku</button></div><button id="demo" class="secondary full" disabled>Spustit syntetickou ukázku</button>
+          <details class="phone"><summary>Odchozí telefonní hovor</summary><p class="muted">Vyžaduje zapnutý SIP a číslo v povoleném seznamu. Hovor zahájí toto tlačítko.</p><label for="phone">Telefon v mezinárodním formátu</label><input id="phone" type="tel" placeholder="+420…" autocomplete="off"><label class="check"><input type="checkbox" id="permission">Máme oprávnění tuto osobu telefonicky kontaktovat.</label><button id="dial" class="secondary full" disabled>Zavolat</button></details>
+          <audio id="audio" autoplay controls hidden></audio>
+          <div class="transcript-top"><h3>Živý přepis</h3><span>Pouze v paměti</span></div><div id="captions" class="captions" aria-live="polite"><p class="empty">Zde se objeví průběh hlasového rozhovoru.</p></div>
+        </section>
+        <section class="card outcome-panel"><p class="eyebrow">02 / DALŠÍ KROK</p><div class="section-top"><h2>Co si žena přeje.</h2><span class="badge amber">Simulace</span></div><p class="muted">Zvolené pracoviště a časové preference uložíme až po potvrzení.</p><div id="outcome" class="outcome"><p class="empty">Zatím není vybraný rozhovor.</p></div><div id="record-actions" hidden><button id="export" class="secondary">Stáhnout záznam JSON</button><button id="delete" class="text-button">Smazat záznam</button></div></section>
+      </div>
+      <section class="card directory"><div class="directory-heading"><div><p class="eyebrow">ADRESÁŘ PRACOVIŠŤ</p><h2>Její centrum. Její volba.</h2></div><label class="search-label"><span class="sr-only">Vyhledat pracoviště</span><input id="search" type="search" placeholder="Město, kraj nebo název centra…"></label></div><p id="directory-date" class="muted"></p><div id="centers" class="center-grid"><p class="empty">Zadejte například Brno, Praha nebo Vysočina.</p></div><p class="footnote">Zdroj: <a href="https://www.mamo.cz/centra/" target="_blank" rel="noopener noreferrer">mamo.cz</a>. Čekací doba je orientační údaj centra, nikoli dostupný termín. U známé lokality řadíme podle orientační vzdálenosti vzdušnou čarou od jejího středu; nepočítáme dojezd. Souřadnice obcí: <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>).</p></section>
+      <section class="card history"><div class="section-top"><h2>Poslední rozhovory</h2><button id="refresh-history" class="text-button">Obnovit</button></div><div id="history"></div></section>
+    </div>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+  <footer><span>mamo · Rakathon</span><span>Rozhodnutí zůstává na ženě.</span></footer>
+</body>
+</html>

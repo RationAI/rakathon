@@ -1,0 +1,10 @@
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!calling_agent/
+!calling_agent/**
+**/__pycache__/
+**/*.pyc
+**/.env

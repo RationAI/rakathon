@@ -91,6 +91,12 @@ Rules for keeping it clean:
 
 ## Common commands
 
+The Czech mammography outreach voice stack is in [`calling_agent/`](calling_agent/README.md).
+It supports a browser voice test, outbound SIP calls, the public mamo.cz center
+directory, and confirmed preferences for manual booking. Actual reservations
+are not implemented. Install it separately with `uv sync --only-group calling`;
+see its README for credentials, the offline walkthrough, Docker, and tests.
+
 ```sh
 cd preprocessing && uv run python pipeline.py        # rebuild all derived data + splits
 cd training/classifiers && uv run python compare.py  # all classifiers on the split

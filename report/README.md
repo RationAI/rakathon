@@ -8,15 +8,33 @@ Four self-contained pages sharing one top navigation. Open `index.html` in a bro
 | `exploration.html` | labels, time and COVID, invitation history, response by attribute, correlations | `build_exploration.py` |
 | `response_report.html` | regional report, geospatial only: district and region maps, centres, access vs response, population | `build_report.py` |
 | `classifiers.html` | predictive models: risk score, the models and their ceiling, drivers, segments | `build_classifiers.py` (~1 min) |
-| `index.html` | interventions and tests: segment → barrier → intervention → A/B test, shared protocol, sample-size planner, system changes, 28 sources | `build_interventions.py` |
+| `index.html` | interventions and tests: segment → barrier → intervention → randomized test, shared protocol, sample-size planner, system changes, 31 sources | `build_interventions.py` |
 
 Each builder fills `<page>.template.html` with data (`__DATA__`) and inlines the shared stylesheet `site.css`
 (except the regional report, which keeps its own CSS with the same tokens). Run with `PYTHONUTF8=1 uv run python build_*.py`.
 
-`evidence.json` holds the evidence review: the 28 annotated sources, the seven mechanism-specific test designs and the six
+`evidence.json` holds the evidence review: 31 annotated sources, nine test designs and six
 system recommendations. It is a focused narrative review, not a registered systematic review; study findings, observational
-barriers and our proposed experiments are kept apart. The primary outcome of every test is completed mammography within
-12 months (our label), read early at 3 and 6 months, except the record-correction test (verified correction within 90 days).
+barriers and our proposed experiments are kept apart. Invitation-stage tests measure completed mammography within
+12 months of randomization, read early at 3 and 6 months. The record-correction test measures verified correction within 90 days.
+
+Reminder tests are separate: `reminder` prompts women without an appointment to book (US outreach evidence [10]);
+`appointment` reminds women about an existing slot (English 48-hour SMS evidence [6]). The latter measures attendance at
+the original appointment, with completion within 60 days secondary. Do not pool their effects or use the English +5.3-point
+appointment effect as a forecast for booking outreach. Segment C/D counts are only candidate invitation volumes; current
+booking/reachability records are needed for enrollment. Appointment reminders require centre appointment and attendance
+records and their own control rate and eligible volume. The sample-size table's invitation baselines do not supply these.
+
+`phone` is a separate, prioritized three-arm proposal for verified-unbooked postal nonresponders: A current letter pathway,
+B letter plus reminder call, C the same call plus an offer of immediate booking. Randomize 1:1:1 before contact attempts;
+keep unreachable women in intention-to-treat analysis. The primary outcome is completed mammography by day 90 after
+randomization; day 180 is secondary. Prespecify C−A (combined service) and C−B (added booking offer), and multiplicity
+control; B−A is exploratory unless separately included. The two-arm planner sizes a single contrast, not total three-arm
+recruitment. Candidate invitation segments are hypotheses, not evidence of treatment response or confirmed eligible volume.
+
+The phone evidence table distinguishes Nanda's completed-screening outcome, Luckmann's rolling 24-month adherence at
+year four, Beauchamp's 14-day booking outcome and Hegenscheid's three-month attendance. None is a Czech effect forecast.
+The reached/scheduled subgroups in Nanda were not randomized; the combined trial does not isolate booking assistance.
 
 ## Public Czech coverage calculation
 

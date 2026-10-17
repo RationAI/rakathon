@@ -57,8 +57,8 @@
    "meta": "Kerrison et al. · 2015 · British Journal of Cancer · 2,240 women",
    "title": "Text-message reminders before a first breast-screening appointment",
    "url": "https://www.nature.com/articles/bjc201536",
-   "finding": "Intention-to-treat attendance increased from 59.1% to 64.4% with a reminder text: +5.3 percentage points.",
-   "limit": "Only 41% in the intervention group had a mobile number recorded. First invitations with appointments are different from persistent non-attendance."
+   "finding": "Women already had an assigned screening appointment. An SMS 48 hours before it increased attendance at that first offered appointment from 59.1% to 64.4% (intention to treat): +5.3 percentage points.",
+   "limit": "Only 41% in the intervention group had a mobile number recorded. This is evidence about attending an existing appointment, not prompting an unbooked woman to arrange one."
   },
   {
    "id": 7,
@@ -98,7 +98,7 @@
    "title": "Behavioral Interventions to Improve Breast Cancer Screening Outreach: Two Randomized Clinical Trials",
    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11074930/",
    "finding": "Bulk orders increased three-month completion from 12.7% to 15.4%. Texts added about 2.1–2.5 percentage points. Clinician endorsement alone was not significant (12.5% versus 11.4%).",
-   "limit": "US health-system patients; 48 randomized patients were excluded from analysis. Ordering, insurance and referral pathways differ from Czech care."
+   "limit": "Women with an appointment already scheduled were excluded. Texts were a sequence, not a single appointment reminder. There were 48 post-randomization analysis exclusions; US ordering and referral pathways differ from Czech care."
   },
   {
    "id": 11,
@@ -279,9 +279,79 @@
    "url": "https://www.mamo.cz/res/file/datovy-audit-prezentace/2024/10-ambrozova.pdf",
    "finding": "A 27 September 2024 snapshot of centres’ published booking waits averaged 21 days nationally, 62 in Karlovy Vary and 11 in Vysočina.",
    "limit": "Historical reported booking waits, not current availability or proof that waiting caused non-attendance. Refresh before allocating invitations."
+  },
+  {
+   "id": 29,
+   "country": "United States",
+   "type": "Trial",
+   "meta": "Nanda et al. · 2020 · Annals of Surgical Oncology 27:4643–4649 · 890 women",
+   "title": "Impact of Phone-Call and Access-Enhancing Intervention on Mammography Uptake among Primary Care Patients at an Urban Safety-Net Hospital: A Randomized Controlled Study",
+   "url": "https://link.springer.com/article/10.1245/s10434-020-08884-x",
+   "finding": "Up to three calls offered scheduling help. Completed mammograms were 18% versus 6% at three months and 23% versus 12% at six months; both differences were statistically significant.",
+   "limit": "A US safety-net setting with low usual-care uptake. Calling and scheduling were randomized together. The reached-and-scheduled versus reached-without-scheduling comparison (47% versus 9%) was not randomized; it cannot isolate booking assistance."
+  },
+  {
+   "id": 30,
+   "country": "United States",
+   "type": "Trial",
+   "meta": "Luckmann et al. · 2019 issue / online 2018 · Translational Behavioral Medicine 9:328–335 · 30,162 randomized over four years",
+   "title": "A 4-year randomized trial comparing three outreach interventions to promote screening mammograms",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6610174/",
+   "finding": "At year four, 83.0% were up to date in the reminder-call arm versus 80.8% with letters alone; up to date meant a mammogram in the preceding 24 months. The more intensive counselling arm also achieved 80.8%. Incremental cost: US$30.45 per additional mammogram for reminder calls versus letters.",
+   "limit": "High baseline adherence (83.3%) and repeated outreach over four years; not a 90-day postal-nonresponse rate. Published US staffing costs are not current Czech costs. Scheduling support was part of the reminder call, not separately randomized."
+  },
+  {
+   "id": 31,
+   "country": "Germany",
+   "type": "Trial",
+   "meta": "Hegenscheid et al. · 2011 · American Journal of Preventive Medicine 41:421–427 · 5,477 women",
+   "title": "Telephone counseling and attendance in a national mammography-screening program: a randomized controlled trial",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/21961470/",
+   "finding": "Women not participating six weeks after invitation received a written reminder alone or with scripted telephone counselling. Screening-unit-confirmed attendance at three months was 29.7% versus 26.1% (p=0.0035).",
+   "limit": "A counselling intervention for postal nonresponders, not a randomized comparison of immediate booking assistance. Use the full assigned-group result, not the larger effect restricted to available phone numbers or reached women."
   }
  ],
  "mechanisms": [
+  {
+   "key": "phone",
+   "name": "Call with booking help",
+   "sub": "Overdue and still unbooked",
+   "label": "Completed-screening effects in randomized trials",
+   "grade": "evidence",
+   "priority": "PRIORITY LOCAL PILOT · THREE ARMS",
+   "quote": "“Help me arrange it while we are talking.”",
+   "description": "Proactively call postal nonresponders and offer to complete a booking with their agreement. Test the combined service and the added offer of immediate scheduling as two separate questions.",
+   "evidence": "Trials measured different outcomes: Nanda found a 12-point gain in three-month completed mammography; Hegenscheid found +3.6 points after postal nonresponse; Luckmann found +2.2 points in two-year adherence at year four. Beauchamp measured booking only. Do not pool these effects or forecast the Czech gain from them. <a class=\"cite\" href=\"#ref-29\" title=\"Source 29\">[29]</a> <a class=\"cite\" href=\"#ref-31\" title=\"Source 31\">[31]</a> <a class=\"cite\" href=\"#ref-30\" title=\"Source 30\">[30]</a> <a class=\"cite\" href=\"#ref-11\" title=\"Source 11\">[11]</a>",
+   "a": "Current letter pathway and usual care, with no extra experimental call. Ordinary booking and any routine follow-up remain available.",
+   "b": "The same letter plus a scripted reminder call: explain that screening is overdue, answer basic questions and give the usual booking contact. Up to three attempts at prespecified times. No new service that books for her during the call.",
+   "c": "The same call protocol as B, plus an explicit offer to see available slots and confirm her chosen appointment during the conversation. Train callers, provide access to real slots and accurate referral instructions, and book only with agreement. Keep routine post-booking reminders identical across arms.",
+   "trialTitle": "Proposed Czech three-arm trial",
+   "allocation": "Randomise women 1:1:1 to A, B or C before any call attempts, stratified by centre, invitation segment and prior attendance. Keep existing care available in all three arms.",
+   "audience": "At a prespecified checkpoint, e.g. six weeks after the postal letter, verify that women remain eligible, overdue and unbooked. Randomize before attempted contact; retain unreachable women and those with missing or invalid numbers in the assigned-group analysis. Record phone availability before allocation.",
+   "outcome": "Primary: completed eligible mammography within 90 days of randomization. Secondary: completion by day 180; optionally follow to 12 months for comparison with the invitation programme. Use validated claims or centre records after the reporting lag.",
+   "check": "Record attempts, connection, staff minutes, bookings, time to appointment, completion, cancellations, complaints and opt-outs. Calculate incremental cost per additional completed screen for C versus A and C versus B; report cost and effect uncertainty if no gain is established.",
+   "guard": "Accepting a booking is not randomized. Compare all assigned women, not only those reached or accepting an appointment. C versus B estimates the effect of offering immediate booking, not the effect of accepting it. Avoid overlapping SMS or other outreach experiments unless jointly designed; preserve standard care.",
+   "enrollmentNote": "C, D, E, G and H are candidate cohorts, not proven responders to calls. Verify live booking status and contact capture. Their invitation volumes are ceilings; the six-week, still-unbooked subgroup needs its own 90-day control rate and recruitment estimate. Check centre and caller capacity before rollout.",
+   "contrasts": [
+    {
+     "label": "C − A · combined service",
+     "text": "Does offering a call with immediate booking increase completed mammograms compared with the current letter pathway?"
+    },
+    {
+     "label": "C − B · added booking offer",
+     "text": "Does offering immediate booking improve completion beyond the same reminder call? Prespecify C−A and C−B as the two confirmatory comparisons; B−A is exploratory unless separately included in the hypothesis family."
+    }
+   ],
+   "sizing": "This is a three-arm study. The planner below sizes one pair only: use the appropriate control rate and worthwhile difference for each planned contrast, with multiplicity adjustment (for example, two confirmatory contrasts). Under equal allocation, choose a per-arm size sufficient for both contrasts; total recruitment is three times that size, not the displayed two-arm total. Finalize a joint power calculation with a statistician.",
+   "refs": [
+    29,
+    30,
+    31,
+    11,
+    19,
+    27
+   ]
+  },
   {
    "key": "need",
    "name": "Low perceived need",
@@ -307,23 +377,45 @@
   },
   {
    "key": "reminder",
-   "name": "Forgetting & salience",
-   "sub": "“I meant to do it.”",
-   "label": "Attendance effects in trials",
+   "name": "Reminder to book",
+   "sub": "No appointment yet",
+   "label": "Booking outreach tested; local variant untested",
    "grade": "evidence",
    "priority": "EARLY PILOT",
-   "quote": "“I intended to book. Then life happened.”",
-   "description": "An intention may not survive the gap between opening a letter and arranging a visit. A timely second contact may bring the task back into view.",
-   "evidence": "An English first-invitation trial found +5.3 percentage points with an appointment reminder text. US trials also found small completion gains from texts. The timing and populations differ from Czech overdue recipients. <a class=\"cite\" href=\"#ref-6\" title=\"Source 6\">[6]</a> <a class=\"cite\" href=\"#ref-10\" title=\"Source 10\">[10]</a>",
+   "quote": "“I still need to arrange a mammogram.”",
+   "description": "Before booking, the next action is to contact a centre and arrange a visit. Test an invitation follow-up asking for that action; this is different from remembering an appointment that already exists.",
+   "evidence": "The US trials excluded women with a mammogram already scheduled. A sequence of texts (an anticipatory message, then reminders at two weeks and two months) increased three-month completion by 2.1 and 2.5 percentage points in the two trials. That supports booking-stage outreach, not an estimated effect for our proposed single day-14 SMS. <a class=\"cite\" href=\"#ref-10\" title=\"Source 10\">[10]</a>",
    "a": "The existing invitation pathway and usual care, with no experimental text.",
-   "b": "The same pathway plus one concise SMS on day 14, with the existing booking number and a clear next step. Keep wording factual and respect contact preferences.",
-   "audience": "Randomize on day 14 among women confirmed still unbooked and eligible, with a valid recorded mobile number. Report how many overdue women lack a usable number.",
+   "b": "The same pathway plus one concise SMS on day 14 asking her to book, with the existing booking number. No appointment date or reserved slot is added. Keep wording factual and respect contact preferences.",
+   "audience": "At day 14 after the letter, randomize eligible overdue women confirmed to have no appointment, with a usable mobile number. Verify booking status using current centre records before allocation. Report the share without a usable number.",
    "outcome": "Completed eligible mammography within 12 months after this day-14 randomization; early reads at 3 and 6 months.",
-   "check": "Record delivery, booking within 14 further days, and attendance. Undelivered texts stay in the assigned-arm analysis.",
-   "guard": "Do not compare only women who opened a message. A result in reachable women will not establish effectiveness for those with missing contact details.",
+   "check": "Record delivery, a booking within 14 further days, and later completion separately. Keep undelivered texts in the assigned-arm analysis. Preserve identical usual appointment reminders after booking in both arms.",
+   "guard": "Do not use the English +5.3-point appointment-reminder effect as this test's forecast. Do not compare only readers. Segment C/D invitation counts and response rates are not the size or baseline of the verified-unbooked, reachable subgroup.",
+   "enrollmentNote": "Segments C and D are candidate invitation cohorts only. The table gives an invitation-volume ceiling, not eligible women per arm: remove already-booked cases and verify reachability before sizing. Link live booking data and estimate this subgroup's baseline; do not infer it from invitation history.",
+   "refs": [
+    10,
+    19
+   ]
+  },
+  {
+   "key": "appointment",
+   "name": "Reminder to attend",
+   "sub": "Appointment already scheduled",
+   "label": "Evidence at the appointment stage",
+   "grade": "evidence",
+   "priority": "SEPARATE CENTRE-BASED PILOT",
+   "quote": "“I have a date. I need to remember it.”",
+   "description": "After a slot has been assigned or booked, the action is to attend, cancel or reschedule it. This experiment starts from an existing appointment, not from an unanswered insurer letter.",
+   "evidence": "Kerrison et al. randomized women with an assigned first screening appointment to the usual invitation or the invitation plus an SMS 48 hours beforehand. Attendance at that appointment was 59.1% versus 64.4% (+5.3 percentage points). This result applies to the appointment stage. <a class=\"cite\" href=\"#ref-6\" title=\"Source 6\">[6]</a>",
+   "a": "Current appointment communications and any existing reminders, unchanged. Do not withdraw a routine reminder for the trial.",
+   "b": "The same usual care plus one SMS 48 hours before the appointment, stating the existing date, time, location and the same cancel/reschedule contact available to control patients. Use a centre where this extra SMS is not already routine; otherwise test a distinct addition.",
+   "audience": "Women with a verified future screening slot and a usable mobile number. Randomize before the 48-hour sending point; stratify by centre and first versus repeat screening. Select one index appointment per woman and retain everyone assigned, including later cancellations.",
+   "outcome": "Primary: attended the original scheduled screening appointment, confirmed by centre attendance records. Secondary: completed mammography within 60 days of the original appointment date, including after rescheduling. Keep the original reference date in both arms.",
+   "check": "Track delivered texts, attended index appointments, no-shows, cancellations, rescheduling and how early a slot is released. Do not count every cancellation as a no-show or remove cancelled appointments from the randomized denominator.",
+   "guard": "The invitation segments do not identify booked women or appointment-level no-show rates. Obtain live booking and attendance records. Size this trial from appointment attendance under current care, not the 12-month insurer-letter response. Avoid overlapping randomization with the booking-reminder pilot unless a sequential design is prespecified.",
+   "enrollmentNote": "Recruit from centre appointment lists, regardless of invitation segment. The invitation dataset alone cannot estimate this cohort's eligible volume or control attendance; the segment-based planner does not supply those inputs. A 60-day completion window follows the English study's secondary follow-up.",
    "refs": [
     6,
-    10,
     19
    ]
   },
@@ -453,9 +545,9 @@
    "metric": "Monitor: current wait distribution, unused offered slots and displacement of usual care."
   },
   {
-   "title": "Keep a human route alongside digital tools.",
-   "text": "Offer phone and accessible communication, with language support where needed. Australian calling evidence is encouraging for booking; translated letters alone were insufficient. Test completion and reach before scaling. <a class=\"cite\" href=\"#ref-11\" title=\"Source 11\">[11]</a>",
-   "metric": "Monitor: reach and completed visits by language, age, disability and contact availability."
+   "title": "Offer a proactive call that can complete the booking.",
+   "text": "Make calling with scheduling help a priority local pilot: randomized trials show completed-screening gains, not just bookings. Provide real appointment access and language support where needed. Longer counselling was not better in the Luckmann trial; test a focused service and measure local cost and reach. <a class=\"cite\" href=\"#ref-29\" title=\"Source 29\">[29]</a> <a class=\"cite\" href=\"#ref-31\" title=\"Source 31\">[31]</a> <a class=\"cite\" href=\"#ref-30\" title=\"Source 30\">[30]</a> <a class=\"cite\" href=\"#ref-11\" title=\"Source 11\">[11]</a>",
+   "metric": "Monitor: reach, booking, completion, staff time and cost per additional completed screen; compare language and contact-availability groups."
   },
   {
    "title": "Make informed choice part of quality.",

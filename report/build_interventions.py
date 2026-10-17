@@ -2,7 +2,7 @@
 
 Answers the brief's 03 WHAT and 04 HOW TO VERIFY in one page. Each of the eight segments
 (segmentation/segments.py) gets its likely barrier, the intervention and the matching A/B
-tests; the tests, protocol, system recommendations and 28 annotated sources come from the
+tests; the tests, protocol, system recommendations and 31 annotated sources come from the
 evidence review (evidence.json). The sample-size planner uses each segment's response and
 its 2024 invitation volume from the prepared data.
 
@@ -30,16 +30,16 @@ BARRIERS = {
     "B first invitation": ("First letter: she has to find a centre, book, and face an unfamiliar test.",
                            ["booking", "fear"]),
     "C lapsed screener, gynaecologist": ("A regular screener who slipped past her date; she still sees her gynaecologist.",
-                                         ["reminder", "trust"]),
+                                         ["phone", "reminder", "trust"]),
     "D lapsed screener, no gynaecologist": ("A regular screener who slipped past her date, with no gynaecologist visit.",
-                                            ["reminder", "booking"]),
+                                            ["phone", "reminder", "booking"]),
     "E never screened, gynaecologist": ("Sees a gynaecologist for prevention but has not had a mammogram in 5 years.",
-                                       ["trust", "need"]),
+                                       ["phone", "trust", "need"]),
     "F never screened, other screening": ("Takes part in another screening programme but skips mammography.",
                                           ["need", "booking"]),
     "G never screened, healthcare user": ("Uses healthcare but no prevention: screening does not feel relevant.",
-                                          ["need", "trust"]),
-    "H disconnected": ("No contact with healthcare in a year: letters alone do not reach her.", ["access", "records"]),
+                                          ["phone", "need", "trust"]),
+    "H disconnected": ("No contact with healthcare in a year: letters alone do not reach her.", ["phone", "access", "records"]),
 }
 
 df = pd.read_csv(ROOT / "data" / "Rakhaton2026_prepared.csv", usecols=[*COLUMNS, *LABELS, "INVITATION_DATE",
