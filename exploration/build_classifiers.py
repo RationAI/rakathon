@@ -92,6 +92,17 @@ comparison = [{"k": MODEL_NAMES[m], "auc": float(a)} for m, a in zip(models.mode
               if m in MODEL_NAMES]
 comparison.append({"k": "8 segment rules", "auc": segment_auc, "rules": True})
 
+# sequence model: GRU over each woman's invitations (training/classifiers/rnn/model.py)
+rnn = pd.read_csv(CLASSIFIERS / "rnn" / "results.csv")
+rnn = rnn[rnn.label == LABEL].set_index(["subset", "model"])
+RNN_MODELS = {"gradient boosting": "gb", "GRU, invitation sequence": "gru", "GRU + earlier outcomes": "gru_out"}
+RNN_SUBSETS = {"1st in data": "her 1st invitation in the data", "2nd": "2nd", "3rd+": "3rd or later", "all test": "all"}
+sequence = [{"k": name, "n": int(rnn.loc[(sub, "gradient boosting"), "rows"]) if sub != "all test" else len(y),
+             **{key: float(rnn.loc[(sub, m), "ROC AUC"]) for m, key in RNN_MODELS.items()}}
+            for sub, name in RNN_SUBSETS.items()]
+gru_auc = sequence[-1]["gru"]
+comparison.append({"k": "Recurrent network (GRU)", "auc": gru_auc, "sequence": True})
+
 abl = pd.read_csv(CLASSIFIERS / "ablation" / "results" / "ablation.csv")
 best = pd.read_csv(CLASSIFIERS / "ablation" / "results" / "best_per_family.csv")
 lc_fams = ["gradient boosting", "MLP", "decision tree", "logistic regression"]
@@ -118,6 +129,12 @@ for m, a in zip(models.model, models.test_roc_auc, strict=True):
     r = cap_all[(cap_all.family == fam) & (cap_all.setting == abl_setting)]
     descriptions.append({"k": MODEL_NAMES[m], "how": how, "setting": setting, "auc": float(a),
                          "train": float(r.train_roc_auc.iloc[0]) if len(r) else None})
+descriptions.append({
+    "k": "Recurrent network (GRU)", "auc": gru_auc, "train": None, "sequence": True,
+    "how": ("Reads each woman's invitations in date order; the prediction for an invitation uses all her earlier "
+            "ones, not just the current row."),
+    "setting": "GRU, 64 units, same 19 attributes + gap since the previous invitation, early stopping",
+})
 SWEEPS = [  # (family, title, [(setting, short label)]): test and train AUC as capacity grows
     ("decision tree", "Decision tree: depth", [("depth 2", "2"), ("depth 4", "4"), ("depth 6", "6"), ("depth 8", "8"),
                                                ("depth 12", "12"), ("depth 16", "16"), ("unlimited, leaf 1", "∞")]),
@@ -197,7 +214,7 @@ out_data = {
     "meta": {"test_rows": len(y), "auc": float(roc_auc_score(y, p)), "segment_auc": segment_auc,
              "rate": float(y.mean())},
     "deciles": deciles, "comparison": comparison, "ablation": ablation, "drivers": drivers, "effects": effects,
-    "descriptions": descriptions, "importance": importance,
+    "descriptions": descriptions, "importance": importance, "sequence": sequence,
     "segments": segments, "tree": tree, "decay": decay, "experiment": experiment, "experts": experts,
 }
 html = (HERE / "classifiers.template.html").read_text(encoding="utf-8")

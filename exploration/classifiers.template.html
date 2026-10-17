@@ -167,14 +167,17 @@ details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-
       <div class="card"><h3 class="cap">Actual 12-month response by score decile (test women)</h3><div class="rows" id="decileRows"></div>
         <p class="note">Decile 1 = the 10% of invitations with the lowest predicted chance. Hover a row for the predicted average: the score is calibrated.</p></div>
       <div class="card"><h3 class="cap">Model comparison: test ROC AUC</h3><div class="rows" id="compRows"></div>
-        <p class="note">Bars start at 0.75. The eight segment rules alone (charcoal) keep most of the ranking power.</p></div>
+        <p class="note">Bars start at 0.75. Dark red: the sequence model (GRU) over each woman's invitations. The eight segment rules alone (charcoal) keep most of the ranking power.</p></div>
     </div>
   </section>
 
   <section id="models" data-nav="Models">
-    <h2>The eight models</h2>
-    <p class="head">Eight model families, from a single readable tree to a neural network, trained on the same 19 attributes of the invitation and the woman's history. Train vs. test ROC AUC shows how much each one memorises.</p>
+    <h2>The models</h2>
+    <p class="head">Eight model families that score every invitation on its own, from a single readable tree to a neural network, plus one sequence model that reads the woman's invitations in order. All use the same 19 attributes of the invitation and the woman's history. Train vs. test ROC AUC shows how much each one memorises.</p>
     <div class="segcards" id="modelCards"></div>
+    <div class="card" style="margin-top:20px"><h3 class="cap">Sequence model: does the woman's whole history help? (test ROC AUC, 12 months)</h3>
+      <p class="note" id="seqNote"></p><div class="scroll"><table class="t" id="seqTable"></table></div>
+      <p class="note">Earlier outcomes are fed only once their 3, 6 or 12-month window had closed. 38% of women have a single invitation in the data and at most 5. No bootstrap interval yet for the GRU.</p></div>
   </section>
 
   <section id="ceiling" data-nav="Model ceiling">
@@ -318,7 +321,7 @@ $("#riskHead").innerHTML = `The score separates invitations sharply: the lowest 
   `The lowest 30% of scores hold only <b>${pct(share3, 0)}</b> of the screened women: these are the invitations a standard letter does not reach.`;
 rows($("#decileRows"), DEC.map((d) => ({ k: `decile ${d.k}`, value: d.rate, n: num(d.n), pred: d.pred })),
   { max: 0.75, header: ["score decile", "", "actual", "n"], tipFn: (r) => `<b>${r.k}</b><br>actual: ${pct(r.value)}<br>predicted: ${pct(r.pred)}<br>${r.n} test invitations` });
-rows($("#compRows"), [...D.comparison].sort((a, b) => b.auc - a.auc).map((c) => ({ k: c.k, value: c.auc - 0.75, text: auc(c.auc), color: c.rules ? "var(--pt)" : "var(--s4)" })),
+rows($("#compRows"), [...D.comparison].sort((a, b) => b.auc - a.auc).map((c) => ({ k: c.k, value: c.auc - 0.75, text: auc(c.auc), color: c.rules ? "var(--pt)" : c.sequence ? "var(--s5)" : "var(--s4)" })),
   { max: 0.1, header: ["model", "", "AUC", ""] });
 
 /* ---------- ceiling ---------- */
@@ -378,7 +381,18 @@ table($("#featTable"), ["model", "raw", "engineered", "gain ×100"],
 
 /* ---------- model cards ---------- */
 $("#modelCards").innerHTML = [...D.descriptions].sort((a, b) => b.auc - a.auc).map((m) =>
-  `<div class="segcard" style="border-left-color:var(--s${m.auc >= 0.838 ? 4 : m.auc >= 0.83 ? 3 : 2})"><h4>${m.k}</h4><span class="mono">test ${auc(m.auc)}${m.train == null ? "" : ` · train ${auc(m.train)}`}</span><p>${m.how}</p><p class="note">${m.setting}</p></div>`).join("");
+  `<div class="segcard" style="border-left-color:var(--s${m.auc >= 0.838 ? 4 : m.auc >= 0.83 ? 3 : 2})"><h4>${m.k}${m.sequence ? ` <span class="mono" style="font-size:11px;color:var(--accent)">sequence</span>` : ""}</h4><span class="mono">test ${auc(m.auc)}${m.train == null ? "" : ` · train ${auc(m.train)}`}</span><p>${m.how}</p><p class="note">${m.setting}</p></div>`).join("");
+
+/* ---------- sequence model ---------- */
+(function sequenceModel() {
+  const S = D.sequence, all = S[S.length - 1], late = S[S.length - 2];
+  $("#seqNote").innerHTML = `A recurrent network (GRU) reads each woman's invitations in date order. Overall it reaches <b>${auc(all.gru)}</b> vs. <b>${auc(all.gb)}</b> for gradient boosting, so the ceiling stays at about 0.84. ` +
+    `The gain is on repeat invitations (3rd or later: <b>+${(late.gru - late.gb).toFixed(3)}</b>), where it sees how she changed between letters; on her first invitation it is no better. Adding the outcomes of her earlier invitations changes nothing.`;
+  const cell = (v) => `<td>${auc(v)}</td>`;
+  table($("#seqTable"), ["invitation", "test rows", "gradient boosting", "GRU", "GRU + earlier outcomes", "GRU − GB ×100"],
+    S.map((r) => {
+      return [`<td>${r.k}</td>`, `<td>${num(r.n)}</td>`, cell(r.gb), cell(r.gru), cell(r.gru_out), `<td>${((r.gru - r.gb) * 100 >= 0 ? "+" : "−") + Math.abs((r.gru - r.gb) * 100).toFixed(2)}</td>`]; }));
+})();
 
 /* ---------- predictive attributes across models ---------- */
 (function importance() {

@@ -292,6 +292,38 @@ def learning_curves(numbers: dict) -> None:
     save(fig, "uceni.png")
 
 
+def sequence_model(numbers: dict) -> None:
+    """GRU over each woman's invitations vs. gradient boosting, by position in her sequence."""
+    res = pd.read_csv(CLASSIFIERS / "rnn" / "results.csv")
+    res = res[res.label == LABEL].set_index(["subset", "model"])["ROC AUC"]
+    subsets = {"1st in data": "1. pozvánka v datech", "2nd": "2. pozvánka", "3rd+": "3. a další", "all test": "všechny"}
+    models = {"gradient boosting": ("Gradient boosting (každá pozvánka zvlášť)", GREY_DARK),
+              "GRU, invitation sequence": ("Rekurentní síť GRU (celá historie ženy)", RED)}
+    numbers["sequence_model"] = {s: {m: round(float(res[(s, m)]), 4) for m in models} for s in subsets}
+
+    fig, ax = plt.subplots(figsize=(13.3, 5.6))
+    ys = np.arange(len(subsets))[::-1]
+    for y, sub in zip(ys, subsets, strict=True):
+        gb, gru = (res[(sub, m)] for m in models)
+        ax.hlines(y, min(gb, gru), max(gb, gru), color=GRID, lw=6, zorder=1)
+        for (_, color), v in zip(models.values(), (gb, gru), strict=True):
+            ax.scatter(v, y, s=220, color=color, zorder=3, edgecolor=BG, linewidth=2)
+        left, right = (gb, gru) if gb <= gru else (gru, gb)
+        ax.text(left - 0.0025, y, cz_num(left), ha="right", va="center", fontsize=14,
+                color=INK, fontweight="bold" if left == gru else "normal")
+        ax.text(right + 0.0025, y, cz_num(right), ha="left", va="center", fontsize=14,
+                color=INK, fontweight="bold" if right == gru else "normal")
+    ax.set_yticks(ys, list(subsets.values()))
+    ax.set_xlim(0.72, 0.86)
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: cz_num(v, 2)))
+    ax.set_xlabel("ROC AUC na testu (12 měsíců)")
+    ax.grid(axis="y", visible=False)
+    for name, color in models.values():
+        ax.scatter([], [], s=160, color=color, label=name)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, fontsize=14)
+    save(fig, "sekvence.png")
+
+
 def drivers(numbers: dict) -> None:
     perm = pd.read_csv(
         CLASSIFIERS / "explain" / "results" / "permutation_importance.csv"
@@ -634,6 +666,7 @@ def main() -> None:
     risk_deciles(data, x, numbers)
     model_comparison(segment_auc, numbers)
     learning_curves(numbers)
+    sequence_model(numbers)
     drivers(numbers)
     effects(numbers)
     segment_charts(full, numbers)

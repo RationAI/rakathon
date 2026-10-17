@@ -37,6 +37,24 @@
     "0.3": 0.8391,
     "1.0": 0.8412
   },
+  "sequence_model": {
+    "1st in data": {
+      "gradient boosting": 0.8405,
+      "GRU, invitation sequence": 0.8392
+    },
+    "2nd": {
+      "gradient boosting": 0.7941,
+      "GRU, invitation sequence": 0.7963
+    },
+    "3rd+": {
+      "gradient boosting": 0.7337,
+      "GRU, invitation sequence": 0.7452
+    },
+    "all test": {
+      "gradient boosting": 0.8412,
+      "GRU, invitation sequence": 0.843
+    }
+  },
   "drivers_share": {
     "MONTHS_SINCE_LAST_SCREEN": 0.297,
     "INVITATION_SEQUENCE": 0.237,

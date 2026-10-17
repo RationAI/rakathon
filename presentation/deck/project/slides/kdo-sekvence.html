@@ -1,0 +1,15 @@
+<section id="kdo-sekvence" data-transition="fade" style="background:#FBFAF8;color:#26221F;font-family:'Public Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;color:#C62D1F;text-transform:uppercase">01 Kdo  ·  historie ženy v čase</p>
+<h2 style="font-size:56px;font-weight:800;line-height:1.1;color:#26221F">Celá historie ženy pomůže jen u opakovaných pozvánek</h2>
+<div style="display:flex;gap:56px;align-items:center">
+<img src="/_blob/a588d65793f579e15341a8356efb53d7" alt="ROC AUC na testu podle pořadí pozvánky ženy v datech: první pozvánka gradient boosting 0,840 a rekurentní síť 0,839; druhá 0,794 a 0,796; třetí a další 0,734 a 0,745; všechny 0,841 a 0,843" style="width:1100px;height:496px;object-fit:contain">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px">
+<p style="font-size:28px;line-height:1.35;color:#26221F">Rekurentní síť <b>GRU</b> čte pozvánky každé ženy jako časovou řadu, ne každou zvlášť.</p>
+<p style="font-size:28px;line-height:1.35;color:#26221F">Celkově <b>0,843</b> proti 0,841: strop se neposune.</p>
+<p style="font-size:28px;line-height:1.35;color:#26221F">U 3. a další pozvánky <b>+0,011</b>: síť vidí, jak se žena mezi dopisy mění.</p>
+<p style="font-size:28px;line-height:1.35;color:#C62D1F"><b>Výsledky dřívějších pozvánek nepřidají nic.</b></p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#8A847D">Rakathon 2026  ·  7</p>
+<aside>Zkusili jsme úlohu formulovat jako klasifikaci časové řady: pozvánky jedné ženy seřadíme podle data a rekurentní síť GRU předpovídá každou pozvánku z jejích předchozích. Výsledek dřívější pozvánky síť dostane, jen pokud už její okno 3, 6 nebo 12 měsíců skončilo, aby nevznikl únik informace. Řady jsou krátké: 38 % žen má v datech jedinou pozvánku, nejvíc jich je pět. Zlepšení je jen u třetí a další pozvánky; výsledky dřívějších pozvánek nic nepřidají, protože ženy, které přišly, další pozvánku dlouho nedostanou. Rozdíl 0,002 celkem zatím nemá interval spolehlivosti.</aside>
+</section>

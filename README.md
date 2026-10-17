@@ -70,6 +70,7 @@ rakathon/
     │   ├── random_forest/        model.py
     │   ├── mlp/                  model.py (sklearn) + neural_network.py (PyTorch, 3 outputs at once)
     │   ├── knn/                  model.py (fits on a 50k-row sample)
+    │   ├── rnn/                  model.py: GRU over each woman's invitation sequence (PyTorch) + results.csv
     │   ├── naive_bayes/          model.py
     │   ├── explain/              run.py: drawn trees, permutation importance, partial dependence,
     │   │                         LR odds ratios -> results/; report.ipynb / report.md presents them

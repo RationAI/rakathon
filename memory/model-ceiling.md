@@ -12,6 +12,7 @@ metadata:
 - Learning curve: 30% -> 100% of train women adds 0.0001-0.002; GB train AUC falls from 0.956 (1%) to 0.845 (100%) meeting test.
 - Features: 96 engineered vs 19 raw adds 0.001-0.003 (best overall GB engineered 0.8423).
 - Rebalancing (class_weight balanced) earlier: same AUC, Brier 0.112 -> 0.162 (mean prediction 39% vs 19% true).
+- Sequence model (2026-10-17, `training/classifiers/rnn/model.py`): GRU over each woman's invitations, ordered by date (38% of women have 1 row, 25% have 5). Test ROC AUC 12M 0.843 vs GB 0.841 (3M 0.844 vs 0.841); the gain is in 3rd+ invitations (12M 0.745 vs 0.734), first rows equal. Feeding earlier outcomes (only once their window closed) adds nothing (0.8431 vs 0.8430). No bootstrap CI yet.
 - Conclusion: ceiling ~0.84 with these features; improvement needs new information (delivery channel, reminders, GP practice, socio-economic, travel time, missed appointments) or reframing (top-k precision, uplift for interventions).
 
 Related: [[baseline-results]], [[per-group-experts]], [[open-items]].
