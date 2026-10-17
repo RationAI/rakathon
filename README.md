@@ -43,6 +43,9 @@ rakathon/
 │   ├── classifiers.html        predictive models: risk, models, ceiling, drivers, segments (build_classifiers.py)
 │   ├── index.html              interventions & tests: segments + evidence, protocol, planner, sources (build_interventions.py)
 │   └── site.css, evidence.json shared stylesheet; evidence review data (sources, test designs, recommendations)
+├── predictor_ui/               invitation planner: local web app over the model and segments
+│   ├── server.py               scores every woman, segments her, serves the page (uv run python server.py)
+│   └── index.html              the page: select women, see segment + intervention, export an action list
 ├── features/                   feature engineering and feature experiments
 │   ├── prepare_data.py         raw CSV -> data/Rakhaton2026_prepared.csv (102 columns)
 │   ├── history_features.py     per-woman history features (+ comparison)

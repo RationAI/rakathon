@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Modul screeningu</title>
+<style>
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --ink2:#6C6C70; --line:#E3E3E8; --accent:#D91E4E; --on-accent:#FFFFFF;
+  --teal:#0E8A86; --teal-soft:#E2F4F3; --amber:#B25E00; --amber-soft:#FFF1DC; --shadow:rgba(0,0,0,.14); --desk:#E5E5EA;
+  --f:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#000; --card:#1C1C1E; --ink:#F5F5F7; --ink2:#A1A1A6; --line:#38383A; --accent:#FF375F; --on-accent:#000;
+  --teal:#40C8C0; --teal-soft:#0F2B2A; --amber:#FFB347; --amber-soft:#3A2A10; --shadow:rgba(0,0,0,.6); --desk:#111113; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:16px}
+body{margin:0;background:var(--desk);color:var(--ink);font:400 1rem/1.42 var(--f);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+
+.stage{min-height:100vh;display:flex;gap:40px;align-items:center;justify-content:center;padding:24px 20px}
+.side{width:300px;display:grid;gap:18px;align-self:center}
+.side h1{font-size:1.5rem;letter-spacing:-.02em;line-height:1.15}
+.side p{color:var(--ink2);font-size:.92rem}
+.side h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px}
+.pers{display:grid;gap:8px}
+.pers button{all:unset;box-sizing:border-box;cursor:pointer;padding:10px 14px;border-radius:14px;background:var(--card);display:grid;gap:1px;border:2px solid transparent}
+.pers button[aria-pressed="true"]{border-color:var(--accent)}
+.pers b{font-size:.98rem}.pers small{color:var(--ink2);font-size:.82rem}
+.pers button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.why{background:var(--card);border-radius:14px;padding:12px 14px;font-size:.88rem;color:var(--ink2)}
+.why b{color:var(--ink)}
+.proto{font-size:.8rem;color:var(--ink2)}
+
+.phone{width:390px;height:800px;max-height:calc(100vh - 32px);border-radius:46px;background:var(--bg);box-shadow:0 0 0 10px #111,0 40px 90px -20px var(--shadow);overflow:hidden;position:relative;flex:none}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:54px 18px 28px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.sbar{position:absolute;z-index:6;left:0;right:0;top:0;height:44px;display:flex;justify-content:space-between;align-items:center;padding:6px 30px 0;font-size:.85rem;font-weight:650;pointer-events:none}
+.view{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes growx{from{transform:scaleX(0)}}
+
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:40px}
+.back{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;background:var(--card);display:grid;place-items:center;flex:none}
+.back:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hi{font-size:1.7rem;font-weight:740;letter-spacing:-.03em;line-height:1.1}
+.sub{color:var(--ink2);margin-top:2px}
+.h1{font-size:1.5rem;font-weight:740;letter-spacing:-.03em;line-height:1.12}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-top:14px;display:grid;gap:10px}
+.chip{justify-self:start;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--amber-soft);color:var(--amber)}
+.chip.ok{background:var(--teal-soft);color:var(--teal)}
+.big{font-size:1.3rem;font-weight:730;letter-spacing:-.02em;line-height:1.18}
+.mut{color:var(--ink2);font-size:.95rem}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;min-height:50px;padding:0 20px;border-radius:25px;background:var(--accent);color:var(--on-accent);font-weight:650;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.soft{background:var(--bg);color:var(--ink)}
+.view>.btn{width:100%}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.rows{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px}
+.row{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:none}
+.row.static{cursor:default}
+.row .rt{flex:1;min-width:0;display:grid;gap:1px}
+.row .rt b{font-weight:640}.row .rt small{color:var(--ink2);font-size:.84rem}
+.row .rr{text-align:right;display:grid;justify-items:end;gap:2px;font-size:.88rem}
+.row .rr strong{font-weight:700}
+.row em{font-style:normal;font-size:.72rem;font-weight:700;color:var(--teal);background:var(--teal-soft);padding:2px 9px;border-radius:99px}
+.row:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.dotok{width:10px;height:10px;border-radius:50%;background:var(--teal);flex:none}
+.dotwarn{background:#F0A030}.dotoff{background:var(--line)}
+.sect{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin:22px 4px -6px}
+
+/* notification */
+.notif{position:absolute;z-index:7;left:10px;right:10px;top:46px;background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:20px;padding:12px 14px;box-shadow:0 14px 40px -12px var(--shadow);
+  display:grid;grid-template-columns:34px 1fr;gap:4px 10px;cursor:pointer;animation:drop .6s .8s cubic-bezier(.3,1.3,.5,1) both;text-align:left;border:none;width:calc(100% - 20px)}
+.notif i{grid-row:1/3;width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,#FF6B8E,var(--accent));display:grid;place-items:center;color:#fff}
+.notif b{font-size:.85rem}.notif span{font-size:.85rem;color:var(--ink2);line-height:1.3}
+@keyframes drop{from{transform:translateY(-130%);opacity:0}}
+
+/* paths */
+.pth{display:grid;gap:5px}
+.pth+.pth{margin-top:12px}
+.pth .rw{display:flex;justify-content:space-between;align-items:baseline}
+.pth b{font-weight:680}.pth .val{font-weight:750;font-size:1.25rem;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pth .tr{height:12px;border-radius:6px;background:var(--bg);overflow:hidden}
+.pth .tr i{display:block;height:100%;border-radius:6px;width:var(--w);transform-origin:left;animation:growx 1.1s calc(.3s + var(--i)*.25s) cubic-bezier(.2,.8,.2,1) both;background:linear-gradient(90deg,var(--c1),var(--c2))}
+.pth .cap{color:var(--ink2);font-size:.85rem}
+.src{color:var(--ink2);font-size:.78rem;margin-top:6px}
+
+/* accordion */
+.acc{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px}
+.ah{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-top:1px solid var(--line);font-weight:650}
+.acc>.ah:first-child{border-top:none}
+.ah .ico{transition:transform .25s}.ah[aria-expanded="true"] .ico{transform:rotate(90deg)}
+.ah:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.ab{padding:0 18px 16px;color:var(--ink2);display:grid;gap:8px;font-size:.95rem}
+.ab b{color:var(--ink)}
+
+/* slots */
+.days{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.day{all:unset;box-sizing:border-box;flex:none;width:62px;padding:9px 0;border-radius:16px;background:var(--card);text-align:center;cursor:pointer;display:grid;gap:0}
+.day small{font-size:.72rem;text-transform:uppercase;color:var(--ink2);font-weight:650}
+.day b{font-size:1.4rem;letter-spacing:-.02em;line-height:1.15}.day span{font-size:.72rem;color:var(--ink2)}
+.day[aria-pressed="true"]{background:var(--accent)}
+.day[aria-pressed="true"] *{color:var(--on-accent)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{all:unset;box-sizing:border-box;cursor:pointer;min-height:46px;border-radius:13px;background:var(--card);display:grid;place-items:center;font-weight:620;font-variant-numeric:tabular-nums}
+.slot[disabled]{opacity:.3;text-decoration:line-through;cursor:default}
+.slot[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.day:focus-visible,.slot:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{position:sticky;bottom:-28px;margin:16px -18px -28px;padding:14px 18px 28px;background:linear-gradient(to bottom,transparent,var(--bg) 28%);display:grid;gap:8px}
+.bar .sum{font-weight:650;text-align:center}
+
+/* done */
+.okc{width:92px;margin:6px auto 0}
+.okc circle,.okc path{stroke-dasharray:100;animation:dash 1s cubic-bezier(.2,.8,.2,1) both}.okc path{animation-delay:.7s}
+@keyframes dash{from{stroke-dashoffset:100}}
+.tk{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px;animation:rise .6s .3s both}
+.tkh{background:linear-gradient(145deg,#FF6B8E,var(--accent));color:#fff;padding:16px 18px}
+.tkh small{opacity:.9;font-weight:600;text-transform:capitalize}.tkh b{display:block;font-size:1.7rem;letter-spacing:-.03em;line-height:1.1}.tkh span{font-size:1.15rem;font-weight:700}
+.tkb{padding:14px 18px;display:grid;gap:10px}.tkb small{display:block;color:var(--ink2);font-size:.76rem;font-weight:650}
+.tog{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:1px solid var(--line)}
+.tog:first-child{border-top:none}
+.sw{all:unset;cursor:pointer;width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;transition:background .25s;flex:none}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:transform .25s}
+.sw[aria-checked="true"]{background:var(--teal)}.sw[aria-checked="true"] i{transform:translateX(20px)}
+.sw:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.demo{background:var(--amber-soft);color:var(--amber);border-radius:14px;padding:10px 14px;font-size:.85rem;font-weight:600;margin-top:14px}
+.safety{display:flex;gap:10px;background:var(--card);border-radius:18px;padding:12px 14px;margin-top:14px;font-size:.86rem;color:var(--ink2)}
+
+@media (max-width:860px){
+  .stage{display:block;padding:0}
+  .side{width:auto;padding:16px 16px 12px;background:var(--desk)}
+  .side .why,.side .proto{display:none}
+  .pers{grid-template-columns:1fr 1fr}
+  .phone{width:100%;height:auto;min-height:calc(100vh - 150px);max-height:none;border-radius:0;box-shadow:none;position:relative}
+  .screen{position:relative;inset:auto;padding-top:20px;min-height:calc(100vh - 150px)}
+  .sbar{display:none}
+  .notif{position:fixed;top:12px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 1112 0v6l1.5 2h-15L6 17zM10 21h4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A15 15 0 013 6a2 2 0 012-2z"/></symbol>
+</svg>
+
+<div class="stage">
+  <aside class="side">
+    <div><h1>Modul screeningu</h1><p style="margin-top:6px">Klikací prototyp: jak by mohl vypadat screening uvnitř mobilní aplikace pojišťovny.</p></div>
+    <div><h2>Kdo se dívá (ukázkové ženy)</h2><div class="pers" id="pers" role="group" aria-label="Ukázková žena"></div></div>
+    <div class="why" id="why"></div>
+    <p class="proto">Prototyp z Rakathonu 2026. Všechny osoby jsou smyšlené, nic se neodesílá. Nejde o oficiální aplikaci žádné pojišťovny. Čísla o přežití: SEER, USA, 2015–2021.</p>
+  </aside>
+  <div class="phone" role="region" aria-label="Náhled mobilní aplikace">
+    <div class="sbar" aria-hidden="true"><span id="clock">9:41</span><span>●●●</span></div>
+    <div class="screen" id="scr"></div>
+  </div>
+</div>
+
+<script>
+const CENTERS = /*CENTERS*/[];
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
+const pad = (n) => String(n).padStart(2, '0');
+const fmtT = (m) => `${Math.floor(m / 60)}:${pad(m % 60)}`;
+const fmtD = (d, o) => d.toLocaleDateString('cs-CZ', o);
+const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fnv = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
+const inDays = (c) => { const n = Math.max(1, c.wait ?? 7); return `za ${n} ${n === 1 ? 'den' : n < 5 ? 'dny' : 'dní'}`; };
+function firstDay(c) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + Math.max(1, c.wait ?? 7)); while (isWeekend(d)) d.setDate(d.getDate() + 1); return d; }
+function bookableDays(c) { const out = [], d = firstDay(c); while (out.length < 10) { if (!isWeekend(d)) out.push(new Date(d)); d.setDate(d.getDate() + 1); } return out; }
+function slotsFor(c, d) { const o = Math.round((c.open ?? 7) * 60), e = Math.round((c.close ?? 15) * 60), r = []; for (let m = o; m + 20 <= e; m += 20) r.push({ m, taken: fnv(`${c.id}|${isoD(d)}|${m}`) % 100 < 38 }); return r; }
+
+/* ---- the women the prototype can show (mock) and what each segment gets ---- */
+const PERSONAS = [
+  { id: 'E', first: 'Jano', name: 'Jana Nováková', age: 51, region: 'Moravskoslezský', city: 'Nový Jičín', seg: 'E · nikdy nebyla, chodí ke gynekoložce', due: true,
+    chip: 'Je na čase', h: 'Chodíte ke gynekoložce. Mamografie je přirozené pokračování.', p: 'Prevenci už řešíte. Mamografie zabere pár minut a dělá se jednou za dva roky, bez doporučení.',
+    push: ['Čas na mamografii', 'Zabere pár minut a je zdarma. Vyberte si termín v centru nedaleko.'],
+    why: 'Žena s gynekoložkou a opakovanými pozvánkami: navážeme na to, že prevenci už dělá. Podle dat je to největší skupina, kde má zásah smysl.' },
+  { id: 'B', first: 'Petro', name: 'Petra Horáková', age: 46, region: 'Jihomoravský', city: 'Brno', seg: 'B · první pozvánka v životě', due: true,
+    chip: 'První pozvánka', h: 'Vaše první mamografie. Zdarma a bez doporučení.', p: 'Celá návštěva do půl hodiny. Vysvětlíme, jak vyšetření probíhá, a pomůžeme vybrat termín.',
+    push: ['Vaše první pozvánka', 'Zdarma, bez doporučení a do půl hodiny. Podívejte se, jak to probíhá.'],
+    why: 'První pozvánka: nejvíc žen přijde, když je cesta jednoduchá. Důraz na to, co čeká, a na okamžité objednání.' },
+  { id: 'G', first: 'Marie', name: 'Marie Dvořáková', age: 61, region: 'Vysočina', city: 'Pelhřimov', seg: 'G · mnoho pozvánek bez odezvy', due: true,
+    chip: 'Nevadí, že jste zatím nešla', h: 'Nechceme vám psát dál. Zkusme to jednou jednoduše.', p: 'Vyberte si centrum a čas přímo tady. Stojí to minutu a nikdo vás nebude tlačit.',
+    push: ['Zkusme to jednou jednoduše', 'Termín se dá vybrat tady v aplikaci za minutu.'],
+    why: 'Mnoho pozvánek bez odezvy: další dopis nepomůže. Žádný tlak, krátká zpráva a rovnou konkrétní termín. Jen jedna notifikace.' },
+  { id: 'A', first: 'Evo', name: 'Eva Svobodová', age: 49, region: 'Moravskoslezský', city: 'Nový Jičín', seg: 'A · byla nedávno, není na řadě', due: false,
+    chip: 'Máte hotovo', h: 'Nejste na řadě. Další mamografie za 10 měsíců.', p: 'Poslední jste měla před 14 měsíci. Připomeneme se, až bude čas, nemusíte nic hlídat.',
+    push: null,
+    why: 'Nedávno vyšetřená žena: žádná notifikace ani pozvánka. Posílat jí zprávy by jen otupovalo pozornost a stálo peníze.' },
+];
+let P = PERSONAS[0], S = { center: null, date: null, time: null, sms: true, cal: true }, hist = [];
+
+/* ---- screens ---- */
+const scr = $('#scr');
+function mount(node) { scr.replaceChildren(node); scr.scrollTop = 0; const h = $('h1,.hi', node); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
+function header(title, back) {
+  const t = el('div', 'top'), b = el('button', 'back', ico('i-back')); b.type = 'button'; b.setAttribute('aria-label', 'Zpět'); b.addEventListener('click', back);
+  t.append(b); if (title) t.append(el('h1', 'h1', title)); return t;
+}
+const survey = () => `<div role="img" aria-label="Pětileté přežití: jen v prsu 100 procent, rozšířená do okolí 87 procent, daleko od prsu 33 procent">${[
+  ['Jen v prsu', '100 %', 'Změna je pořád jen v prsu.', '100%', '#4CD9C0', '#0E8A86'],
+  ['Rozšířená do okolí', '87 %', 'Zasažené jsou i blízké uzliny.', '87.2%', '#FFD08A', '#F0A030'],
+  ['Daleko od prsu', '33 %', 'Rozšířená do dalších orgánů.', '32.6%', '#FF8FA8', '#D91E4E']]
+  .map((r, i) => `<div class="pth" style="--i:${i};--w:${r[3]};--c1:${r[4]};--c2:${r[5]}"><div class="rw"><b>${r[0]}</b><span class="val">${r[1]}</span></div><div class="tr"><i></i></div><span class="cap">${r[2]}</span></div>`).join('')}
+  <p class="src">Podíl žen, které žijí 5 let po diagnóze. SEER, USA, diagnózy 2015–2021. Průměr za skupinu žen, ne předpověď pro jednu z nich.</p></div>`;
+
+function home() {
+  hist = [];
+  const v = el('div', 'view');
+  v.appendChild(el('h1', 'hi', `Dobrý den, ${P.first}`));
+  v.appendChild(el('p', 'sub', 'Vaše zdraví a prevence'));
+  if (P.due) {
+    const c = el('div', 'card'); c.style.animation = 'rise .6s both';
+    c.append(el('span', 'chip', P.chip), el('h2', 'big', P.h), el('p', 'mut', P.p));
+    const go = el('button', 'btn', `${ico('i-cal')}Vybrat termín`); go.type = 'button'; go.addEventListener('click', () => centers());
+    const q = el('button', 'btn soft', 'Mám otázku nebo obavu'); q.type = 'button'; q.addEventListener('click', () => concerns());
+    c.append(go, q); v.appendChild(c);
+    const w = el('div', 'card'); w.append(el('h2', 'big', 'Čím dřív, tím líp'), el('div', null, survey())); v.appendChild(w);
+  } else {
+    const c = el('div', 'card'); c.append(el('span', 'chip ok', P.chip), el('h2', 'big', P.h), el('p', 'mut', P.p));
+    const r = el('button', 'btn soft', `${ico('i-bell')}Připomenout se včas`); r.type = 'button'; r.addEventListener('click', () => { r.textContent = 'Připomeneme se. Nemusíte nic hlídat.'; r.disabled = true; });
+    c.append(r); v.appendChild(c);
+  }
+  v.appendChild(el('p', 'sect', 'Moje preventivní prohlídky'));
+  const rows = el('div', 'rows');
+  [[P.due ? 'dotwarn' : '', 'Mamografický screening', P.due ? 'Doporučeno nyní' : 'Za 10 měsíců', ''], ['', 'Prohlídka u praktika', 'Naposledy loni', ''], ['', 'Prevence u gynekologa', 'Naposledy loni', ''], ['dotoff', 'Screening tlustého střeva', 'Od 50 let', '']]
+    .forEach(([k, a, b]) => rows.appendChild(el('div', 'row static', `<i class="dotok ${k}"></i><span class="rt"><b>${a}</b><small>${b}</small></span>`)));
+  v.appendChild(rows);
+  v.appendChild(el('div', 'safety', `${ico('i-bell')}<span>Máte změnu na prsu, bulku, výtok nebo bolest? Nečekejte na screening a jděte k lékaři hned.</span>`));
+  mount(v);
+  notify();
+}
+
+let notifTimer;
+function notify() {
+  $('.notif')?.remove(); clearTimeout(notifTimer);
+  if (!P.push) return;
+  const n = el('button', 'notif', `<i>${ico('i-bell')}</i><b>Moje zdraví · teď</b><span>${P.push[0]}. ${P.push[1]}</span>`); n.type = 'button';
+  n.setAttribute('aria-label', 'Upozornění: ' + P.push[0]);
+  n.addEventListener('click', () => { n.remove(); centers(); });
+  $('.phone').appendChild(n); notifTimer = setTimeout(() => n.remove(), 9000);
+}
+
+function concerns() {
+  $('.notif')?.remove();
+  const v = el('div', 'view'); v.appendChild(header('Co vás zdržuje?', home));
+  const items = [
+    ['Jsem zdravá, proč jít', 'Cítit se dobře je dobrý začátek. Screening je právě pro ženy bez potíží.', 'Změnu často nepoznáte sama. Mamograf ji zachytí dřív, než se objeví příznaky, a změna odhalená včas se léčí úspěšněji.'],
+    ['Bude to bolet', 'Řekneme to na rovinu: někomu je to nepříjemné, někomu i bolestivé. Většinou to ale trvá jen chvíli.', 'Prs se při každém snímku na pár sekund stlačí. Celá návštěva trvá do půl hodiny. <b>Zavolejte a řekněte, že se bojíte.</b> Personál s tím počítá. Vhodný je týden po menstruaci, kdy bývají prsa méně citlivá.'],
+    ['Bojím se výsledku', 'Bát se je normální. Většina vyšetření dopadne v pořádku.', 'Zavolání zpět není diagnóza. Obvykle jde o upřesnění, například ultrazvuk, a většina takových vyšetření skončí v pořádku. Dávka záření je velmi nízká.'],
+  ];
+  const acc = el('div', 'acc');
+  items.forEach(([q, a, b], i) => {
+    const h = el('button', 'ah', `<span>${q}</span>${ico('i-chev')}`); h.type = 'button'; h.setAttribute('aria-expanded', 'false'); h.id = 'ah' + i;
+    const body = el('div', 'ab', `<p><b>${a}</b></p><p>${b}</p>`); body.hidden = true; body.setAttribute('role', 'region'); body.setAttribute('aria-labelledby', h.id);
+    h.addEventListener('click', () => { const o = h.getAttribute('aria-expanded') === 'true'; h.setAttribute('aria-expanded', !o); body.hidden = o; });
+    acc.append(h, body);
+  });
+  v.appendChild(acc);
+  const w = el('div', 'card'); w.append(el('h2', 'big', 'Čím dřív, tím líp'), el('div', null, survey())); v.appendChild(w);
+  const go = el('button', 'btn', `${ico('i-cal')}Vybrat termín`); go.type = 'button'; go.style.marginTop = '14px'; go.addEventListener('click', () => centers());
+  v.appendChild(go);
+  mount(v);
+}
+
+function centers() {
+  $('.notif')?.remove();
+  const list = CENTERS.filter((c) => c.region.includes(P.region)).sort((a, b) => (a.wait ?? 999) - (b.wait ?? 999) || a.city.localeCompare(b.city, 'cs'));
+  const v = el('div', 'view'); v.appendChild(header('Vyberte centrum', home));
+  v.appendChild(el('p', 'mut', `${P.region.replace('Moravskoslezský', 'Moravskoslezský kraj').replace('Jihomoravský', 'Jihomoravský kraj').replace('Vysočina', 'Kraj Vysočina')} · podle nejbližšího volného termínu`));
+  const rows = el('div', 'rows');
+  list.forEach((c, n) => {
+    const b = el('button', 'row', `<span class="rt"><b>${c.name}</b><small>${c.address}, ${c.city}</small></span><span class="rr">${n === 0 ? '<em>Nejdřív</em>' : ''}<strong>${inDays(c)}</strong></span>${ico('i-chev')}`);
+    b.type = 'button'; b.addEventListener('click', () => { S.center = c; S.date = bookableDays(c)[0]; S.time = null; times(); });
+    rows.appendChild(b);
+  });
+  v.appendChild(rows);
+  v.appendChild(el('p', 'src', 'Centra a čekací doby z veřejného seznamu mamo.cz. V ostré verzi by se otevřel objednávkový systém konkrétního centra.'));
+  mount(v);
+}
+
+function times() {
+  const c = S.center, ds = bookableDays(c);
+  const v = el('div', 'view'); v.appendChild(header('Vyberte termín', centers));
+  v.appendChild(el('p', 'mut', `${c.name} · ${c.address}, ${c.city}`));
+  const strip = el('div', 'days'); strip.style.marginTop = '12px'; const host = el('div', 'slots');
+  const bar = el('div', 'bar'), sum = el('p', 'sum'), go = el('button', 'btn', 'Rezervovat'); go.type = 'button'; go.addEventListener('click', () => done()); bar.append(sum, go);
+  const refresh = () => {
+    [...strip.children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.d === isoD(S.date)));
+    host.replaceChildren(); const sl = slotsFor(c, S.date);
+    if (S.time != null && !sl.some((x) => x.m === S.time && !x.taken)) S.time = null;
+    sl.forEach((x) => { const b = el('button', 'slot', fmtT(x.m)); b.type = 'button'; b.disabled = x.taken; b.setAttribute('aria-pressed', S.time === x.m); if (x.taken) b.setAttribute('aria-label', fmtT(x.m) + ', obsazeno'); b.addEventListener('click', () => { S.time = x.m; refresh(); }); host.appendChild(b); });
+    sum.textContent = S.time != null ? `${fmtD(S.date, { weekday: 'long', day: 'numeric', month: 'long' })}, ${fmtT(S.time)}` : 'Vyberte čas';
+    go.disabled = S.time == null;
+  };
+  ds.forEach((d) => { const b = el('button', 'day', `<small>${fmtD(d, { weekday: 'short' })}</small><b>${d.getDate()}</b><span>${fmtD(d, { month: 'short' })}</span>`); b.type = 'button'; b.dataset.d = isoD(d); b.addEventListener('click', () => { S.date = d; refresh(); }); strip.appendChild(b); });
+  v.append(strip, host, el('p', 'src', 'Přeškrtnuté časy jsou obsazené. Časy se řídí otevírací dobou centra.'), bar);
+  mount(v); refresh();
+}
+
+function done() {
+  const c = S.center;
+  const v = el('div', 'view');
+  v.appendChild(el('div', 'okc', `<svg viewBox="0 0 120 120" role="img" aria-label="Hotovo"><circle pathLength="100" cx="60" cy="60" r="52" fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" transform="rotate(-90 60 60)"/><path pathLength="100" d="M36 62l16 16 32-36" fill="none" stroke="var(--teal)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>`));
+  const h = el('h1', 'h1', `Máte hotovo, ${P.first}.`); h.style.textAlign = 'center'; h.style.marginTop = '10px'; v.appendChild(h);
+  const t = el('div', 'tk', `<div class="tkh"><small>${fmtD(S.date, { weekday: 'long' })}</small><b>${fmtD(S.date, { day: 'numeric', month: 'long' })}</b><span>${fmtT(S.time)}</span></div><div class="tkb"><div><small>Centrum</small><b></b><div class="mut ad"></div></div><div><small>Pacientka</small><b class="nm"></b></div></div>`);
+  $('.tkb b', t).textContent = c.name; $('.ad', t).textContent = `${c.address}, ${c.city}`; $('.nm', t).textContent = P.name;
+  v.appendChild(t);
+  const rows = el('div', 'rows');
+  [['cal', 'Přidat do kalendáře'], ['sms', 'Připomenout SMS den předem']].forEach(([k, label]) => {
+    const r = el('div', 'tog', `<span>${label}</span>`); const sw = el('button', 'sw', '<i></i>'); sw.type = 'button'; sw.setAttribute('role', 'switch'); sw.setAttribute('aria-label', label); sw.setAttribute('aria-checked', S[k]);
+    sw.addEventListener('click', () => { S[k] = !S[k]; sw.setAttribute('aria-checked', S[k]); }); r.appendChild(sw); rows.appendChild(r);
+  });
+  v.appendChild(rows);
+  v.appendChild(el('div', 'demo', 'Ukázka. Nic se nerezervovalo a nikomu se neodeslalo. V ostré verzi by termín potvrdil systém centra.'));
+  if (c.phone) { const a = el('a', 'btn soft', `${ico('i-phone')}${c.phone.split(/,\s*/)[0]}`); a.href = 'tel:' + c.phone.split(/,\s*/)[0].replace(/\s/g, ''); a.style.marginTop = '14px'; a.style.textDecoration = 'none'; v.appendChild(a); }
+  const fin = el('button', 'btn', 'Hotovo'); fin.type = 'button'; fin.style.marginTop = '10px'; fin.addEventListener('click', home); v.appendChild(fin);
+  mount(v);
+}
+
+/* ---- persona switcher + chrome ---- */
+function pick(id) {
+  P = PERSONAS.find((p) => p.id === id); S = { center: null, date: null, time: null, sms: true, cal: true };
+  [...$('#pers').children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.id === id));
+  $('#why').innerHTML = `<b>Proč takto:</b> ${P.why}`;
+  home();
+}
+PERSONAS.forEach((p) => { const b = el('button', null, `<b>${p.name}, ${p.age}</b><small>${p.seg}</small>`); b.type = 'button'; b.dataset.id = p.id; b.addEventListener('click', () => pick(p.id)); $('#pers').appendChild(b); });
+const tick = () => { const d = new Date(); $('#clock').textContent = `${d.getHours()}:${pad(d.getMinutes())}`; }; tick(); setInterval(tick, 20000);
+pick('E');
+</script>
+</body>
+</html>
