@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invitation planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/*__SITE_CSS__*/
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 24px; }
+.filters .f > span { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+textarea, input[type=number] { font: inherit; font-family: var(--mono); font-size: 12px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+textarea { width: 100%; min-height: 64px; resize: vertical; }
+input[type=number] { width: 5.5em; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; align-items: center; }
+.btn { font: inherit; font-weight: 500; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn[aria-pressed="true"] { background: var(--band); border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: .5; cursor: default; }
+.badge { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--band); color: var(--accent); font-family: var(--mono); font-weight: 500; font-size: 12px; }
+.segcard { cursor: pointer; }
+.segcard[aria-pressed="true"] { border-left-color: var(--accent); background: var(--band); }
+.segcard h4 { display: flex; gap: 8px; align-items: center; }
+.segcard .iv { font-weight: 600; color: var(--fg); }
+.segcard .tests { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.segcard .tests span { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.meter { display: inline-block; width: 60px; height: 8px; background: var(--bg); border-radius: 0 4px 4px 0; vertical-align: 0; margin-right: 8px; position: relative; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--s4); border-radius: 0 4px 4px 0; }
+table.t th.sort { cursor: pointer; white-space: nowrap; }
+table.t th.sort[aria-sort]::after { content: " ↑"; }
+table.t th.sort[aria-sort="descending"]::after { content: " ↓"; }
+table.t td.iv { font-size: 12px; max-width: 280px; }
+.pager { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 10px; font-size: 12px; color: var(--muted); }
+#status { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="site" aria-label="App"><b>Rakathon 2026 · screening invitations</b><a aria-current="page">Invitation planner</a>
+    <span style="margin-left:auto" class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></span></nav>
+  <header class="hero">
+    <h1>Invitation planner</h1>
+    <p class="lede">Select women to invite. Each one gets her predicted chance of screening (gradient boosting, test ROC AUC 0.84), her segment and the intervention proposed for it, with the A/B tests that would verify it. Export the selection as an action list.</p>
+    <div class="kpis" id="kpis"></div>
+  </header>
+
+  <div class="card">
+    <h3 class="cap">Select women</h3>
+    <div class="filters">
+      <div class="f"><span>Region</span><div class="chips" id="fKraj"></div></div>
+      <div class="f"><span>District</span><select id="fArea" aria-label="District"><option value="">All districts</option></select>
+        <span style="margin-top:14px">Age band</span><div class="chips" id="fAge"></div></div>
+      <div class="f"><span>Predicted chance of screening in 12 months, %</span>
+        <label>from <input type="number" id="fMin" min="0" max="100" value="0"></label>
+        <label>to <input type="number" id="fMax" min="0" max="100" value="100"></label>
+        <span style="margin-top:14px">PERSON_IDs (optional; one per line or comma separated)</span>
+        <textarea id="fIds" placeholder="Paste IDs to plan a specific list"></textarea></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="apply">Apply</button><button class="btn" id="all" aria-pressed="false">All women</button><button class="btn" id="reset">Reset</button>
+      <button class="btn" id="export">Export action list (CSV)</button><span id="status"></span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="tools" style="justify-content:space-between;margin-bottom:4px"><h3 class="cap" style="margin:0">Predicted chance of screening in the selection</h3>
+      <div class="seg" id="histWin"><button data-k="p3" aria-pressed="false">3 months</button><button data-k="p12" aria-pressed="true">12 months</button></div></div>
+    <div id="hist"></div>
+    <p class="note" id="histNote" style="max-width:none"></p>
+  </div>
+
+  <section id="segments">
+    <h2>Segments in the selection</h2>
+    <p class="head">Click a segment to select its women (combined with the filters above); click again to drop it. The interventions are hypotheses until the A/B tests run.</p>
+    <div class="segcards" id="segCards"></div>
+  </section>
+
+  <section id="women">
+    <h2>Women</h2>
+    <p class="head" id="womenHead"></p>
+    <div class="card"><div class="scroll"><table class="t" id="tbl"></table></div>
+      <div class="pager"><button class="btn" id="prev">‹ Previous</button><span id="pageInfo"></span><button class="btn" id="next">Next ›</button></div></div>
+  </section>
+
+  <footer><p class="note">Data: our CSV (data/Rakhaton2026_prepared.csv), each woman as of her latest invitation in it; in production this is a query to VZP's data at the planned mailing date. Chances are calibrated probabilities from the model; women in the training split are scored in-sample. Segments: segmentation/segments.py. Tests: report/evidence.json.</p></footer>
+</div>
+
+<div class="tip" id="tip"></div>
+<script>
+const $ = (s) => document.querySelector(s);
+const num = (v) => v.toLocaleString("en-US");
+const pct = (v, d = 1) => (v == null ? "–" : (100 * v).toFixed(d) + " %");
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const st = { kraje: [], areas: [], ages: [], segments: [], min: 0, max: 100, ids: "", all: false, sort: "chance", desc: false, page: 0 };
+let O, SEG = {}, last = null, hk = "p12";
+const tip = document.getElementById("tip");
+const showTip = (e, html) => { tip.innerHTML = html; tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px"; tip.style.top = e.clientY + 14 + "px"; tip.style.opacity = 1; };
+const hideTip = () => (tip.style.opacity = 0);
+
+// histogram of the predicted chance: 20 bins of 5 percentage points; click a bar to select that range (12 months)
+function drawHist() {
+  const r = last, h = r.hist[hk], W = 1000, H = 220, P = { l: 56, r: 12, t: 12, b: 34 }, max = Math.max(1, ...h);
+  const bw = (W - P.l - P.r) / h.length, Y = (v) => P.t + (1 - v / max) * (H - P.t - P.b);
+  const step = [1, 2, 5].map((m) => m * 10 ** Math.floor(Math.log10(max / 4))).find((s) => max / s <= 5) || 10 ** Math.ceil(Math.log10(max / 4));
+  let g = `<g class="axis grid">`;
+  for (let v = 0; v <= max; v += step) g += `<line x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}"></line><text x="${P.l - 8}" y="${Y(v) + 4}" text-anchor="end">${num(v)}</text>`;
+  for (let i = 0; i <= h.length; i += 2) g += `<text x="${P.l + i * bw}" y="${H - 14}" text-anchor="middle">${i * 5}%</text>`;
+  g += `</g>`;
+  h.forEach((c, i) => { const y = Y(c), x = P.l + i * bw;
+    g += `<rect class="hb" data-i="${i}" x="${x + 1}" y="${c ? y : H - P.b}" width="${bw - 2}" height="${c ? H - P.b - y : 0}" rx="3" style="fill:var(--s4)"></rect>`;
+    g += `<rect class="hit" data-i="${i}" x="${x}" y="${P.t}" width="${bw}" height="${H - P.t - P.b}" fill="transparent" style="cursor:${hk === "p12" ? "pointer" : "default"}"></rect>`; });
+  const mean = r[hk];
+  if (mean != null) { const x = P.l + mean * 20 * bw;
+    g += `<line x1="${x}" x2="${x}" y1="${P.t}" y2="${H - P.b}" stroke="var(--fg)" stroke-dasharray="3 3" stroke-width="1.5"></line><text x="${x + 6}" y="${P.t + 12}" class="lab" style="font-size:12px;fill:var(--fg)">mean ${pct(mean)}</text>`; }
+  $("#hist").innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Histogram of the predicted chance">${g}</svg>`;
+  $("#hist").querySelectorAll(".hit").forEach((b) => { const i = +b.dataset.i;
+    b.addEventListener("pointermove", (e) => showTip(e, `<b>${i * 5}–${i * 5 + 5} %</b><br>${num(h[i])} women (${r.n ? pct(h[i] / r.n) : "–"} of the selection)${hk === "p12" ? "<br>click to select this range" : ""}`));
+    b.addEventListener("pointerleave", hideTip);
+    b.addEventListener("click", () => { if (hk !== "p12" || !h[i]) return; $("#fMin").value = i * 5; $("#fMax").value = i * 5 + 5; setAll(false); st.page = 0; run(); }); });
+  const low = h.slice(0, 2).reduce((a, b) => a + b, 0);
+  $("#histNote").innerHTML = r.n ? `${num(r.n)} women in 5-point bins of the predicted chance within ${hk === "p12" ? "12" : "3"} months. ` +
+    `<b>${num(low)}</b> (${pct(low / r.n)}) are below 10 %: a standard letter is unlikely to reach them.` + (hk === "p12" ? " Click a bar to narrow the selection to that range." : "")
+    : "Select women to see the distribution of their predicted chance.";
+}
+
+function setAll(on) { st.all = on; $("#all").setAttribute("aria-pressed", on); }
+function clearFilters() {
+  Object.assign(st, { kraje: [], areas: [], ages: [], segments: [], page: 0 });
+  document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
+  $("#fMin").value = 0; $("#fMax").value = 100; $("#fIds").value = ""; areaOptions();
+}
+function chips(host, values, key, label = (v) => v) {
+  host.innerHTML = values.map((v) => `<button class="chip" aria-pressed="false" data-v="${esc(v)}">${esc(label(v))}</button>`).join("");
+  host.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return;
+    const v = b.dataset.v, on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
+    st[key] = on ? [...st[key], v] : st[key].filter((x) => x !== v);
+    if (key === "kraje") areaOptions(); setAll(false); st.page = 0; run(); });
+}
+function areaOptions() {
+  const cur = $("#fArea").value, areas = Object.entries(O.areas).filter(([, k]) => !st.kraje.length || st.kraje.includes(k)).map(([a]) => a);
+  $("#fArea").innerHTML = `<option value="">All districts</option>` + areas.map((a) => `<option ${a === cur ? "selected" : ""}>${esc(a)}</option>`).join("");
+  st.areas = areas.includes(cur) && cur ? [cur] : [];
+}
+function query() { return { ...st, min: +$("#fMin").value, max: +$("#fMax").value, ids: $("#fIds").value }; }
+async function post(url, body) { return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); }
+
+async function run() {
+  $("#status").textContent = "Loading…";
+  const r = await (await post("/api/select", query())).json();
+  $("#status").textContent = "";
+  last = r; drawHist();
+  $("#kpis").innerHTML = [[num(r.n), `women selected (of ${num(O.women)})`], [pct(r.p12), "mean chance, 12 months"],
+    [num(Math.round(r.expected)), "expected screenings without intervention"], [num(r.n - Math.round(r.expected)), "expected not to come"]]
+    .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
+  const by = Object.fromEntries(r.segments.map((s) => [s.k, s]));
+  $("#segCards").innerHTML = O.segments.map((s) => { const x = by[s.k] || { n: 0, p12: null, p3: null };
+    return `<div class="segcard" role="button" tabindex="0" data-k="${esc(s.k)}" aria-pressed="${st.segments.includes(s.k)}"${x.n ? "" : ' style="opacity:.55"'}>
+      <h4><span class="badge">${s.letter}</span>${esc(s.name)}</h4>
+      <p class="mono">${x.n ? `${num(x.n)} women · ${pct(x.p12)} in 12 m · ${pct(x.p3)} in 3 m` : "none selected"}</p>
+      <p class="iv">${esc(s.intervention)}</p><p>${esc(s.barrier)}</p>
+      <div class="tests">${s.tests.map((t) => `<span>A/B: ${esc(t)}</span>`).join("")}</div></div>`; }).join("");
+  const pages = Math.max(1, Math.ceil(r.n / r.page_size));
+  const empty = !r.n && !(st.all || st.kraje.length || st.areas.length || st.ages.length || st.segments.length || $("#fIds").value.trim() || +$("#fMin").value > 0 || +$("#fMax").value < 100);
+  $("#womenHead").innerHTML = empty ? "No-one is selected yet. Choose a region, district, age band, chance range or segment, paste PERSON_IDs, or click <b>All women</b>." : !r.n ? "No women match the selection." : `Sorted by ${{ chance: "predicted chance", id: "PERSON_ID", segment: "segment", area: "district" }[st.sort]}${st.desc ? ", descending" : ""}. Lowest chance first = highest risk of not coming.`;
+  const th = (k, l) => `<th class="sort" data-s="${k}" ${st.sort === k ? `aria-sort="${st.desc ? "descending" : "ascending"}"` : ""}>${l}</th>`;
+  $("#tbl").innerHTML = `<tr>${th("id", "PERSON_ID")}${th("area", "District")}<th>Age</th>${th("segment", "Segment")}<th>3 m</th>${th("chance", "12 m chance")}<th style="text-align:left">Intervention</th></tr>` +
+    r.rows.map((w) => { const s = SEG[w.segment];
+      return `<tr><td class="mono">${esc(w.id)}</td><td>${esc(w.area)}</td><td>${esc(w.age)}</td><td title="${esc(s.name)}"><span class="badge">${s.letter}</span></td>
+        <td>${pct(w.p3)}</td><td><span class="meter"><i style="width:${100 * w.p12}%"></i></span>${pct(w.p12)}</td>
+        <td class="l iv">${esc(s.intervention)}${w.note ? `<br><b>${esc(w.note)}</b>` : ""}</td></tr>`; }).join("");
+  $("#pageInfo").textContent = `page ${st.page + 1} of ${num(pages)}`;
+  $("#prev").disabled = st.page === 0; $("#next").disabled = st.page >= pages - 1; $("#export").disabled = !r.n;
+}
+
+async function init() {
+  O = await (await fetch("/api/options")).json();
+  O.segments.forEach((s) => (SEG[s.k] = s));
+  chips($("#fKraj"), O.kraje, "kraje", (k) => k.replace(" kraj", "").replace("Hlavní město ", "").replace("Kraj ", ""));
+  chips($("#fAge"), O.ages, "ages");
+  areaOptions();
+  $("#fArea").addEventListener("change", (e) => { st.areas = e.target.value ? [e.target.value] : []; setAll(false); st.page = 0; run(); });
+  $("#apply").addEventListener("click", () => { setAll(false); st.page = 0; run(); });
+  $("#reset").addEventListener("click", () => { clearFilters(); setAll(false); run(); });
+  $("#histWin").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; hk = b.dataset.k;
+    $("#histWin").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); if (last) drawHist(); });
+  $("#all").addEventListener("click", () => { clearFilters(); setAll(true); run(); });
+  $("#segCards").addEventListener("click", (e) => { const c = e.target.closest(".segcard"); if (!c) return; const k = c.dataset.k;
+    st.segments = st.segments.includes(k) ? st.segments.filter((x) => x !== k) : [...st.segments, k]; setAll(false); st.page = 0; run(); });
+  $("#segCards").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.closest(".segcard")?.click(); });
+  $("#tbl").addEventListener("click", (e) => { const h = e.target.closest("th.sort"); if (!h) return;
+    st.desc = st.sort === h.dataset.s ? !st.desc : false; st.sort = h.dataset.s; st.page = 0; run(); });
+  $("#prev").addEventListener("click", () => { st.page--; run(); });
+  $("#next").addEventListener("click", () => { st.page++; run(); });
+  $("#export").addEventListener("click", async () => { $("#status").textContent = "Preparing CSV…";
+    const blob = await (await post("/api/export", query())).blob(), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "action_list.csv"; a.click(); URL.revokeObjectURL(a.href); $("#status").textContent = ""; });
+  $("#themeBtn").addEventListener("click", () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === "dark" ? "light" : "dark"; });
+  run();
+}
+init();
+</script>
+</body>
+</html>
