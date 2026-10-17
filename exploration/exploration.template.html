@@ -260,7 +260,7 @@ $("#kpis").innerHTML = [[num(M.rows), "invitations"], [num(M.women), "women"], [
   .map(([b, s]) => `<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
 $("#mData").innerHTML = [`One row = one invitation, ${M.from} to ${M.to}, sent in ${M.dates} batches.`,
   `${pct(M.repeat_rows, 0)} of rows belong to women invited more than once (up to 5×).`,
-  `${M.areas} VZP territorial areas in 14 regions (kraje).`].map((t) => `<li>${t}</li>`).join("");
+  `${M.areas} VZP territorial areas in 14 regions.`].map((t) => `<li>${t}</li>`).join("");
 
 /* ---------- label switch, nav, theme ---------- */
 $("#labelSeg").innerHTML = LAB.map((l, i) => `<button type="button" data-l="${i}" aria-pressed="${i === L}">${l}</button>`).join("");
@@ -353,7 +353,7 @@ function render() {
   corrRows();
   rows($("#cramerRows"), D.cramers.map((r) => ({ k: r.k, value: r.v[L], text: r.v[L].toFixed(3), n: r.levels })),
     { max: 0.35, header: ["attribute", "", "V", "levels"] });
-  const kraj = [...D.attributes["Region (kraj)"]].sort((a, b) => rate(b) - rate(a));
+  const kraj = [...D.attributes["Region"]].sort((a, b) => rate(b) - rate(a));
   rateRows($("#krajRows"), kraj);
   $("#regionHead").innerHTML = `Response within ${lab} ranges from <b>${pct(rate(kraj[kraj.length - 1]))}</b> (${kraj[kraj.length - 1].k}) to <b>${pct(rate(kraj[0]))}</b> (${kraj[0].k}). Region shifts the level of response, but the same factors drive it everywhere; distance to a screening centre barely matters.`;
 }

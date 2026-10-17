@@ -114,7 +114,7 @@ footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
 .tree .leaf { cursor: default; }
 .tree .leaf b, .tree .leaf .ttl { font-weight: 600; }
 .scroll { overflow-x: auto; }
-table.t td.l { text-align: left; font-family: var(--body); }
+table.t td.l, #segTable th:nth-child(2) { text-align: left; font-family: var(--body); }
 table.t td.hi { color: var(--accent); font-weight: 500; }
 .steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .steps li { counter-increment: s; padding-left: 34px; position: relative; }
@@ -298,16 +298,16 @@ const share3 = low3.reduce((a, d) => a + d.n * d.rate, 0) / DEC.reduce((a, d) =>
 $("#riskHead").innerHTML = `The score separates invitations sharply: the lowest decile responds at <b>${pct(lowest.rate)}</b>, the highest at <b>${pct(highest.rate)}</b> (all: ${pct(M.rate)}). ` +
   `The lowest 30% of scores hold only <b>${pct(share3, 0)}</b> of the screened women: these are the invitations a standard letter does not reach.`;
 rows($("#decileRows"), DEC.map((d) => ({ k: `decile ${d.k}`, value: d.rate, n: num(d.n), pred: d.pred })),
-  { max: 0.75, header: ["score decile", "", "actual", "invitations"], tipFn: (r) => `<b>${r.k}</b><br>actual: ${pct(r.value)}<br>predicted: ${pct(r.pred)}<br>${r.n} test invitations` });
+  { max: 0.75, header: ["score decile", "", "actual", "n"], tipFn: (r) => `<b>${r.k}</b><br>actual: ${pct(r.value)}<br>predicted: ${pct(r.pred)}<br>${r.n} test invitations` });
 rows($("#compRows"), [...D.comparison].sort((a, b) => b.auc - a.auc).map((c) => ({ k: c.k, value: c.auc - 0.75, text: auc(c.auc), color: c.rules ? "var(--pt)" : "var(--s4)" })),
-  { max: 0.1, header: ["model", "", "ROC AUC", ""] });
+  { max: 0.1, header: ["model", "", "AUC", ""] });
 
 /* ---------- ceiling ---------- */
 const A = D.ablation, best = A.best.filter((b) => b.k !== "constant");
 $("#ceilingHead").innerHTML = `${num(A.fits)} fits of ${A.families} model families with different capacity, regularisation, features and training size. ` +
   `The six strongest families end within <b>${Math.abs(best[5].gap).toFixed(3)}</b> ROC AUC of each other, at about <b>${auc(best[0].auc)}</b>: the limit is the information in the 19 attributes, not the model.`;
 rows($("#bestRows"), best.map((b) => ({ ...b, value: b.auc - 0.75, text: auc(b.auc), n: b.gap ? (b.gap * 100).toFixed(2) : "best" })),
-  { max: 0.1, header: ["family", "", "ROC AUC", "gap ×100"], tipFn: (b) => `<b>${b.k}</b><br>${b.setting}<br>gap to best: ${(b.gap * 100).toFixed(2)} (95%: ${(b.lo * 100).toFixed(2)} to ${(b.hi * 100).toFixed(2)})` });
+  { max: 0.1, header: ["family", "", "AUC", "gap ×100"], tipFn: (b) => `<b>${b.k}</b><br>${b.setting}<br>gap to best: ${(b.gap * 100).toFixed(2)} (95%: ${(b.lo * 100).toFixed(2)} to ${(b.hi * 100).toFixed(2)})` });
 const sizes = A.learning[0].points.map((p) => p[0]);
 table($("#lcTable"), ["model", ...sizes.map((s) => s >= 1e5 ? Math.round(s / 1000) + "k" : (s / 1000).toFixed(1) + "k")],
   A.learning.map((f) => [`<td>${f.k}</td>`, ...f.points.map((p) => `<td>${auc(p[1])}</td>`)]));
@@ -333,12 +333,13 @@ function effectChart(f) {
   const g = el("g", { class: "grid" }, svg), ax = el("g", { class: "axis" }, svg);
   for (const t of [0, 0.1, 0.2, 0.3, 0.4, 0.5]) { el("line", { x1: P.l, x2: W - P.r, y1: Y(t), y2: Y(t) }, g);
     el("text", { x: P.l - 6, y: Y(t) + 4, "text-anchor": "end" }, ax).textContent = Math.round(t * 100) + "%"; }
-  const ticks = [...new Set([x0, x1, ...xs.filter((v, i) => i % Math.ceil(xs.length / 5) === 0)])];
+  const raw = (x1 - x0) / 5, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 5, 10].map((m) => m * mag).find((m) => m >= raw);
+  const ticks = []; for (let t = Math.ceil(x0 / step) * step; t <= x1; t += step) ticks.push(t);
   for (const t of ticks) el("text", { x: X(t), y: H - 12, "text-anchor": "middle" }, ax).textContent = t;
   let d = "", prev = null;
   for (const [x, y] of f.points) { d += (prev !== null && x - prev <= 6 ? "L" : "M") + X(x).toFixed(1) + " " + Y(y).toFixed(1); prev = x; }
   el("path", { d, fill: "none", stroke: "var(--s4)", "stroke-width": 2, "stroke-linejoin": "round" }, svg);
-  for (const [x, y] of f.points) { const c = el("circle", { cx: X(x), cy: Y(y), r: 4, fill: "var(--s4)", stroke: "var(--surface)", "stroke-width": 2 }, svg);
+  for (const [x, y] of f.points) { const c = el("circle", { cx: X(x), cy: Y(y), r: f.points.length > 12 ? 3 : 4, fill: "var(--s4)", stroke: "var(--surface)", "stroke-width": 2 }, svg);
     onTip(c, `<b>${f.k}: ${x}</b><br>average predicted: ${pct(y)}`); }
   return svg;
 }
@@ -397,14 +398,14 @@ $("#segCards").innerHTML = SEG.map((s) => { const k = STEP(s.rates[2]);
 
 /* ---------- 04 experiment ---------- */
 rows($("#expRows"), D.experiment.map((e) => ({ ...e, k: `${e.letter} ${e.k}`, value: e.need / e.available, text: num(e.need), n: num(e.available), color: e.need > e.available ? "var(--pt)" : "var(--s4)" })),
-  { max: 1.6, header: ["segment", "needed / available", "needed", "available"],
+  { max: 1.6, header: ["segment", "needed / available", "need", "have"],
     tipFn: (e) => `<b>${e.k}</b><br>baseline 12-month response: ${pct(e.baseline)}<br>needed per arm: ${num(e.need)}<br>available per arm in 2024: ${e.n}<br>${e.need > e.available ? "more than a year of invitations: run longer" : `enough in ${Math.max(1, Math.ceil(e.need / e.available * 12))} months`}` });
 
 /* ---------- per-group experts ---------- */
 const EX = D.experts, other = EX.filter((e) => e.criterion !== "region"), reg = EX.filter((e) => e.criterion === "region");
 const better = EX.filter((e) => e.lo > 0).length;
 $("#expertsHead").innerHTML = `Would separate models per group of women beat the single global model? We trained an expert on each group and compared it with the global model on the same test women. ` +
-  `In <b>${better}</b> of ${EX.length} groups the expert is significantly better; the global model already learns the groups.`;
+  `In <b>${better || "none"}</b> of the ${EX.length} groups is the expert significantly better; the global model already learns the groups.`;
 const exRow = (e) => [`<td>${e.criterion}</td>`, `<td class="l">${e.k}</td>`, `<td>${num(e.n)}</td>`, `<td>${pct(e.rate)}</td>`, `<td>${auc(e.global)}</td>`, `<td>${auc(e.expert)}</td>`,
   `<td>${(e.gain * 100).toFixed(2)} <span class="note">(${(e.lo * 100).toFixed(2)} to ${(e.hi * 100).toFixed(2)})</span></td>`];
 const exHead = ["split by", "group", "test inv.", "response", "global", "expert", "gain ×100 (95%)"];

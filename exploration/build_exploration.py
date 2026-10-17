@@ -176,7 +176,7 @@ attributes = {
         ),
         order=["5-10", "11-20", "21-25", "26-30", "31+"],
     ),
-    "Region (kraj)": breakdown(df.KRAJ),
+    "Region": breakdown(df.KRAJ),
 }
 for k in ["Gynaecologist registration", "GP registration"]:
     for r in attributes[k]:

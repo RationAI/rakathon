@@ -90,24 +90,31 @@ path.a.hov, path.a.sel { stroke: var(--hl); stroke-width: 1.6; }
 .reg { stroke: var(--pt); stroke-width: 2; }
 .note { color: var(--muted); font-size: 12px; max-width: 90ch; }
 footer { padding-block: 40px 56px; }
+/* Shared top navigation across the four report pages */
+.site { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 14px 0 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.site b { font-family: var(--display); font-weight: 600; color: var(--fg); margin-right: 8px; }
+.site a { color: var(--muted); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent; }
+.site a:hover { color: var(--fg); }
+.site a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 </style>
 
 <div class="wrap">
+  <nav class="site" aria-label="Report pages"><b>Rakathon 2026 · screening invitations</b><a href="exploration.html">Exploration</a><a href="results.html">Model &amp; segments</a><a href="response_map.html">Response map</a><a href="response_report.html" aria-current="page">Regional report</a></nav>
   <header class="hero">
     <h1>Regional evaluation of mammography screening response</h1>
-    <p class="lede">How women in each kraj and okres respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data.</p>
+    <p class="lede">How women in each region and district respond to the screening invitation, and how that relates to travel distance and waiting time. Modelled on the structure of the NSC regional availability slides, using the Rakhaton 2026 invitation data.</p>
     <div class="kpis" id="kpis"></div>
   </header>
   <div class="method">
     <div><h3>Data</h3><ul>
       <li>Rakhaton 2026: one row per invitation, 2020–2024, with 3, 6 and 12 month screening outcomes.</li>
-      <li>Area is the VZP territorial area, which is an okres (Praha, Brno, Ostrava and Plzeň are single areas).</li>
+      <li>Area is the VZP territorial area, which is a district (Praha, Brno, Ostrava and Plzeň are single areas).</li>
       <li>Screening centres, booking waits and opening hours scraped from mamo.cz (snapshot <span id="scr"></span>).</li></ul></div>
     <div><h3>Indicators</h3><ul>
       <li>Response: share of invitations followed by a screening within the window.</li>
       <li>Distance: straight line from the district point to the nearest centre.</li>
       <li>Wait: mean booking wait of the three nearest centres, in days.</li>
-      <li>Kraj values combine districts weighted by invitations.</li></ul></div>
+      <li>Region values combine districts weighted by invitations.</li></ul></div>
     <div><h3>Limits</h3><ul>
       <li>Rates are raw, with no adjustment for age or screening history.</li>
       <li>Invitations, not the whole population of women aged 45–69, so not the NSC coverage figure.</li>
@@ -116,7 +123,7 @@ footer { padding-block: 40px 56px; }
   </div>
 
   <div class="bar">
-    <div class="grp"><span>Level</span><div class="seg" id="lvlSeg"><button data-l="k" aria-pressed="false">Kraj</button><button data-l="d" aria-pressed="true">District</button></div></div>
+    <div class="grp"><span>Level</span><div class="seg" id="lvlSeg"><button data-l="k" aria-pressed="false">Region</button><button data-l="d" aria-pressed="true">District</button></div></div>
     <div class="grp"><span>Response window</span><div class="seg" id="winSeg"><button data-w="0" aria-pressed="false">3 mo</button><button data-w="1" aria-pressed="false">6 mo</button><button data-w="2" aria-pressed="true">12 mo</button></div></div>
     <div class="nav" id="nav"></div>
     <div class="seg"><button id="themeBtn" aria-label="Toggle light and dark theme">Theme</button></div>
@@ -249,7 +256,7 @@ function indicatorSection(ind) {
     if (!u) { d.innerHTML = `<div class="nm">${a.name}</div><div class="kr">No VZP area for this district in the dataset.</div>`; return; }
     const v = ind.val(u), dv = v == null || (ind.id === "vol" && !vs.norm) ? null : v - natV;
     const c = ind.id === "resp" ? cn(u) : u, r = c.n ? 100 * c.p[st.w] / c.n : null;
-    d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Kraj" : a.kraj2} · ${ind.ext ? `${nf(u.wall)} women` : `${nf(c.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}</div>
+    d.innerHTML = `<div class="nm">${esc(label(a))}</div><div class="kr">${st.l === "k" ? "Region" : a.kraj2} · ${ind.ext ? `${nf(u.wall)} women` : `${nf(c.n)} ${ind.id === "resp" && ro.woman ? "women" : "invitations"}`}</div>
       <div class="big">${fmtV(ind, v)} ${dv == null ? "" : `<small>${dv >= 0 ? "+" : "−"}${nf(Math.abs(dv), ind.dec)} vs. Czechia</small>`}</div>
       ${ind.id === "resp" ? `<div class="kr">${v == null ? `too few cases` : [0, 1, 2].map((w) => `${W[w]}: ${nf(100 * c.p[w] / c.n, 1)} %`).join(" · ")}</div>` : r == null ? "" : `<div class="kr">Response (${W[st.w]}): ${nf(r, 1)} %</div>`}`;
   }
@@ -263,7 +270,7 @@ function indicatorSection(ind) {
     const ranked = its.filter((u) => ind.val(u) != null).sort((a, b) => ind.val(b) - ind.val(a)), hi = ranked[0], lo = ranked.at(-1);
     $("[data-h]", el).innerHTML = `${ind.lead ? ind.lead() : `The ${ind.what()} in Czechia is`} <b>${fmtV(ind, natV)}</b>. Highest in ${st.l === "k" ? "" : "the district of "}<b>${esc(hi.name)}</b> (${fmtV(ind, ind.val(hi))}), lowest in <b>${esc(lo.name)}</b> (${fmtV(ind, ind.val(lo))}).`;
     const max = ind.val(hi);
-    $("[data-list]", el).innerHTML = `<h3>${st.l === "k" ? "Kraje" : "Districts"} ranked</h3>` + ranked.map((u, r) => { const v = ind.val(u);
+    $("[data-list]", el).innerHTML = `<h3>${st.l === "k" ? "Regions" : "Districts"} ranked</h3>` + ranked.map((u, r) => { const v = ind.val(u);
       const idx = st.l === "k" ? D.areas.findIndex((a) => a.kraj2 === u.name) : D.areas.indexOf(u);
       return `<div class="row" role="button" tabindex="0" data-i="${idx}"><span class="rk">${r + 1}</span><span class="nm">${esc(u.name)}</span><span class="tr"><i style="width:${100 * v / max}%;background:var(--s${binOf(bins, v) + 1})"></i></span><span class="v">${nf(v, ind.dec)}</span></div>`; }).join("")
       + `<div class="row ref"><span></span><span class="nm">Czechia</span><span></span><span class="v">${nf(natV, ind.dec)}</span></div>`;
@@ -292,7 +299,7 @@ function networkSection() {
     t.style.fillOpacity = ".8"; t.addEventListener("pointermove", (e) => showTip(e, `<b>${esc(c.city)}</b><br>${esc(c.name)}<br>wait: ${c.wait ?? "n/a"} days`)); t.addEventListener("pointerleave", hideTip); m.svg.appendChild(t); });
   $("[data-legend]", el).innerHTML = `<span><i class="dot"></i>centre, circle size grows with booking wait</span>`;
   const max = Math.max(...rows.map((r) => r.wait));
-  $("[data-list]", el).innerHTML = `<h3>By kraj of the centre</h3><div class="row net" style="color:var(--muted);font-size:11px"><span></span><span>#</span><span>Mean wait, days</span><span></span></div>` +
+  $("[data-list]", el).innerHTML = `<h3>By region of the centre</h3><div class="row net" style="color:var(--muted);font-size:11px"><span></span><span>#</span><span>Mean wait, days</span><span></span></div>` +
     rows.sort((a, b) => b.wait - a.wait).map((r) => `<div class="row net"><span class="nm">${esc(r.k)}</span><span class="v">${r.n}</span><span class="tr"><i style="width:${100 * r.wait / max}%;background:var(--s4)"></i></span><span class="v">${nf(r.wait, 0)}</span></div>`).join("") +
     `<div class="row net ref"><span class="nm">Czechia</span><span class="v">${D.centres.length}</span><span></span><span class="v">${nf(mean, 0)}</span></div>`;
   return { el, s: { render() {} } };
@@ -337,7 +344,7 @@ function whoSection() {
   const el = document.createElement("section"); el.id = "who";
   el.innerHTML = `<h2>Who responds</h2><p class="head" data-h></p>
     <div class="card"><div class="tools"><div class="grp"><span>Break down by</span><div class="seg" data-d><button data-k="age" aria-pressed="true">Age band</button><button data-k="order" aria-pressed="false">Invitation order</button><button data-k="year" aria-pressed="false">Year</button></div></div>
-    <div class="grp"><span>Area</span><select id="whoKraj" aria-label="Kraj"><option value="ALL">Czechia</option>${D.meta.kraje.map((k) => `<option>${esc(k)}</option>`).join("")}</select></div></div>
+    <div class="grp"><span>Area</span><select id="whoKraj" aria-label="Region"><option value="ALL">Czechia</option>${D.meta.kraje.map((k) => `<option>${esc(k)}</option>`).join("")}</select></div></div>
     <div class="list" style="max-height:none" data-list></div></div>`;
   let dim = "age";
   const sel = $("#whoKraj", el);

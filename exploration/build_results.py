@@ -17,14 +17,17 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 CLASSIFIERS = ROOT / "training" / "classifiers"
 sys.path[:0] = [str(CLASSIFIERS), str(ROOT / "segmentation")]
-from data import prepare  # noqa: E402
-from gradient_boosting.model import make_model  # noqa: E402
-from segments import COLUMNS, INTERVENTIONS, SEGMENTS, assign  # noqa: E402
-from tree_diagram import EDGES, POSITIONS, QUESTIONS, node_masks  # noqa: E402
+from segments import COLUMNS, INTERVENTIONS, SEGMENTS, assign
+from tree_diagram import EDGES, POSITIONS, QUESTIONS, node_masks
+
+from data import prepare
+from gradient_boosting.model import make_model
+
 
 LABEL = "SCREENING_12M_FLAG"
 LABELS = ["SCREENING_3M_FLAG", "SCREENING_6M_FLAG", LABEL]
@@ -82,7 +85,7 @@ feats = abl[abl.study == "features"].merge(cap.reset_index(), on=["family", "set
 features_gain = [{"k": MODEL_NAMES[r.family], "raw": float(r.test_roc_auc_raw), "eng": float(r.test_roc_auc_eng)}
                  for r in feats.itertuples()]
 ablation = {
-    "fits": int(len(abl)), "families": int(abl.family.nunique()),
+    "fits": len(abl), "families": int(abl.family.nunique()),
     "best": [{"k": MODEL_NAMES.get(r.family, r.family), "setting": r.setting, "auc": float(r.test_roc_auc),
               "gap": float(r.gap_to_best), "lo": float(r.gap_low), "hi": float(r.gap_high)} for r in best.itertuples()],
     "learning": learning, "overfit": overfit, "features": features_gain,
@@ -108,7 +111,7 @@ year = pd.to_datetime(df.INVITATION_DATE).dt.year
 segments = []
 for s, g in df.groupby(seg, observed=False):
     segments.append({"letter": s[0], "k": s.split(" ", 1)[1], "rule": SEGMENTS[s], "intervention": INTERVENTIONS[s],
-                     "n": int(len(g)), "share": float(len(g) / len(df)), "women": int(g.PERSON_ID.nunique()),
+                     "n": len(g), "share": float(len(g) / len(df)), "women": int(g.PERSON_ID.nunique()),
                      "rates": [float(g[c].mean()) for c in LABELS]})
 masks = node_masks(df)
 tree = {"nodes": {node: {"n": int(m.sum()), "rate": float(df.loc[m, LABEL].mean())} for node, m in masks.items()},
@@ -137,7 +140,7 @@ experts = [{"criterion": r.criterion, "k": r.group, "n": int(r.n_test), "rate": 
             "lo": float(r.gain_low), "hi": float(r.gain_high)} for r in groups.itertuples() if r.criterion != "all"]
 
 out_data = {
-    "meta": {"test_rows": int(len(y)), "auc": float(roc_auc_score(y, p)), "segment_auc": segment_auc,
+    "meta": {"test_rows": len(y), "auc": float(roc_auc_score(y, p)), "segment_auc": segment_auc,
              "rate": float(y.mean())},
     "deciles": deciles, "comparison": comparison, "ablation": ablation, "drivers": drivers, "effects": effects,
     "segments": segments, "tree": tree, "decay": decay, "experiment": experiment, "experts": experts,
