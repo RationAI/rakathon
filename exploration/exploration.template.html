@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screening Data Exploration</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same design tokens as response_report.html: single-hue blue ramp for magnitude,
+   orange only as the second series (3-month response) and for negative correlations. */
+:root {
+  --bg: #f6f7fb; --surface: #ffffff; --fg: #141a33; --muted: #5a6180; --line: #dde1ee; --accent: #2b2d7e;
+  --s1: #dbe7f6; --s2: #a9c5e6; --s3: #6c9bd3; --s4: #2f66ad; --s5: #14316f;
+  --nodata: #e3e4ea; --pt: #d9631e; --band: #eef1f9;
+  --display: "Fraunces", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
+  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
+  --nodata: #262c45; --pt: #ff9a4d; --band: #1a2140; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1222; --surface: #161b30; --fg: #e8ebf7; --muted: #98a0c0; --line: #2a3150; --accent: #9fb2ff;
+  --s1: #1c2f55; --s2: #2a4a85; --s3: #4678c0; --s4: #7fa8e6; --s5: #bcd5fb;
+  --nodata: #262c45; --pt: #ff9a4d; --band: #1a2140; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 46px); line-height: 1.05; color: var(--accent); }
+.hero { padding-block: 40px 24px; display: grid; gap: 14px; }
+.lede { color: var(--muted); max-width: 72ch; font-size: 15px; margin: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi { border-top: 2px solid var(--accent); padding-top: 8px; }
+.kpi b { display: block; font-family: var(--mono); font-weight: 500; font-size: 26px; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: 12px; }
+.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+h3.cap { margin: 0 0 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+ul.sq { margin: 0; padding-left: 0; list-style: none; }
+ul.sq li { padding-left: 14px; position: relative; margin-bottom: 4px; }
+ul.sq li::before { content: "▪"; position: absolute; left: 0; color: var(--accent); }
+.bar { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding-block: 10px; }
+.grp { display: flex; align-items: center; gap: 8px; }
+.grp > span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-weight: 500; padding: 6px 12px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.nav button, .chip { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; text-decoration: none; }
+.nav button:hover, .chip:hover { border-color: var(--accent); }
+select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section { padding-block: 40px 8px; scroll-margin-top: 70px; }
+section h2 { font-size: clamp(20px, 3vw, 28px); text-transform: uppercase; letter-spacing: .01em; color: var(--accent); }
+.head { margin: 8px 0 16px; max-width: 80ch; }
+.head b, .mono { font-family: var(--mono); font-weight: 500; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .two, .main { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+.card + .card { margin-top: 20px; }
+.two .card + .card, .main .card + .card, .method .card + .card { margin-top: 0; }
+svg { display: block; width: 100%; height: auto; }
+.axis text { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.grid line { stroke: var(--line); }
+.rows { display: grid; align-content: start; }
+.row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) 4.4em 5.4em; gap: 8px; align-items: center;
+  padding: 4px 4px; border-radius: 6px; font-size: 13px; }
+.row:hover { background: var(--bg); }
+.row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .tr { height: 10px; background: var(--bg); border-radius: 0 4px 4px 0; position: relative; }
+.row .tr i { position: absolute; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
+.row .v { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.row .n { text-align: right; font-family: var(--mono); color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.row.hdr { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.row.hdr:hover { background: transparent; }
+.row.ref { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 6px; font-weight: 500; }
+.row.div .tr { border-radius: 0; }
+.row.div .tr::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; border-left: 1px solid var(--muted); }
+.row.div .tr i { border-radius: 0; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; align-items: center; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.big { font-family: var(--mono); font-size: 30px; font-weight: 500; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.big small { font-size: 12px; color: var(--muted); font-family: var(--body); }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: right; font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.t th:first-child, table.t td:first-child { text-align: left; }
+table.t td { text-align: right; padding: 4px 6px; font-family: var(--mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
+table.t td:first-child { font-family: var(--body); }
+table.t td.low { color: var(--pt); font-weight: 500; }
+.note { color: var(--muted); font-size: 12px; max-width: 90ch; }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12px; line-height: 1.35; max-width: 260px; opacity: 0; transition: opacity .1s; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+footer { padding-block: 40px 56px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Who comes to mammography screening after an invitation?</h1>
+    <p class="lede" id="lede"></p>
+    <div class="kpis" id="kpis"></div>
+    <div class="method">
+      <div><h3 class="cap">Data</h3><ul class="sq" id="mData"></ul></div>
+      <div><h3 class="cap">Labels</h3><ul class="sq">
+        <li>Screened within <b>3, 6 or 12 months</b> of the invitation date.</li>
+        <li>Nested: screened within 3 months implies within 6 and 12.</li>
+        <li>Switch the label in the bar below; every chart follows it.</li></ul></div>
+      <div><h3 class="cap">Source</h3><ul class="sq">
+        <li>Notebooks: <span class="mono">eda</span>, <span class="mono">label_correlations</span>, <span class="mono">covid</span>.</li>
+        <li>Maps: <a href="response_map.html">response map</a>, <a href="response_report.html">regional report</a>.</li>
+        <li>Built by <span class="mono">build_exploration.py</span> from the prepared data.</li></ul></div>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="grp"><span>Label</span><div class="seg" id="labelSeg"></div></div>
+    <div class="nav" id="nav"></div>
+    <button class="chip" id="themeBtn" type="button" aria-label="Toggle light / dark theme">◐ theme</button>
+  </div>
+
+  <section id="labels" data-nav="Labels">
+    <h2>Labels</h2>
+    <p class="head" id="labelsHead"></p>
+    <div class="card"><div class="rows" id="labelRows"></div></div>
+  </section>
+
+  <section id="time" data-nav="Time &amp; COVID">
+    <h2>Time &amp; COVID</h2>
+    <p class="head" id="timeHead"></p>
+    <div class="card"><h3 class="cap">Invitations sent per month</h3><div id="volChart"></div>
+      <div class="legend"><span><i style="background:var(--s3)"></i>invitations</span><span><i style="background:var(--nodata)"></i>month without invitations</span></div></div>
+    <div class="card"><h3 class="cap">Response by invitation month</h3><div id="respChart"></div>
+      <div class="legend"><span><i style="background:var(--s4)"></i>within 12 months</span><span><i style="background:var(--pt)"></i>within 3 months</span><span><i style="background:var(--band)"></i>COVID 2020–2021</span></div></div>
+    <div class="two" style="margin-top:20px">
+      <div class="card"><h3 class="cap">By year</h3><div class="rows" id="yearRows"></div></div>
+      <div class="card"><h3 class="cap">Behaviour, not composition: 12-month response by segment</h3>
+        <p class="note" id="covidNote"></p><table class="t" id="covidTable"></table></div>
+    </div>
+  </section>
+
+  <section id="history" data-nav="Invitation history">
+    <h2>Invitation history</h2>
+    <p class="head" id="historyHead"></p>
+    <div class="two">
+      <div class="card"><h3 class="cap">Response by invitation number (in the current run)</h3><div class="rows" id="seqRows"></div></div>
+      <div class="card"><h3 class="cap">Response by months since the last screen</h3><div class="rows" id="mlsRows"></div>
+        <p class="note">Women screened 4–29 months before are almost never invited; “never” = no screen in the 5-year look-back.</p></div>
+    </div>
+  </section>
+
+  <section id="attributes" data-nav="By attribute">
+    <h2>Response by attribute</h2>
+    <p class="head">Pick an attribute: each row is one of its values, with the share screened (selected label) and the number of invitations. The dashed row is all invitations.</p>
+    <div class="card">
+      <div class="tools"><div class="grp"><span>Attribute</span><select id="attrSel"></select></div></div>
+      <div class="rows" id="attrRows"></div>
+    </div>
+  </section>
+
+  <section id="correlations" data-nav="Correlations">
+    <h2>Correlations with the label</h2>
+    <p class="head">Spearman correlation of every numeric attribute with the selected label (blue: more likely screened, orange: less likely). Attributes with missing values are correlated where present. Correlation misses non-monotonic effects: <b>months since the last screen</b> is the strongest model feature but correlates weakly.</p>
+    <div class="main">
+      <div class="card">
+        <div class="tools"><div class="grp"><span>Origin</span><div class="seg" id="originSeg"></div></div></div>
+        <div class="rows" id="corrRows"></div>
+      </div>
+      <div class="card"><h3 class="cap">Categorical attributes: Cramér’s V</h3><div class="rows" id="cramerRows"></div>
+        <p class="note">0 = no association, 1 = perfect; no direction.</p></div>
+    </div>
+  </section>
+
+  <section id="regions" data-nav="Regions">
+    <h2>Regions</h2>
+    <p class="head" id="regionHead"></p>
+    <div class="card"><div class="rows" id="krajRows"></div>
+      <div class="links"><a class="chip" href="response_map.html">Interactive district map →</a><a class="chip" href="response_report.html">Regional report (access, waits, population) →</a></div></div>
+  </section>
+
+  <section id="quality" data-nav="Data quality">
+    <h2>Data quality notes</h2>
+    <div class="method" style="margin-top:12px">
+      <div class="card"><h3 class="cap">Clean</h3><ul class="sq">
+        <li>No duplicate rows; <span class="mono">INVITATION_ID</span> unique.</li>
+        <li>Every missing value is structural: no previous invitation, never screened in 5 years, or not registered with the doctor.</li>
+        <li><span class="mono">PERSON_ID</span> has leading zeros: read it as text.</li></ul></div>
+      <div class="card"><h3 class="cap">Quirks</h3><ul class="sq">
+        <li><span class="mono">INVITATION_SEQUENCE</span> restarts at 1 after a long break; <span class="mono">PRIOR_INVITATION_COUNT</span> is the running total.</li>
+        <li>52 women start at sequence 2 (an earlier invitation is missing); fixed in the prepared data.</li>
+        <li>3,354 rows: screened before but count 0 (60-month window edge); 193 rows over 60 months since the last screen.</li>
+        <li><span class="mono">PRIOR_SCREEN_COUNT_5Y</span> is mostly 2: regular two-yearly screening.</li></ul></div>
+      <div class="card"><h3 class="cap">Modelling consequences</h3><ul class="sq">
+        <li>Most women appear several times: split by woman (70/15/15), never by row.</li>
+        <li>2020 responds lower (COVID): use 2021–2024 for baseline rates.</li>
+        <li>Base rates are low: pick decision thresholds on validation data, not 0.5.</li></ul></div>
+    </div>
+  </section>
+
+  <section id="findings" data-nav="Findings">
+    <h2>Key findings</h2>
+    <div class="card" style="margin-top:12px"><ul class="sq" id="findingsList"></ul></div>
+  </section>
+
+  <footer>Rakathon 2026 · VZP dataset of addressed mammography-screening invitations · built from <span class="mono">data/Rakhaton2026_prepared.csv</span></footer>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+const D = __DATA__;
+const $ = (s, el = document) => el.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const LAB = ["3 months", "6 months", "12 months"];
+let L = 2;
+const pct = (x, d = 1) => (x == null || isNaN(x) ? "–" : (x * 100).toFixed(d) + "%");
+const num = (n) => Math.round(n).toLocaleString("en-US");
+const rate = (r, l = L) => (r.n ? r.p[l] / r.n : NaN);
+const tip = $("#tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + "px"; tip.style.top = Math.max(8, e.clientY - h - 10) + "px"; }
+function hideTip() { tip.style.opacity = 0; }
+function el(tag, attrs = {}, parent) { const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; }
+
+/* ---------- rows: name | bar | value | n ---------- */
+function rows(container, items, { max, ref, header = ["", "", "rate", "n"], tipFn } = {}) {
+  const top = max ?? Math.max(...items.map((r) => r.value)) * 1.05;
+  container.innerHTML = `<div class="row hdr"><span>${header[0]}</span><span>${header[1]}</span><span class="v">${header[2]}</span><span class="n">${header[3]}</span></div>`;
+  for (const r of [...items, ...(ref ? [{ ...ref, ref: true }] : [])]) {
+    const d = document.createElement("div");
+    d.className = "row" + (r.ref ? " ref" : "");
+    const w = Math.max(0, Math.min(1, r.value / top)) * 100;
+    d.innerHTML = `<span class="nm" title="${r.k}">${r.k}</span><span class="tr"><i style="left:0;width:${w}%;background:${r.color || "var(--s4)"}"></i></span><span class="v">${r.text ?? pct(r.value)}</span><span class="n">${r.n != null ? num(r.n) : ""}</span>`;
+    if (tipFn) { d.addEventListener("mousemove", (e) => showTip(e, tipFn(r))); d.addEventListener("mouseleave", hideTip); }
+    container.appendChild(d);
+  }
+}
+function rateRows(container, list, opts = {}) {
+  const items = list.map((r) => ({ k: r.k, n: r.n, p: r.p, value: rate(r) }));
+  const all = D.meta.rates[L];
+  rows(container, items, { ref: { k: "all invitations", value: all, n: D.meta.rows }, tipFn: (r) => r.p ? `<b>${r.k}</b><br>${num(r.n)} invitations<br>within 3 m: ${pct(r.p[0] / r.n)}<br>within 6 m: ${pct(r.p[1] / r.n)}<br>within 12 m: ${pct(r.p[2] / r.n)}` : `<b>${r.k}</b>`, ...opts });
+}
+
+/* ---------- hero ---------- */
+const M = D.meta;
+$("#lede").textContent = `${num(M.rows)} addressed invitations to ${num(M.women)} women (${M.from.slice(0, 4)}–${M.to.slice(0, 4)}). ` +
+  `Only ${pct(M.rates[2])} lead to a screening within 12 months. This page summarises who responds, when, and how the data behave.`;
+$("#kpis").innerHTML = [[num(M.rows), "invitations"], [num(M.women), "women"], [pct(M.rates[0]), "screened within 3 months"],
+  [pct(M.rates[1]), "within 6 months"], [pct(M.rates[2]), "within 12 months"], [pct(M.first), "first invitations"]]
+  .map(([b, s]) => `<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+$("#mData").innerHTML = [`One row = one invitation, ${M.from} to ${M.to}, sent in ${M.dates} batches.`,
+  `${pct(M.repeat_rows, 0)} of rows belong to women invited more than once (up to 5×).`,
+  `${M.areas} VZP territorial areas in 14 regions (kraje).`].map((t) => `<li>${t}</li>`).join("");
+
+/* ---------- label switch, nav, theme ---------- */
+$("#labelSeg").innerHTML = LAB.map((l, i) => `<button type="button" data-l="${i}" aria-pressed="${i === L}">${l}</button>`).join("");
+$("#labelSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; L = +b.dataset.l;
+  $("#labelSeg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); });
+const secs = [...document.querySelectorAll("section[data-nav]")];
+$("#nav").innerHTML = secs.map((s, i) => `<button type="button" data-i="${i}">${s.dataset.nav}</button>`).join("");
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) secs[+b.dataset.i].scrollIntoView({ behavior: "smooth" }); });
+$("#themeBtn").addEventListener("click", () => { const r = document.documentElement,
+  dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; });
+
+/* ---------- monthly charts ---------- */
+const MO = D.monthly, W = 1000, H = 240, PAD = { l: 48, r: 12, t: 12, b: 26 };
+const xOf = (i) => PAD.l + (i + 0.5) * (W - PAD.l - PAD.r) / MO.length;
+const bw = (W - PAD.l - PAD.r) / MO.length;
+function axes(svg, yMax, fmt, ticks) {
+  const g = el("g", { class: "grid" }, svg), ax = el("g", { class: "axis" }, svg);
+  for (const t of ticks) { const y = PAD.t + (1 - t / yMax) * (H - PAD.t - PAD.b);
+    el("line", { x1: PAD.l, x2: W - PAD.r, y1: y, y2: y }, g); const tx = el("text", { x: PAD.l - 6, y: y + 4, "text-anchor": "end" }, ax); tx.textContent = fmt(t); }
+  MO.forEach((m, i) => { if (m.m.endsWith("-01")) { const tx = el("text", { x: xOf(i) - bw / 2, y: H - 8 }, ax); tx.textContent = m.m.slice(0, 4); } });
+}
+function hover(svg, html) { MO.forEach((m, i) => { const r = el("rect", { x: xOf(i) - bw / 2, y: PAD.t, width: bw, height: H - PAD.t - PAD.b, fill: "transparent" }, svg);
+  r.addEventListener("mousemove", (e) => showTip(e, html(m))); r.addEventListener("mouseleave", hideTip); }); }
+const monthTip = (m) => m.n ? `<b>${m.m}</b><br>${num(m.n)} invitations<br>within 3 m: ${pct(m.p[0] / m.n)}<br>within 12 m: ${pct(m.p[2] / m.n)}` : `<b>${m.m}</b><br>no invitations sent`;
+function volChart() {
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Invitations per month" });
+  const yMax = Math.ceil(Math.max(...MO.map((m) => m.n)) / 20000) * 20000;
+  axes(svg, yMax, (t) => (t / 1000) + "k", [0, 20000, 40000, 60000, 80000].filter((t) => t <= yMax));
+  MO.forEach((m, i) => { const y0 = H - PAD.b;
+    if (!m.n) el("rect", { x: xOf(i) - bw / 2, y: PAD.t, width: bw, height: H - PAD.t - PAD.b, fill: "var(--nodata)" }, svg);
+    else { const h = m.n / yMax * (H - PAD.t - PAD.b); el("rect", { x: xOf(i) - bw * 0.4, y: y0 - h, width: bw * 0.8, height: h, rx: 1.5, fill: "var(--s3)" }, svg); } });
+  hover(svg, monthTip); $("#volChart").replaceChildren(svg);
+}
+function respChart() {
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Response by invitation month" });
+  const i0 = MO.findIndex((m) => m.m === "2020-03"), i1 = MO.findIndex((m) => m.m === "2021-12");
+  el("rect", { x: xOf(i0) - bw / 2, y: PAD.t, width: xOf(i1) - xOf(i0) + bw, height: H - PAD.t - PAD.b, fill: "var(--band)" }, svg);
+  const yMax = 0.25; axes(svg, yMax, (t) => Math.round(t * 100) + "%", [0, 0.05, 0.1, 0.15, 0.2, 0.25]);
+  const yOf = (v) => PAD.t + (1 - v / yMax) * (H - PAD.t - PAD.b);
+  for (const [l, color] of [[2, "var(--s4)"], [0, "var(--pt)"]]) {
+    let d = "", pen = false;
+    MO.forEach((m, i) => { if (!m.n) { pen = false; return; } d += (pen ? "L" : "M") + xOf(i).toFixed(1) + " " + yOf(m.p[l] / m.n).toFixed(1); pen = true; });
+    el("path", { d, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+    MO.forEach((m, i) => { if (m.n) el("circle", { cx: xOf(i), cy: yOf(m.p[l] / m.n), r: 2.4, fill: color }, svg); });
+  }
+  hover(svg, monthTip); $("#respChart").replaceChildren(svg);
+}
+
+/* ---------- COVID table ---------- */
+function covidTable() {
+  const C = D.covid, years = Object.keys(C.segments[0].years);
+  $("#covidNote").innerHTML = `With its mix of women, 2020 would have reached <b>${pct(C.expected_2020)}</b> at the 2021–2024 rates; it reached <b>${pct(C.actual_2020)}</b>. The drop hit the women who usually come most (first invitations, lapsed regular screeners); 2020 is highlighted where it is the lowest year.`;
+  const rowsHtml = C.segments.map((s) => { const vals = years.map((y) => s.years[y]); const lo = Math.min(...vals);
+    return `<tr><td>${s.letter} ${s.k}</td>${vals.map((v, j) => `<td class="${j === 0 && v === lo ? "low" : ""}">${pct(v)}</td>`).join("")}</tr>`; }).join("");
+  $("#covidTable").innerHTML = `<tr><th>segment</th>${years.map((y) => `<th>${y}</th>`).join("")}</tr>${rowsHtml}`;
+}
+
+/* ---------- correlations ---------- */
+let ORIGIN = "all";
+const ORIGINS = ["all", "original", "engineered", "history", "spatial"];
+$("#originSeg").innerHTML = ORIGINS.map((o) => `<button type="button" data-o="${o}" aria-pressed="${o === ORIGIN}">${o}</button>`).join("");
+$("#originSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; ORIGIN = b.dataset.o;
+  $("#originSeg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); corrRows(); });
+function corrRows() {
+  const c = $("#corrRows");
+  const items = D.corr.filter((r) => ORIGIN === "all" || r.origin === ORIGIN).map((r) => ({ ...r, value: r.rho[L] }))
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).slice(0, 30);
+  c.innerHTML = `<div class="row hdr"><span>attribute</span><span>− 0 +</span><span class="v">corr.</span><span class="n">coverage</span></div>`;
+  for (const r of items) { const d = document.createElement("div"); d.className = "row div";
+    const w = Math.min(1, Math.abs(r.value) / 0.45) * 50;
+    const pos = r.value >= 0 ? `left:50%;width:${w}%;background:var(--s4)` : `left:${50 - w}%;width:${w}%;background:var(--pt)`;
+    d.innerHTML = `<span class="nm" title="${r.k}">${r.k}</span><span class="tr"><i style="${pos}"></i></span><span class="v">${(r.value >= 0 ? "+" : "") + r.value.toFixed(3)}</span><span class="n">${pct(r.coverage, 0)}</span>`;
+    d.addEventListener("mousemove", (e) => showTip(e, `<b>${r.k}</b> (${r.origin})<br>ρ with 3 / 6 / 12 m: ${r.rho.map((v) => v.toFixed(3)).join(" / ")}<br>present in ${pct(r.coverage, 0)} of rows`));
+    d.addEventListener("mouseleave", hideTip); c.appendChild(d); }
+}
+
+/* ---------- render everything that depends on the label ---------- */
+function render() {
+  const lab = LAB[L];
+  rows($("#labelRows"), LAB.map((l, i) => ({ k: `within ${l}`, value: M.rates[i], n: D.meta.rows })), { max: 0.25 });
+  const late = (M.rates[2] - M.rates[1]) / M.rates[2];
+  $("#labelsHead").innerHTML = `Labels are rare and nested. <b>${pct(late, 0)}</b> of the women screened within 12 months come only after month 6, so the 3-month label misses many later responders.`;
+  rateRows($("#yearRows"), D.yearly);
+  const y = D.yearly, y20 = y[0], rest = y.slice(1).map((r) => rate(r));
+  $("#timeHead").innerHTML = `Invitations go out in batches. COVID paused them (March–April 2020, July–October 2020, February 2021) and they came back as catch-up batches. In 2020 <b>${pct(rate(y20))}</b> were screened within ${lab}, vs. <b>${pct(Math.min(...rest))}–${pct(Math.max(...rest))}</b> in 2021–2024.`;
+  rateRows($("#seqRows"), D.history.sequence);
+  rateRows($("#mlsRows"), D.history.since_screen);
+  const s = D.history.sequence; $("#historyHead").innerHTML = `Each ignored invitation makes the next one less likely: <b>${pct(rate(s[0]))}</b> respond to the first, <b>${pct(rate(s[s.length - 1]))}</b> to the ${s[s.length - 1].k}th (within ${lab}). Previously screened women respond most when they are due, about 3 years after their last screen.`;
+  rateRows($("#attrRows"), D.attributes[$("#attrSel").value]);
+  corrRows();
+  rows($("#cramerRows"), D.cramers.map((r) => ({ k: r.k, value: r.v[L], text: r.v[L].toFixed(3), n: r.levels })),
+    { max: 0.35, header: ["attribute", "", "V", "levels"] });
+  const kraj = [...D.attributes["Region (kraj)"]].sort((a, b) => rate(b) - rate(a));
+  rateRows($("#krajRows"), kraj);
+  $("#regionHead").innerHTML = `Response within ${lab} ranges from <b>${pct(rate(kraj[kraj.length - 1]))}</b> (${kraj[kraj.length - 1].k}) to <b>${pct(rate(kraj[0]))}</b> (${kraj[0].k}). Region shifts the level of response, but the same factors drive it everywhere; distance to a screening centre barely matters.`;
+}
+$("#attrSel").innerHTML = Object.keys(D.attributes).map((k) => `<option>${k}</option>`).join("");
+$("#attrSel").addEventListener("change", () => rateRows($("#attrRows"), D.attributes[$("#attrSel").value]));
+
+const F = D.corr.reduce((o, r) => ((o[r.k] = r.rho[2]), o), {});
+$("#findingsList").innerHTML = [
+  `Only <b>${pct(M.rates[2])}</b> of invitations lead to a screening within 12 months (${pct(M.rates[0])} within 3).`,
+  `Invitations go mostly to women who have not been screened recently; each ignored invitation lowers the chance of the next (ρ with invitation count <b>${F.PRIOR_INVITATION_COUNT.toFixed(2)}</b>).`,
+  `Preventive habits go with response: gynaecologist prevention visits (ρ <b>+${F.GYN_PREVENTION_24M_CNT.toFixed(2)}</b>), other screening programmes (<b>+${F.OTHER_SCREENING_36M_CNT.toFixed(2)}</b>).`,
+  `First invitations respond best; women aged 40–44 (all first invitations) respond at over 50%.`,
+  `Timing matters for previously screened women: almost no response right after a screen, a peak around 3 years later.`,
+  `COVID cut 2020 response by about ${((D.covid.expected_2020 - D.covid.actual_2020) * 100).toFixed(1)} percentage points through behaviour, not a different mix of women.`,
+  `Location shifts the level (by district from about 13% to 24%), not the drivers; spatial attributes correlate at |ρ| ≤ 0.02.`,
+  `Models built on these attributes all reach about ROC AUC 0.84 (12 months): the limit is the information in the data, not the model.`,
+].map((t) => `<li>${t}</li>`).join("");
+
+volChart(); respChart(); covidTable(); render();
+</script>
+</body>
+</html>
