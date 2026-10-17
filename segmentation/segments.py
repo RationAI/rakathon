@@ -61,6 +61,26 @@ INTERVENTIONS = {
     "H disconnected": "stop letters; phone, navigator or mobile unit",
 }
 
+# segment -> (the likely barrier, in a few words; keys of the A/B tests in report/evidence.json
+# that address it). Used by report/build_interventions.py and app/server.py.
+BARRIERS = {
+    "A not due yet": ("Screened less than two years ago: the letter comes too early or her record is out of date.",
+                      ["records"]),
+    "B first invitation": ("First letter: she has to find a centre, book, and face an unfamiliar test.",
+                           ["booking", "fear"]),
+    "C lapsed screener, gynaecologist": ("A regular screener who slipped past her date; she still sees her gynaecologist.",
+                                         ["reminder", "trust"]),
+    "D lapsed screener, no gynaecologist": ("A regular screener who slipped past her date, with no gynaecologist visit.",
+                                            ["reminder", "booking"]),
+    "E never screened, gynaecologist": ("Sees a gynaecologist for prevention but has not had a mammogram in 5 years.",
+                                       ["trust", "need"]),
+    "F never screened, other screening": ("Takes part in another screening programme but skips mammography.",
+                                          ["need", "booking"]),
+    "G never screened, healthcare user": ("Uses healthcare but no prevention: screening does not feel relevant.",
+                                          ["need", "trust"]),
+    "H disconnected": ("No contact with healthcare in a year: letters alone do not reach her.", ["access", "records"]),
+}
+
 COLUMNS = [
     "FIRST_INVITATION",
     "MONTHS_SINCE_LAST_SCREEN",

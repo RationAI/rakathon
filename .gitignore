@@ -25,3 +25,6 @@ outputs/
 .vscode/
 .idea/
 .DS_Store
+
+# Invitation planner (predictor_ui): cached model (refit on first start)
+predictor_ui/model.joblib

@@ -119,6 +119,24 @@ overfit = [{"k": f"{MODEL_NAMES[f]}: {s}", "train": float(cap.loc[(f, s), "train
 feats = abl[abl.study == "features"].merge(cap.reset_index(), on=["family", "setting"], suffixes=("_eng", "_raw"))
 features_gain = [{"k": MODEL_NAMES[r.family], "raw": float(r.test_roc_auc_raw), "eng": float(r.test_roc_auc_eng)}
                  for r in feats.itertuples()]
+# feature funnel: test ROC AUC as attributes are added (1, 3, 5 top attributes -> all 19 -> 96 engineered)
+eng = abl[abl.study == "features"].set_index(["family", "setting"])
+FUNNEL_TOP = ["PRIOR_INVITATION_COUNT", "GYN_PREVENTION_24M_CNT", "MONTHS_SINCE_LAST_SCREEN", "FIRST_INVITATION",
+              "OTHER_SCREENING_36M_CNT"]  # TOP / TOP5 of training/classifiers/ablation/run.py
+funnel = [
+    {"n": 1, "added": [FEATURE_NAMES[f] for f in FUNNEL_TOP[:1]],
+     "lr": float(cap.loc[("few-feature LR", "1 feature"), "test_roc_auc"])},
+    {"n": 3, "added": [FEATURE_NAMES[f] for f in FUNNEL_TOP[1:3]],
+     "lr": float(cap.loc[("few-feature LR", "3 features"), "test_roc_auc"])},
+    {"n": 5, "added": [FEATURE_NAMES[f] for f in FUNNEL_TOP[3:5]],
+     "lr": float(cap.loc[("few-feature LR", "5 features"), "test_roc_auc"])},
+    {"n": 19, "added": ["the other 14 attributes: age, region, GP, healthcare contacts, insurance, …"],
+     "lr": float(cap.loc[("logistic regression", "C=1"), "test_roc_auc"]),
+     "gb": float(cap.loc[("gradient boosting", "31 leaves (default)"), "test_roc_auc"])},
+    {"n": 96, "added": ["the engineered set: history of earlier invitations, distance and waits, dates"],
+     "lr": float(eng.loc[("logistic regression", "C=1"), "test_roc_auc"]),
+     "gb": float(eng.loc[("gradient boosting", "31 leaves (default)"), "test_roc_auc"])},
+]
 cap_all = abl[abl.study == "capacity"]
 descriptions = []
 for m, a in zip(models.model, models.test_roc_auc, strict=True):
@@ -152,7 +170,7 @@ ablation = {
     "fits": len(abl), "families": int(abl.family.nunique()),
     "best": [{"k": MODEL_NAMES.get(r.family, r.family), "setting": r.setting, "auc": float(r.test_roc_auc),
               "gap": float(r.gap_to_best), "lo": float(r.gap_low), "hi": float(r.gap_high)} for r in best.itertuples()],
-    "learning": learning, "overfit": overfit, "features": features_gain, "sweeps": sweeps,
+    "learning": learning, "overfit": overfit, "features": features_gain, "sweeps": sweeps, "funnel": funnel,
 }
 
 # ---------------------------------------------------------------- drivers & effects
