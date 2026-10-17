@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Modul screeningu</title>
+<style>
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --ink2:#6C6C70; --line:#E3E3E8; --accent:#D91E4E; --on-accent:#FFFFFF;
+  --teal:#0E8A86; --teal-soft:#E2F4F3; --amber:#B25E00; --amber-soft:#FFF1DC; --shadow:rgba(0,0,0,.14); --desk:#E5E5EA;
+  --f:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#000; --card:#1C1C1E; --ink:#F5F5F7; --ink2:#A1A1A6; --line:#38383A; --accent:#FF375F; --on-accent:#000;
+  --teal:#40C8C0; --teal-soft:#0F2B2A; --amber:#FFB347; --amber-soft:#3A2A10; --shadow:rgba(0,0,0,.6); --desk:#111113; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:16px}
+body{margin:0;background:var(--desk);color:var(--ink);font:400 1rem/1.42 var(--f);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+
+.stage{min-height:100vh;display:flex;gap:40px;align-items:center;justify-content:center;padding:24px 20px}
+.side{width:300px;display:grid;gap:18px;align-self:center}
+.side h1{font-size:1.5rem;letter-spacing:-.02em;line-height:1.15}
+.side p{color:var(--ink2);font-size:.92rem}
+.side h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin-bottom:8px}
+.pers{display:grid;gap:8px}
+.pers button{all:unset;box-sizing:border-box;cursor:pointer;padding:10px 14px;border-radius:14px;background:var(--card);display:grid;gap:1px;border:2px solid transparent}
+.pers button[aria-pressed="true"]{border-color:var(--accent)}
+.pers b{font-size:.98rem}.pers small{color:var(--ink2);font-size:.82rem}
+.pers button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.why{background:var(--card);border-radius:14px;padding:12px 14px;font-size:.88rem;color:var(--ink2)}
+.why b{color:var(--ink)}
+.proto{font-size:.8rem;color:var(--ink2)}
+
+.phone{width:390px;height:800px;max-height:calc(100vh - 32px);border-radius:46px;background:var(--bg);box-shadow:0 0 0 10px #111,0 40px 90px -20px var(--shadow);overflow:hidden;position:relative;flex:none}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:54px 18px 28px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.sbar{position:absolute;z-index:6;left:0;right:0;top:0;height:44px;display:flex;justify-content:space-between;align-items:center;padding:6px 30px 0;font-size:.85rem;font-weight:650;pointer-events:none}
+.view{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes growx{from{transform:scaleX(0)}}
+
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px;min-height:40px}
+.back{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;background:var(--card);display:grid;place-items:center;flex:none}
+.back:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hi{font-size:1.7rem;font-weight:740;letter-spacing:-.03em;line-height:1.1}
+.sub{color:var(--ink2);margin-top:2px}
+.h1{font-size:1.5rem;font-weight:740;letter-spacing:-.03em;line-height:1.12}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-top:14px;display:grid;gap:10px}
+.chip{justify-self:start;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--amber-soft);color:var(--amber)}
+.chip.ok{background:var(--teal-soft);color:var(--teal)}
+.big{font-size:1.3rem;font-weight:730;letter-spacing:-.02em;line-height:1.18}
+.mut{color:var(--ink2);font-size:.95rem}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;min-height:50px;padding:0 20px;border-radius:25px;background:var(--accent);color:var(--on-accent);font-weight:650;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.soft{background:var(--bg);color:var(--ink)}
+.view>.btn{width:100%}
+.btn[disabled]{opacity:.4;cursor:default}
+.btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.rows{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px}
+.row{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line);cursor:pointer}
+.row:first-child{border-top:none}
+.row.static{cursor:default}
+.row .rt{flex:1;min-width:0;display:grid;gap:1px}
+.row .rt b{font-weight:640}.row .rt small{color:var(--ink2);font-size:.84rem}
+.row .rr{text-align:right;display:grid;justify-items:end;gap:2px;font-size:.88rem}
+.row .rr strong{font-weight:700}
+.row em{font-style:normal;font-size:.72rem;font-weight:700;color:var(--teal);background:var(--teal-soft);padding:2px 9px;border-radius:99px}
+.row:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.dotok{width:10px;height:10px;border-radius:50%;background:var(--teal);flex:none}
+.dotwarn{background:#F0A030}.dotoff{background:var(--line)}
+.sect{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin:22px 4px -6px}
+
+/* notification */
+.notif{position:absolute;z-index:7;left:10px;right:10px;top:46px;background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:20px;padding:12px 14px;box-shadow:0 14px 40px -12px var(--shadow);
+  display:grid;grid-template-columns:34px 1fr;gap:4px 10px;cursor:pointer;animation:drop .6s .8s cubic-bezier(.3,1.3,.5,1) both;text-align:left;border:none;width:calc(100% - 20px)}
+.notif i{grid-row:1/3;width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,#FF6B8E,var(--accent));display:grid;place-items:center;color:#fff}
+.notif b{font-size:.85rem}.notif span{font-size:.85rem;color:var(--ink2);line-height:1.3}
+@keyframes drop{from{transform:translateY(-130%);opacity:0}}
+
+/* paths */
+.pth{display:grid;gap:5px}
+.pth+.pth{margin-top:12px}
+.pth .rw{display:flex;justify-content:space-between;align-items:baseline}
+.pth b{font-weight:680}.pth .val{font-weight:750;font-size:1.25rem;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pth .tr{height:12px;border-radius:6px;background:var(--bg);overflow:hidden}
+.pth .tr i{display:block;height:100%;border-radius:6px;width:var(--w);transform-origin:left;animation:growx 1.1s calc(.3s + var(--i)*.25s) cubic-bezier(.2,.8,.2,1) both;background:linear-gradient(90deg,var(--c1),var(--c2))}
+.pth .cap{color:var(--ink2);font-size:.85rem}
+.src{color:var(--ink2);font-size:.78rem;margin-top:6px}
+
+/* accordion */
+.acc{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px}
+.ah{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-top:1px solid var(--line);font-weight:650}
+.acc>.ah:first-child{border-top:none}
+.ah .ico{transition:transform .25s}.ah[aria-expanded="true"] .ico{transform:rotate(90deg)}
+.ah:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.ab{padding:0 18px 16px;color:var(--ink2);display:grid;gap:8px;font-size:.95rem}
+.ab b{color:var(--ink)}
+
+/* slots */
+.days{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.day{all:unset;box-sizing:border-box;flex:none;width:62px;padding:9px 0;border-radius:16px;background:var(--card);text-align:center;cursor:pointer;display:grid;gap:0}
+.day small{font-size:.72rem;text-transform:uppercase;color:var(--ink2);font-weight:650}
+.day b{font-size:1.4rem;letter-spacing:-.02em;line-height:1.15}.day span{font-size:.72rem;color:var(--ink2)}
+.day[aria-pressed="true"]{background:var(--accent)}
+.day[aria-pressed="true"] *{color:var(--on-accent)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{all:unset;box-sizing:border-box;cursor:pointer;min-height:46px;border-radius:13px;background:var(--card);display:grid;place-items:center;font-weight:620;font-variant-numeric:tabular-nums}
+.slot[disabled]{opacity:.3;text-decoration:line-through;cursor:default}
+.slot[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.day:focus-visible,.slot:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{position:sticky;bottom:-28px;margin:16px -18px -28px;padding:14px 18px 28px;background:linear-gradient(to bottom,transparent,var(--bg) 28%);display:grid;gap:8px}
+.bar .sum{font-weight:650;text-align:center}
+
+/* done */
+.okc{width:92px;margin:6px auto 0}
+.okc circle,.okc path{stroke-dasharray:100;animation:dash 1s cubic-bezier(.2,.8,.2,1) both}.okc path{animation-delay:.7s}
+@keyframes dash{from{stroke-dashoffset:100}}
+.tk{background:var(--card);border-radius:22px;overflow:hidden;margin-top:14px;animation:rise .6s .3s both}
+.tkh{background:linear-gradient(145deg,#FF6B8E,var(--accent));color:#fff;padding:16px 18px}
+.tkh small{opacity:.9;font-weight:600;text-transform:capitalize}.tkh b{display:block;font-size:1.7rem;letter-spacing:-.03em;line-height:1.1}.tkh span{font-size:1.15rem;font-weight:700}
+.tkb{padding:14px 18px;display:grid;gap:10px}.tkb small{display:block;color:var(--ink2);font-size:.76rem;font-weight:650}
+.tog{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-top:1px solid var(--line)}
+.tog:first-child{border-top:none}
+.sw{all:unset;cursor:pointer;width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;transition:background .25s;flex:none}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:transform .25s}
+.sw[aria-checked="true"]{background:var(--teal)}.sw[aria-checked="true"] i{transform:translateX(20px)}
+.sw:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.demo{background:var(--amber-soft);color:var(--amber);border-radius:14px;padding:10px 14px;font-size:.85rem;font-weight:600;margin-top:14px}
+.safety{display:flex;gap:10px;background:var(--card);border-radius:18px;padding:12px 14px;margin-top:14px;font-size:.86rem;color:var(--ink2)}
+
+@media (max-width:860px){
+  .stage{display:block;padding:0}
+  .side{width:auto;padding:16px 16px 12px;background:var(--desk)}
+  .side .why,.side .proto{display:none}
+  .pers{grid-template-columns:1fr 1fr}
+  .phone{width:100%;height:auto;min-height:calc(100vh - 150px);max-height:none;border-radius:0;box-shadow:none;position:relative}
+  .screen{position:relative;inset:auto;padding-top:20px;min-height:calc(100vh - 150px)}
+  .sbar{display:none}
+  .notif{position:fixed;top:12px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 1112 0v6l1.5 2h-15L6 17zM10 21h4"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A15 15 0 013 6a2 2 0 012-2z"/></symbol>
+</svg>
+
+<div class="stage">
+  <aside class="side">
+    <div><h1>Modul screeningu</h1><p style="margin-top:6px">Klikací prototyp: jak by mohl vypadat screening uvnitř mobilní aplikace pojišťovny.</p></div>
+    <div><h2>Kdo se dívá (ukázkové ženy)</h2><div class="pers" id="pers" role="group" aria-label="Ukázková žena"></div></div>
+    <div class="why" id="why"></div>
+    <p class="proto">Prototyp z Rakathonu 2026. Všechny osoby jsou smyšlené, nic se neodesílá. Nejde o oficiální aplikaci žádné pojišťovny. Čísla o přežití: SEER, USA, 2015–2021.</p>
+  </aside>
+  <div class="phone" role="region" aria-label="Náhled mobilní aplikace">
+    <div class="sbar" aria-hidden="true"><span id="clock">9:41</span><span>●●●</span></div>
+    <div class="screen" id="scr"></div>
+  </div>
+</div>
+
+<script>
+const CENTERS = [{"id": "29", "name": "AGEL Diagnostické centrum s.r.o. - Nový Jičín", "open": 6.75, "close": 17.0, "address": "Dvořákova 2211/27", "city": "Nový Jičín", "region": "Moravskoslezský kraj", "phone": "+420 800 266 666", "wait": 15, "updated": "2026-10-15", "booking": null, "site": "https://diagnostickecentrum.agel.cz/", "detail": "https://www.mamo.cz/centrum/29-agel-diagnosticke-centrum-s-r-o-novy-jicin/"}, {"id": "36", "name": "AGUR, s.r.o. (Mamografické pracoviště Pelhřimov)", "open": 7.5, "close": 16.0, "address": "Osvobození 1699", "city": "Pelhřimov", "region": "Kraj Vysočina", "phone": "+420 565 325 036", "wait": 3, "updated": "2026-10-15", "booking": null, "site": "http://www.agur.cz", "detail": "https://www.mamo.cz/centrum/36-agur-s-r-o-mamograficke-pracoviste-pelhrimov/"}, {"id": "49", "name": "DS radiodiagnostika, s.r.o. (Poliklinika Třebíč – Mamografie)", "open": 7.0, "close": 15.5, "address": "Vltavínská 1289", "city": "Třebíč", "region": "Kraj Vysočina", "phone": "+420 608 907 611", "wait": 3, "updated": "2026-09-16", "booking": null, "site": "http://www.dsradiodiagnostika.cz/", "detail": "https://www.mamo.cz/centrum/49-ds-radiodiagnostika-s-r-o-poliklinika-trebic-mamografie/"}, {"id": "89", "name": "EUC Mamocentrum Bílina", "open": 8.0, "close": 13.0, "address": "Pražská 206/95", "city": "Bílina", "region": "Ústecký kraj", "phone": "+420 417 635 002", "wait": 28, "updated": "2026-09-22", "booking": "https://live.euc.cz/Reservation/Index/24351", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-bilina/", "detail": "https://www.mamo.cz/centrum/89-euc-mamocentrum-bilina/"}, {"id": "5", "name": "EUC Mamocentrum Brno", "open": 7.0, "close": 18.0, "address": "Rooseveltova 564/8", "city": "Brno", "region": "Jihomoravský kraj", "phone": "+420 542 210 016, +420 542 210 028", "wait": 3, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/24341", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-brno/", "detail": "https://www.mamo.cz/centrum/5-euc-mamocentrum-brno/"}, {"id": "9", "name": "EUC Mamocentrum Česká Lípa", "open": 8.5, "close": 17.0, "address": "Purkyňova 1849", "city": "Česká Lípa", "region": "Liberecký kraj", "phone": "+420 487 356 010", "wait": 0, "updated": "2026-09-22", "booking": "https://live.euc.cz/Reservation/Index/24461", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-ceska-lipa/", "detail": "https://www.mamo.cz/centrum/9-euc-mamocentrum-ceska-lipa/"}, {"id": "10", "name": "EUC Mamocentrum České Budějovice", "open": 7.0, "close": 16.5, "address": "Matice školské 1786/17", "city": "České Budějovice", "region": "Jihočeský kraj", "phone": "+420 389 109 909", "wait": 12, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/24477", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-ceske-budejovice/", "detail": "https://www.mamo.cz/centrum/10-euc-mamocentrum-ceske-budejovice/"}, {"id": "21", "name": "EUC Mamocentrum Kladno", "open": 7.5, "close": 16.0, "address": "Huťská 211", "city": "Kladno", "region": "Středočeský kraj", "phone": "+420 312 619 127", "wait": 2, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/24364", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-kladno/", "detail": "https://www.mamo.cz/centrum/21-euc-mamocentrum-kladno/"}, {"id": "25", "name": "EUC Mamocentrum Liberec", "open": 7.0, "close": 12.5, "address": "Klášterní 117/2", "city": "Liberec", "region": "Liberecký kraj", "phone": "+420 483 100 228", "wait": 7, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/29383", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-liberec/", "detail": "https://www.mamo.cz/centrum/25-euc-mamocentrum-liberec/"}, {"id": "74", "name": "EUC Mamocentrum Olomouc", "open": 7.0, "close": 17.0, "address": "Na Šibeníku 914/1", "city": "Olomouc", "region": "Olomoucký kraj", "phone": "+420 588 000 389", "wait": 1, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/24387", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-olomouc/", "detail": "https://www.mamo.cz/centrum/74-euc-mamocentrum-olomouc/"}, {"id": "32", "name": "EUC Mamocentrum Ostrava", "open": 7.0, "close": 17.0, "address": "Opavská 962/39", "city": "Ostrava-Poruba", "region": "Moravskoslezský kraj", "phone": "+420 597 437 777", "wait": 24, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/27200", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-ostrava/", "detail": "https://www.mamo.cz/centrum/32-euc-mamocentrum-ostrava/"}, {"id": "35", "name": "EUC Mamocentrum Pardubice", "open": 7.0, "close": 16.0, "address": "Rokycanova 2911", "city": "Pardubice", "region": "Pardubický kraj", "phone": "+420 466 614 420", "wait": 10, "updated": "2026-10-16", "booking": "https://live.euc.cz/Reservation/Index/24405", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-pardubice/", "detail": "https://www.mamo.cz/centrum/35-euc-mamocentrum-pardubice/"}, {"id": "50", "name": "EUC Mamocentrum Ústí nad Labem", "open": 7.5, "close": 14.0, "address": "Masarykova 2000/92", "city": "Ústí nad Labem", "region": "Ústecký kraj", "phone": "+420 477 102 100, +420 477 102 101, +420 477 102 111,", "wait": 32, "updated": "2026-09-22", "booking": "https://live.euc.cz/Reservation/Index/24446", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-usti-nad-labem/", "detail": "https://www.mamo.cz/centrum/50-euc-mamocentrum-usti-nad-labem/"}, {"id": "71", "name": "EUC Mamocentrum Zlín", "open": 6.5, "close": 18.0, "address": "třída T. Bati 5135", "city": "Zlín", "region": "Zlínský kraj", "phone": "+420 571 857 211", "wait": 1, "updated": "2026-10-15", "booking": "https://live.euc.cz/Reservation/Index/45710?_gl=1*1bma616*_gcl_au*MzgwNjMzNzQ5LjE3Njc4NTcxMTg.*_ga*MTgxNzEzNjIyLjE3NTk4MjIwNDA.*_ga_43L5S80CWP*czE3NzE5NDA3MjMkbzgkZzAkdDE3NzE5NDA3MjMkajYwJGwwJGgw", "site": "https://euc.cz/nase-zarizeni/mamocentra/euc-mamocentrum-zlin/", "detail": "https://www.mamo.cz/centrum/71-euc-mamocentrum-zlin/"}, {"id": "4", "name": "Fakultní nemocnice Brno – pracoviště Porodnice – Mamodiagnostické oddělení", "open": 7.0, "close": 15.0, "address": "Obilní trh 11", "city": "Brno", "region": "Jihomoravský kraj", "phone": "+420 532 238 433", "wait": 3, "updated": "2026-10-15", "booking": "https://www.fnbrno.cz/porodnice/klinika-radiologie-a-nuklearni-mediciny-mammo-rtg-a-uz/objednani/t4014", "site": "https://www.fnbrno.cz/klinika-radiologie-a-nuklearni-mediciny-mammo-a-rtg/k1499", "detail": "https://www.mamo.cz/centrum/4-fakultni-nemocnice-brno-pracoviste-porodnice-mamodiagnosticke-oddeleni/"}, {"id": "43", "name": "Fakultní Nemocnice Bulovka – Mamodiagnostické centrum", "open": 7.0, "close": 15.0, "address": "Budínova 2", "city": "Praha 8", "region": "Hlavní město Praha", "phone": "+420 266 084 561", "wait": 22, "updated": "2026-10-15", "booking": "https://mamo.bulovka.cz/", "site": "https://bulovka.cz/kliniky-a-oddeleni/radiodiagnosticke-oddeleni/mamografie", "detail": "https://www.mamo.cz/centrum/43-fakultni-nemocnice-bulovka-mamodiagnosticke-centrum/"}, {"id": "16", "name": "Fakultní nemocnice Hradec Králové – Radiologická klinika", "open": null, "close": null, "address": "Sokolská 581", "city": "Hradec Králové", "region": "Královéhradecký kraj", "phone": "+420 495 832 118", "wait": 24, "updated": "2026-09-18", "booking": null, "site": "https://www.fnhk.cz/rdg/mamologie/screening", "detail": "https://www.mamo.cz/centrum/16-fakultni-nemocnice-hradec-kralove-radiologicka-klinika/"}, {"id": "45", "name": "Fakultní nemocnice Královské Vinohrady – Mamodiagnostické centrum", "open": 7.0, "close": 17.5, "address": "Šrobárova 50", "city": "Praha 10", "region": "Hlavní město Praha", "phone": "+420 267 162 406", "wait": 45, "updated": "2026-10-15", "booking": "https://objednavky.fnkv.cz/objednavka2.php?ID=14%20", "site": "https://www.fnkv.cz/mamodiagnosticke-centrum.php", "detail": "https://www.mamo.cz/centrum/45-fakultni-nemocnice-kralovske-vinohrady-mamodiagnosticke-centrum/"}, {"id": "44", "name": "Fakultní nemocnice Motol a Homolka – Radiodiagnostické oddělení", "open": 7.0, "close": 17.0, "address": "Roentgenova 37/2", "city": "Praha 5", "region": "Hlavní město Praha", "phone": "+420 257 272 516", "wait": 7, "updated": "2026-09-15", "booking": "https://portal.homolka.cz/#/order?amb=RDGMAM", "site": "https://www.homolka.cz/nase-oddeleni/11635-diagnosticky-program/11635-radiodiagnosticke-oddeleni-rdg/11780-nase-sluzby/11782-mamografie-a-ultrazvukove-vysetreni-prsu/", "detail": "https://www.mamo.cz/centrum/44-fakultni-nemocnice-motol-a-homolka-radiodiagnosticke-oddeleni/"}, {"id": "30", "name": "Fakultní nemocnice Olomouc – Oddělení mamární diagnostiky", "open": 7.0, "close": 18.0, "address": "I. P. Pavlova 6", "city": "Olomouc", "region": "Olomoucký kraj", "phone": "+420 588 444 736", "wait": 2, "updated": "2026-10-15", "booking": "https://mamoobjpac.fnol.cz/#/", "site": "https://mamografie.fnol.cz", "detail": "https://www.mamo.cz/centrum/30-fakultni-nemocnice-olomouc-oddeleni-mamarni-diagnostiky/"}, {"id": "63", "name": "Fakultní nemocnice Ostrava – Mamodiagnostické centrum", "open": 7.0, "close": 19.0, "address": "17. listopadu 1790/5", "city": "Ostrava-Poruba", "region": "Moravskoslezský kraj", "phone": "+420 597 374 083", "wait": 25, "updated": "2026-09-15", "booking": null, "site": "https://www.fno.cz/ustav-radiodiagnosticky/mamografie", "detail": "https://www.mamo.cz/centrum/63-fakultni-nemocnice-ostrava-mamodiagnosticke-centrum/"}, {"id": "38", "name": "Fakultní nemocnice Plzeň – Lochotín – Mamocentrum", "open": 7.0, "close": 17.5, "address": "alej Svobody 80", "city": "Plzeň", "region": "Plzeňský kraj", "phone": "+420 377 105 710", "wait": 28, "updated": "2026-07-15", "booking": "https://mamocentrum.fnplzen.cz/cs/node/1731", "site": "https://mamocentrum.fnplzen.cz", "detail": "https://www.mamo.cz/centrum/38-fakultni-nemocnice-plzen-lochotin-mamocentrum/"}, {"id": "42", "name": "Fakultní Thomayerova nemocnice – Mamografické pracoviště", "open": 7.0, "close": 15.5, "address": "Vídeňská 800", "city": "Praha 4", "region": "Hlavní město Praha", "phone": "+420 261 082 190", "wait": 10, "updated": "2026-10-15", "booking": "https://thomayerova-nemocnice.reservio.com/mamograf", "site": "http://www.ftn.cz/mamograficke-pracoviste-pavilon-d-357/", "detail": "https://www.mamo.cz/centrum/42-fakultni-thomayerova-nemocnice-mamograficke-pracoviste/"}, {"id": "6", "name": "FEMMA, s.r.o. – Mamografické pracoviště", "open": null, "close": null, "address": "Viniční 235", "city": "Brno", "region": "Jihomoravský kraj", "phone": "+420 533 306 275", "wait": 17, "updated": "2026-10-15", "booking": "https://www.femma.cz/?akce=1#clobsah", "site": "https://www.femma.cz", "detail": "https://www.mamo.cz/centrum/6-femma-s-r-o-mamograficke-pracoviste/"}, {"id": "67", "name": "Karvinská hornická nemocnice – Mamografie", "open": 7.0, "close": 15.0, "address": "Zakladatelská 975/22", "city": "Karviná", "region": "Moravskoslezský kraj", "phone": "+420 596 380 176", "wait": 12, "updated": "2026-10-15", "booking": "https://e-health.msk.cz/Reservation/Home/ReservationSchedule?organizationIdentifier=140&ambulanceIdentifier=10273085&returnUrl=%2FReservation%2FHome%2FHospital%2F140%2FAmbulance", "site": "https://www.khn.cz/ao/mamografie-mg-mamograficky-screening-84", "detail": "https://www.mamo.cz/centrum/67-karvinska-hornicka-nemocnice-mamografie/"}, {"id": "103", "name": "Krajská nemocnice T. Bati, a. s. - Mamodiagnostické centrum", "open": 7.5, "close": 15.0, "address": "Havlíčkovo nábřeží 600", "city": "Zlín", "region": "Zlínský kraj", "phone": "+420 605 221 109", "wait": 10, "updated": "2026-10-16", "booking": "https://www.kntb.cz/objednani-on-line", "site": "https://www.kntb.cz/mamodiagnosticke-centrum-o-nas", "detail": "https://www.mamo.cz/centrum/103-krajska-nemocnice-t-bati-a-s-mamodiagnosticke-centrum/"}, {"id": "55", "name": "Krajská zdravotní, a.s. – Nemocnice Chomutov, o.z. – Mamodiagnostické pracoviště", "open": 7.0, "close": 14.5, "address": "Kochova 1185", "city": "Chomutov", "region": "Ústecký kraj", "phone": "+420 477 117 680", "wait": 40, "updated": "2026-09-16", "booking": "https://portal.kzcr.eu/Reservation/Home/ReservationSchedule?organizationIdentifier=5&ambulanceIdentifier=74&returnUrl=%2FReservation%2FHome%2FHospital%2F5%2FAmbulance", "site": "https://www.kzcr.eu/cz/cv/pro-pacienty/zdravotnicka-pracoviste/rdg/mamodiagnosticke-centrum/", "detail": "https://www.mamo.cz/centrum/55-krajska-zdravotni-a-s-nemocnice-chomutov-o-z-mamodiagnosticke-pracoviste/"}, {"id": "92", "name": "Mamma centrum Hradčanská", "open": 7.25, "close": 15.5, "address": "Bubenečská 12", "city": "Praha 6", "region": "Hlavní město Praha", "phone": "+420 775 131 111", "wait": 28, "updated": "2026-10-15", "booking": "https://buprague.cz/rezervace/", "site": "https://www.buprague.cz/o-spolecnosti/pracoviste-hradcanska", "detail": "https://www.mamo.cz/centrum/92-mamma-centrum-hradcanska/"}, {"id": "80", "name": "Mamma centrum Opatov", "open": 7.25, "close": 18.5, "address": "Líbalova 2348/1", "city": "Praha 11", "region": "Hlavní město Praha", "phone": "+420 775 131 111", "wait": 21, "updated": "2026-10-15", "booking": "https://www.buprague.cz/rezervace/", "site": "https://www.buprague.cz/o-spolecnosti/pracoviste-opatov/", "detail": "https://www.mamo.cz/centrum/80-mamma-centrum-opatov/"}, {"id": "87", "name": "Mamma centrum Trutnov", "open": 7.5, "close": 15.5, "address": "Palackého 256", "city": "Trutnov", "region": "Královéhradecký kraj", "phone": "+420 491 617 099", "wait": 28, "updated": "2026-10-15", "booking": null, "site": "https://www.mamologie-trutnov.cz", "detail": "https://www.mamo.cz/centrum/87-mamma-centrum-trutnov/"}, {"id": "62", "name": "MAMMACENTRUM Olomouc, s.r.o. (Mamografie Olomouc)", "open": 7.0, "close": 17.5, "address": "Nezvalova 987/1", "city": "Olomouc", "region": "Olomoucký kraj", "phone": "+420 731 613 485, +420 731 468 922", "wait": 1, "updated": "2026-10-15", "booking": "https://www.mammacentrum-olomouc.cz/objednani", "site": "https://www.mammacentrum-olomouc.cz", "detail": "https://www.mamo.cz/centrum/62-mammacentrum-olomouc-s-r-o-mamografie-olomouc/"}, {"id": "22", "name": "Mammocentrum Klatovy", "open": 7.0, "close": 16.0, "address": "Nerudova 607/3", "city": "Klatovy", "region": "Plzeňský kraj", "phone": "+420 376 315 554", "wait": 6, "updated": "2026-10-15", "booking": "http://www.mammocentrum.eu/mammocentrum/objednavka.asp", "site": "http://www.mammocentrum.eu", "detail": "https://www.mamo.cz/centrum/22-mammocentrum-klatovy/"}, {"id": "81", "name": "Mammocentrum Vsetín", "open": 6.5, "close": 15.0, "address": "Nemocniční 945", "city": "Vsetín", "region": "Zlínský kraj", "phone": "+420 800 266 666", "wait": 25, "updated": "2026-10-15", "booking": null, "site": "https://diagnostickecentrum.agel.cz/pracoviste/vsetin.html", "detail": "https://www.mamo.cz/centrum/81-mammocentrum-vsetin/"}, {"id": "3", "name": "Mamodiagnostické centrum Beroun (Radiodiagnostika, s.r.o.)", "open": 7.5, "close": 18.0, "address": "Pod Kaplankou 1888", "city": "Beroun", "region": "Středočeský kraj", "phone": "+420 607 502 846", "wait": 10, "updated": "2026-09-28", "booking": "https://www.navstevalekare.cz/lekari/mamografie--screeningova-mamografie-s51079/stredocesky-kraj-k309/beroun-o550/beroun-mesto-m10967/mamocentrum-beroun-d38933.html", "site": "https://www.mamocentrum.cz", "detail": "https://www.mamo.cz/centrum/3-mamodiagnosticke-centrum-beroun-radiodiagnostika-s-r-o/"}, {"id": "93", "name": "Mamodiagnostické centrum Waltrovka (Radiodiagnostika, s.r.o.)", "open": 7.5, "close": 17.0, "address": "Walterovo náměstí 329/2", "city": "Praha 5", "region": "Hlavní město Praha", "phone": "+420 792 316 750, +420 792 316 758", "wait": 3, "updated": "2026-10-15", "booking": "https://www.navstevalekare.cz/lekari/mamografie--screeningova-mamografie-s51079/stredocesky-kraj-k309/praha-5-o581/jinonice-m11149/mamodiagnosticke-centrum-waltrovka-praha-d39410.html", "site": "https://www.waltrovka.eu/", "detail": "https://www.mamo.cz/centrum/93-mamodiagnosticke-centrum-waltrovka-radiodiagnostika-s-r-o/"}, {"id": "73", "name": "Mamografické pracoviště Krnov", "open": 7.5, "close": 14.5, "address": "I. P. Pavlova 552/9", "city": "Krnov", "region": "Moravskoslezský kraj", "phone": "+420 554 690 325", "wait": 5, "updated": "2026-10-15", "booking": null, "site": "https://www.szzkrnov.cz/oddeleni/radiodiagnosticke-oddeleni-rdg", "detail": "https://www.mamo.cz/centrum/73-mamograficke-pracoviste-krnov/"}, {"id": "14", "name": "Mamografie HB s.r.o. (Mamografie Havlíčkův Brod)", "open": 7.0, "close": 15.5, "address": "Vrabčí trh 187", "city": "Havlíčkův Brod", "region": "Kraj Vysočina", "phone": "+420 569 429 733", "wait": 11, "updated": "2026-09-16", "booking": null, "site": "http://mamografiehb.cz", "detail": "https://www.mamo.cz/centrum/14-mamografie-hb-s-r-o-mamografie-havlickuv-brod/"}, {"id": "15", "name": "MAMOLOGIE A SONOGRAFIE s.r.o. (Mamografie Hradec Králové)", "open": 7.0, "close": 14.0, "address": "Františka Halase 1050/7", "city": "Hradec Králové", "region": "Královéhradecký kraj", "phone": "+420 739 525 219", "wait": 6, "updated": "2026-10-15", "booking": "https://mamologie-a-sonografie.reservio.com/mamologie-a-sonografie-s-r-o", "site": "http://www.mamosono.cz", "detail": "https://www.mamo.cz/centrum/15-mamologie-a-sonografie-s-r-o-mamografie-hradec-kralove/"}, {"id": "7", "name": "Masarykův onkologický ústav – Oddělení radiologie", "open": 7.0, "close": 15.5, "address": "Žlutý kopec 7", "city": "Brno", "region": "Jihomoravský kraj", "phone": "+420 844 844 885", "wait": 12, "updated": "2026-09-16", "booking": null, "site": "https://www.mou.cz/oddeleni-radiologie/t1362", "detail": "https://www.mamo.cz/centrum/7-masarykuv-onkologicky-ustav-oddeleni-radiologie/"}, {"id": "20", "name": "MEDIAG PB, s.r.o. (Poliklinika Karlovy Vary – Mamografie)", "open": 7.5, "close": 15.5, "address": "nám. Dr. M. Horákové 1313/8", "city": "Karlovy Vary", "region": "Karlovarský kraj", "phone": "+420 353 112 226", "wait": 10, "updated": "2026-10-15", "booking": "http://www.navstevalekare.cz/lekari/mamografie--screeningova-mamografie-s51079/karlovarsky-kraj-k302/karlovy-vary-o515/karlovy-vary-m4147/mamografie-karlovy-vary--mediag-d38719.html#orders", "site": "https://mediag.cz", "detail": "https://www.mamo.cz/centrum/20-mediag-pb-s-r-o-poliklinika-karlovy-vary-mamografie/"}, {"id": "2", "name": "Medicon services s.r.o. – Mammacentrum Benešov u Prahy", "open": 8.0, "close": 16.0, "address": "Karla Nového 2409", "city": "Benešov", "region": "Středočeský kraj", "phone": "+420 317 724 333", "wait": 5, "updated": "2026-08-24", "booking": "https://www.mammacentrum.cz/#OrderForm", "site": "https://mammacentrum.cz/mammacentrum-benesov-u-prahy/", "detail": "https://www.mamo.cz/centrum/2-medicon-services-s-r-o-mammacentrum-benesov-u-prahy/"}, {"id": "41", "name": "Medicon services s.r.o. – Mammacentrum Budějovická", "open": 7.25, "close": 15.25, "address": "Antala Staška 1670/80", "city": "Praha 4", "region": "Hlavní město Praha", "phone": "+420 242 242 000", "wait": 14, "updated": "2026-10-16", "booking": "https://www.mammacentrum.cz/#OrderForm", "site": "https://mammacentrum.cz/mammacentrum-budejovicka/", "detail": "https://www.mamo.cz/centrum/41-medicon-services-s-r-o-mammacentrum-budejovicka/"}, {"id": "19", "name": "MEDICOOP, s.r.o. (Mamografie Kroměříž)", "open": 7.5, "close": 14.0, "address": "nám. Míru 3760/11", "city": "Kroměříž", "region": "Zlínský kraj", "phone": "+420 774 725 134", "wait": 5, "updated": "2026-10-15", "booking": null, "site": "https://www.mamograf-km.cz", "detail": "https://www.mamo.cz/centrum/19-medicoop-s-r-o-mamografie-kromeriz/"}, {"id": "37", "name": "Mediray, s.r.o. (Mamocentrum Plzeň)", "open": 7.25, "close": 15.5, "address": "Denisovo nábřeží 1000/4", "city": "Plzeň", "region": "Plzeňský kraj", "phone": "+420 378 218 469", "wait": 29, "updated": "2026-10-16", "booking": null, "site": "http://www.mediray.cz", "detail": "https://www.mamo.cz/centrum/37-mediray-s-r-o-mamocentrum-plzen/"}, {"id": "104", "name": "Nemocnice AGEL Jeseník a.s.", "open": 9.0, "close": 14.0, "address": "Lipovská 103/39", "city": "Jeseník", "region": "Olomoucký kraj", "phone": "584 458 486", "wait": 25, "updated": "2026-10-15", "booking": null, "site": "https://nemocnicejesenik.agel.cz/index.html", "detail": "https://www.mamo.cz/centrum/104-nemocnice-agel-jesenik-a-s/"}, {"id": "33", "name": "Nemocnice AGEL Ostrava-Vítkovice a.s. – Mamodiagnostické a screeningové centrum", "open": 6.75, "close": 14.5, "address": "Zalužanského 1192/15", "city": "Ostrava-Vítkovice", "region": "Moravskoslezský kraj", "phone": "+420 595 633 475", "wait": 5, "updated": "2026-09-22", "booking": "http://mamograficky-screening.nemvitkovice.cz", "site": "https://nemocnicevitkovice.agel.cz/pracoviste/oddeleni/rdg/informace-pro-pacienty/mamografie.html", "detail": "https://www.mamo.cz/centrum/33-nemocnice-agel-ostrava-vitkovice-a-s-mamodiagnosticke-a-screeningove-centrum/"}, {"id": "66", "name": "Nemocnice AGEL Prostějov – Mammocentrum", "open": 7.0, "close": 14.5, "address": "Mathonova 291/1", "city": "Prostějov", "region": "Olomoucký kraj", "phone": "+420 582 315 302", "wait": 14, "updated": "2026-10-15", "booking": "https://muj.agel.cz/login", "site": "https://nemocniceprostejov.agel.cz/pracoviste/ambulance/radiodiagnosticke-amb/mamografie.html", "detail": "https://www.mamo.cz/centrum/66-nemocnice-agel-prostejov-mammocentrum/"}, {"id": "65", "name": "Nemocnice Blansko – Radiodiagnostické oddělení", "open": 7.0, "close": 18.5, "address": "Sadová 1596/33", "city": "Blansko", "region": "Jihomoravský kraj", "phone": "+420 800 149 485", "wait": 1, "updated": "2026-10-15", "booking": "https://objednavky.nemobk.cz/", "site": "https://www.nemobk.cz/mamarni-program/", "detail": "https://www.mamo.cz/centrum/65-nemocnice-blansko-radiodiagnosticke-oddeleni/"}, {"id": "105", "name": "Nemocnice Havířov - Mamocentrum", "open": 7.0, "close": 15.0, "address": "Dělnická 1132/24", "city": "Havířov", "region": "Moravskoslezský kraj", "phone": "+420 704 683 320", "wait": 4, "updated": "2026-10-15", "booking": "https://my.medevio.cz/nemocnicehavirov/pozadavek/screeningove-mamograficke-vysetreni-preventivni-vysetreni-pro-zeny-45-prazdny-pozadavek-bez-dotazniku--1", "site": "https://www.nemocnicehavirov.cz/luzkova-oddeleni/mamocentrum-a-screening", "detail": "https://www.mamo.cz/centrum/105-nemocnice-havirov-mamocentrum/"}, {"id": "46", "name": "Nemocnice Hranice – Mamodiagnostické centrum Přerov", "open": 7.0, "close": 15.5, "address": "Dr. Skaláka 14", "city": "Přerov", "region": "Olomoucký kraj", "phone": "+420 581 204 830", "wait": 15, "updated": "2026-10-15", "booking": "https://nemocnice.svsfem.cz/orders/pages/", "site": "https://mamo.nemhranice.cz/", "detail": "https://www.mamo.cz/centrum/46-nemocnice-hranice-mamodiagnosticke-centrum-prerov/"}, {"id": "17", "name": "Nemocnice Jablonec nad Nisou – Radiodiagnostické oddělení", "open": 7.5, "close": 15.0, "address": "Nemocniční 4446/15", "city": "Jablonec nad Nisou", "region": "Liberecký kraj", "phone": "+420 483 345 854", "wait": 3, "updated": "2026-10-15", "booking": "https://webdiar.nemjbc.cz/#/", "site": "https://www.nemjbc.cz/cs/oddeleni/radiodiagnosticke-oddeleni/spektrum-pece/mamografie.html", "detail": "https://www.mamo.cz/centrum/17-nemocnice-jablonec-nad-nisou-radiodiagnosticke-oddeleni/"}, {"id": "60", "name": "Nemocnice Jihlava – Mamografické pracoviště", "open": 7.0, "close": 15.0, "address": "Vrchlického 59", "city": "Jihlava", "region": "Kraj Vysočina", "phone": "+420 567 157 602", "wait": 50, "updated": "2026-10-15", "booking": "https://portal.eambulance.cz/Reservation/Home/ReservationSchedule?organizationIdentifier=1&ambulanceIdentifier=125&returnUrl=%2FReservation%2FHome%2FHospital%2F1%2FAmbulance", "site": "https://www.nemji.cz/oddeleni/oddeleni-zobrazovacich-metod/", "detail": "https://www.mamo.cz/centrum/60-nemocnice-jihlava-mamograficke-pracoviste/"}, {"id": "24", "name": "Nemocnice Kyjov – Mamografie", "open": 7.0, "close": 15.0, "address": "Strážovská 1247/22", "city": "Kyjov", "region": "Jihomoravský kraj", "phone": "+420 518 601 584", "wait": 60, "updated": "2026-10-15", "booking": null, "site": "https://www.nemkyj.cz/radiodiagnosticke-oddeleni", "detail": "https://www.mamo.cz/centrum/24-nemocnice-kyjov-mamografie/"}, {"id": "28", "name": "Nemocnice Nové Město na Moravě – Radiologické oddělení", "open": 7.0, "close": 14.5, "address": "Žďárská 610", "city": "Nové Město na Moravě", "region": "Kraj Vysočina", "phone": "+420 566 801 461", "wait": 6, "updated": "2026-09-15", "booking": null, "site": "https://www.nnm.cz/radiologie-info-mamografie", "detail": "https://www.mamo.cz/centrum/28-nemocnice-nove-mesto-na-morave-radiologicke-oddeleni/"}, {"id": "47", "name": "Nemocnice Pardubického kraje, a.s. – Svitavská nemocnice – Mamografie", "open": 7.5, "close": 15.0, "address": "Kollárova 643/7", "city": "Svitavy", "region": "Pardubický kraj", "phone": "+420 461 569 741", "wait": 42, "updated": "2026-10-15", "booking": "https://e-health.nempk.cz/Reservation/Home/Hospital/5/Ambulance", "site": "https://svitavy.nempk.cz/kliniky-a-pracoviste/mamografie", "detail": "https://www.mamo.cz/centrum/47-nemocnice-pardubickeho-kraje-a-s-svitavska-nemocnice-mamografie/"}, {"id": "56", "name": "Nemocnice Písek – Radiodiagnostické oddělení – Mamografické centrum", "open": 7.0, "close": 14.5, "address": "Karla Čapka 589", "city": "Písek", "region": "Jihočeský kraj", "phone": "+420 382 772 401", "wait": 4, "updated": "2026-10-15", "booking": null, "site": "https://www.nemopisek.cz/oddeleni/radiodiagnosticke-oddeleni/popis-oddeleni/", "detail": "https://www.mamo.cz/centrum/56-nemocnice-pisek-radiodiagnosticke-oddeleni-mamograficke-centrum/"}, {"id": "58", "name": "Nemocnice Sokolov – Radiodiagnostické oddělení", "open": 7.0, "close": 14.0, "address": "Slovenská 545", "city": "Sokolov", "region": "Karlovarský kraj", "phone": "+420 352 520 101", "wait": 22, "updated": "2026-10-15", "booking": "https://www.pentahospitals.cz/nemocnice-sokolov/oddeleni/radiodiagnostika/?part=5#chci-se-objednat", "site": "https://www.pentahospitals.cz/nemocnice-sokolov/oddeleni/radiodiagnosticke-oddeleni/", "detail": "https://www.mamo.cz/centrum/58-nemocnice-sokolov-radiodiagnosticke-oddeleni/"}, {"id": "48", "name": "Nemocnice Šumperk – Radiodiagnostické oddělení", "open": 7.0, "close": 17.0, "address": "Nerudova 640/41", "city": "Šumperk", "region": "Olomoucký kraj", "phone": "+420 583 333 560 (mamografie)", "wait": 30, "updated": "2026-09-23", "booking": "https://reservatic.com/public_services/nemocnice-sumperk-mamografie/public_operations/696/new_reservation", "site": "http://www.nemocnicesumperk.cz/oddeleni/radiodiagnosticke-oddeleni", "detail": "https://www.mamo.cz/centrum/48-nemocnice-sumperk-radiodiagnosticke-oddeleni/"}, {"id": "57", "name": "Nemocnice Znojmo – Oddělení radiologické a zobrazovacích metod", "open": null, "close": null, "address": "MUDr. Jana Janského 2675/11", "city": "Znojmo", "region": "Jihomoravský kraj", "phone": "+420 515 215 149", "wait": 22, "updated": "2026-09-15", "booking": "https://webext1.nemzn.cz/objednani_na_mamografii/", "site": "https://webext1.nemzn.cz/pracoviste/oddeleni-radiologicke-a-zobrazovacich-metod/", "detail": "https://www.mamo.cz/centrum/57-nemocnice-znojmo-oddeleni-radiologicke-a-zobrazovacich-metod/"}, {"id": "23", "name": "Oblastní nemocnice Kolín – Mammocentrum", "open": 7.0, "close": 15.5, "address": "Žižkova 146", "city": "Kolín", "region": "Středočeský kraj", "phone": "+420 321 756 254", "wait": 25, "updated": "2026-09-16", "booking": "https://www.nemocnicekolin.cz/objednani-mammocentrum/d-1927", "site": "https://www.nemocnicekolin.cz/mammocentrum/d-1122", "detail": "https://www.mamo.cz/centrum/23-oblastni-nemocnice-kolin-mammocentrum/"}, {"id": "26", "name": "Oblastní nemocnice Mladá Boleslav – Radiodiagnostické oddělení – Mamocentrum", "open": 7.0, "close": 16.5, "address": "třída Václava Klementa 147", "city": "Mladá Boleslav", "region": "Středočeský kraj", "phone": "+420 326 742 208", "wait": 28, "updated": "2026-07-27", "booking": null, "site": "https://www.klaudianovanemocnice.cz/mamocentrum", "detail": "https://www.mamo.cz/centrum/26-oblastni-nemocnice-mlada-boleslav-radiodiagnosticke-oddeleni-mamocentrum/"}, {"id": "27", "name": "Oblastní nemocnice Náchod – Mamografie", "open": 7.5, "close": 14.0, "address": "Purkyňova 446", "city": "Náchod", "region": "Královéhradecký kraj", "phone": "+420 491 601 375", "wait": 35, "updated": "2026-09-16", "booking": null, "site": "http://www.nemocnicenachod.cz/lokality-oddeleni/nemocnice-nachod/radiodiagnostika-rdg/mamografie", "detail": "https://www.mamo.cz/centrum/27-oblastni-nemocnice-nachod-mamografie/"}, {"id": "8", "name": "Poliklinika Břeclav – Mammocentrum", "open": 7.0, "close": 16.5, "address": "Bří. Mrštíků 2708/38", "city": "Břeclav", "region": "Jihomoravský kraj", "phone": "+420 519 303 258", "wait": 30, "updated": "2026-10-15", "booking": "https://rezervace.poliklinika.cz/#/", "site": "http://www.mamobreclav.cz", "detail": "https://www.mamo.cz/centrum/8-poliklinika-breclav-mammocentrum/"}, {"id": "13", "name": "Poliklinika Místek – RTG oddělení", "open": 7.0, "close": 17.0, "address": "8. pěšího pluku 85", "city": "Frýdek-Místek", "region": "Moravskoslezský kraj", "phone": "+420 558 900 243", "wait": 40, "updated": "2026-10-15", "booking": null, "site": "http://www.pkmistek.cz/rtg", "detail": "https://www.mamo.cz/centrum/13-poliklinika-mistek-rtg-oddeleni/"}, {"id": "61", "name": "Poliklinika Tachov – Mamografie", "open": 7.0, "close": 15.5, "address": "Václavská 1560", "city": "Tachov", "region": "Plzeňský kraj", "phone": "+420 374 718 222", "wait": 5, "updated": "2026-07-15", "booking": null, "site": "https://www.poltc.cz/index.html?12&1772192618233", "detail": "https://www.mamo.cz/centrum/61-poliklinika-tachov-mamografie/"}, {"id": "90", "name": "PRIVAMED, a.s. – Centrum mamografického screeningu", "open": 7.0, "close": 14.5, "address": "Kotíkovská 917/17", "city": "Plzeň", "region": "Plzeňský kraj", "phone": "+420 377 182 414", "wait": 30, "updated": "2026-09-15", "booking": "https://www.privamed.cz/cz/oddeleni/radiodiagnosticke-oddeleni/centrum-mamografickeho-screeningu-mamografie-sono-prsu/on-line-objednani-mamo/", "site": "https://www.privamed.cz/cz/oddeleni/radiodiagnosticke-oddeleni/centrum-mamografickeho-screeningu-mamografie-sono-prsu/", "detail": "https://www.mamo.cz/centrum/90-privamed-a-s-centrum-mamografickeho-screeningu/"}, {"id": "39", "name": "První česká lékařská spol., s.r.o. – Mammacentrum Vysočany", "open": 7.25, "close": 15.75, "address": "Sokolovská 304/82", "city": "Praha 9", "region": "Hlavní město Praha", "phone": "+420 272 653 884", "wait": 56, "updated": "2026-10-16", "booking": "https://www.mammacentrum.cz/#OrderForm", "site": "https://www.mammacentrum.cz/mammacentrum-vysocany/", "detail": "https://www.mamo.cz/centrum/39-prvni-ceska-lekarska-spol-s-r-o-mammacentrum-vysocany/"}, {"id": "64", "name": "RDG Centrum, s.r.o. – Mamografie Rychnov nad Kněžnou", "open": 7.0, "close": 14.0, "address": "Jiráskova 1389", "city": "Rychnov nad Kněžnou", "region": "Královéhradecký kraj", "phone": "+420 494 515 673", "wait": 3, "updated": "2026-10-15", "booking": null, "site": "https://rdgcentrum.eu/mamodiagnostika-screening", "detail": "https://www.mamo.cz/centrum/64-rdg-centrum-s-r-o-mamografie-rychnov-nad-kneznou/"}, {"id": "51", "name": "RENTGEN, s.r.o. (Mamodiagnostické pracoviště Ústí nad Orlicí)", "open": 7.0, "close": 16.0, "address": "Dělnická 1391", "city": "Ústí nad Orlicí", "region": "Pardubický kraj", "phone": "+420 465 526 081", "wait": 15, "updated": "2026-10-15", "booking": "https://objednavky.rentgen-uo.cz/rdgobj.html", "site": "https://www.rentgen-uo.cz/inpage/mamografie/", "detail": "https://www.mamo.cz/centrum/51-rentgen-s-r-o-mamodiagnosticke-pracoviste-usti-nad-orlici/"}, {"id": "18", "name": "RTG - U, s.r.o. (Poliklinika Jičín – Mamografie)", "open": 7.5, "close": 14.0, "address": "Jungmannova 54", "city": "Jičín", "region": "Královéhradecký kraj", "phone": "+420 493 582 533", "wait": 10, "updated": "2026-09-18", "booking": "https://agenda.clickdoc.be/short/ZPeRLE5MZR66QANY", "site": "https://poliklinika-jicin.cz/ordinace/mamografie", "detail": "https://www.mamo.cz/centrum/18-rtg-u-s-r-o-poliklinika-jicin-mamografie/"}, {"id": "34", "name": "Silesia Medical – Centrum pro nemoci prsu", "open": 7.0, "close": 19.0, "address": "Havanská 6145/4a", "city": "Ostrava-Poruba", "region": "Moravskoslezský kraj", "phone": "+420 596 910 378", "wait": 14, "updated": "2026-10-15", "booking": "https://www.klinikasilesia.cz/objednavka", "site": "https://www.silesiamedical.cz/komplexni-sluzby/centrum-pro-nemoci-prsu.html", "detail": "https://www.mamo.cz/centrum/34-silesia-medical-centrum-pro-nemoci-prsu/"}, {"id": "31", "name": "Slezská nemocnice v Opavě – Radiologické oddělení", "open": 7.0, "close": 15.0, "address": "Olomoucká 470/86", "city": "Opava", "region": "Moravskoslezský kraj", "phone": "+420 553 766 477", "wait": 19, "updated": "2026-10-15", "booking": null, "site": "https://www.snopava.cz/pacienti/oddeleni/radiologicke-oddeleni-rtg", "detail": "https://www.mamo.cz/centrum/31-slezska-nemocnice-v-opave-radiologicke-oddeleni/"}, {"id": "68", "name": "Uherskohradišťská nemocnice – Mamodiagnostické oddělení", "open": 7.0, "close": 16.5, "address": "J. E. Purkyně 365", "city": "Uherské Hradiště", "region": "Zlínský kraj", "phone": "+420 572 529 782", "wait": 15, "updated": "2026-09-15", "booking": "https://ambulance.nemuh.cz/pacient/#/pacient/", "site": "https://www.nemuh.cz/doc/mamodiagnosticke-oddeleni", "detail": "https://www.mamo.cz/centrum/68-uherskohradistska-nemocnice-mamodiagnosticke-oddeleni/"}, {"id": "40", "name": "Všeobecná fakultní nemocnice v Praze – Centrum diagnostiky chorob prsu V. Polaka", "open": 7.5, "close": 15.5, "address": "Karlovo nám. 33", "city": "Praha 2", "region": "Hlavní město Praha", "phone": "+420 224 966 344", "wait": 10, "updated": "2026-10-15", "booking": "https://webdiar.vfn.cz/webdiar/Tree.aspx?pracoviste=508", "site": "http://www.mamokarlak.cz/", "detail": "https://www.mamo.cz/centrum/40-vseobecna-fakultni-nemocnice-v-praze-centrum-diagnostiky-chorob-prsu-v-polaka/"}, {"id": "12", "name": "WF Hospital spol. s r.o. (Poliklinika Děčín – Mamografické centrum)", "open": 7.0, "close": 15.0, "address": "Myslbekova 5", "city": "Děčín", "region": "Ústecký kraj", "phone": "+420 705 526 100, +420 705 526 101", "wait": 4, "updated": "2026-10-15", "booking": null, "site": "https://www.poliklinikadecin.cz/mamologicke-centrum", "detail": "https://www.mamo.cz/centrum/12-wf-hospital-spol-s-r-o-poliklinika-decin-mamograficke-centrum/"}];
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
+const pad = (n) => String(n).padStart(2, '0');
+const fmtT = (m) => `${Math.floor(m / 60)}:${pad(m % 60)}`;
+const fmtD = (d, o) => d.toLocaleDateString('cs-CZ', o);
+const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fnv = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
+const inDays = (c) => { const n = Math.max(1, c.wait ?? 7); return `za ${n} ${n === 1 ? 'den' : n < 5 ? 'dny' : 'dní'}`; };
+function firstDay(c) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + Math.max(1, c.wait ?? 7)); while (isWeekend(d)) d.setDate(d.getDate() + 1); return d; }
+function bookableDays(c) { const out = [], d = firstDay(c); while (out.length < 10) { if (!isWeekend(d)) out.push(new Date(d)); d.setDate(d.getDate() + 1); } return out; }
+function slotsFor(c, d) { const o = Math.round((c.open ?? 7) * 60), e = Math.round((c.close ?? 15) * 60), r = []; for (let m = o; m + 20 <= e; m += 20) r.push({ m, taken: fnv(`${c.id}|${isoD(d)}|${m}`) % 100 < 38 }); return r; }
+
+/* ---- the women the prototype can show (mock) and what each segment gets ---- */
+const PERSONAS = [
+  { id: 'E', first: 'Jano', name: 'Jana Nováková', age: 51, region: 'Moravskoslezský', city: 'Nový Jičín', seg: 'E · nikdy nebyla, chodí ke gynekoložce', due: true,
+    chip: 'Je na čase', h: 'Chodíte ke gynekoložce. Mamografie je přirozené pokračování.', p: 'Prevenci už řešíte. Mamografie zabere pár minut a dělá se jednou za dva roky, bez doporučení.',
+    push: ['Čas na mamografii', 'Zabere pár minut a je zdarma. Vyberte si termín v centru nedaleko.'],
+    why: 'Žena s gynekoložkou a opakovanými pozvánkami: navážeme na to, že prevenci už dělá. Podle dat je to největší skupina, kde má zásah smysl.' },
+  { id: 'B', first: 'Petro', name: 'Petra Horáková', age: 46, region: 'Jihomoravský', city: 'Brno', seg: 'B · první pozvánka v životě', due: true,
+    chip: 'První pozvánka', h: 'Vaše první mamografie. Zdarma a bez doporučení.', p: 'Celá návštěva do půl hodiny. Vysvětlíme, jak vyšetření probíhá, a pomůžeme vybrat termín.',
+    push: ['Vaše první pozvánka', 'Zdarma, bez doporučení a do půl hodiny. Podívejte se, jak to probíhá.'],
+    why: 'První pozvánka: nejvíc žen přijde, když je cesta jednoduchá. Důraz na to, co čeká, a na okamžité objednání.' },
+  { id: 'G', first: 'Marie', name: 'Marie Dvořáková', age: 61, region: 'Vysočina', city: 'Pelhřimov', seg: 'G · mnoho pozvánek bez odezvy', due: true,
+    chip: 'Nevadí, že jste zatím nešla', h: 'Nechceme vám psát dál. Zkusme to jednou jednoduše.', p: 'Vyberte si centrum a čas přímo tady. Stojí to minutu a nikdo vás nebude tlačit.',
+    push: ['Zkusme to jednou jednoduše', 'Termín se dá vybrat tady v aplikaci za minutu.'],
+    why: 'Mnoho pozvánek bez odezvy: další dopis nepomůže. Žádný tlak, krátká zpráva a rovnou konkrétní termín. Jen jedna notifikace.' },
+  { id: 'A', first: 'Evo', name: 'Eva Svobodová', age: 49, region: 'Moravskoslezský', city: 'Nový Jičín', seg: 'A · byla nedávno, není na řadě', due: false,
+    chip: 'Máte hotovo', h: 'Nejste na řadě. Další mamografie za 10 měsíců.', p: 'Poslední jste měla před 14 měsíci. Připomeneme se, až bude čas, nemusíte nic hlídat.',
+    push: null,
+    why: 'Nedávno vyšetřená žena: žádná notifikace ani pozvánka. Posílat jí zprávy by jen otupovalo pozornost a stálo peníze.' },
+];
+let P = PERSONAS[0], S = { center: null, date: null, time: null, sms: true, cal: true }, hist = [];
+
+/* ---- screens ---- */
+const scr = $('#scr');
+function mount(node) { scr.replaceChildren(node); scr.scrollTop = 0; const h = $('h1,.hi', node); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
+function header(title, back) {
+  const t = el('div', 'top'), b = el('button', 'back', ico('i-back')); b.type = 'button'; b.setAttribute('aria-label', 'Zpět'); b.addEventListener('click', back);
+  t.append(b); if (title) t.append(el('h1', 'h1', title)); return t;
+}
+const survey = () => `<div role="img" aria-label="Pětileté přežití: jen v prsu 100 procent, rozšířená do okolí 87 procent, daleko od prsu 33 procent">${[
+  ['Jen v prsu', '100 %', 'Změna je pořád jen v prsu.', '100%', '#4CD9C0', '#0E8A86'],
+  ['Rozšířená do okolí', '87 %', 'Zasažené jsou i blízké uzliny.', '87.2%', '#FFD08A', '#F0A030'],
+  ['Daleko od prsu', '33 %', 'Rozšířená do dalších orgánů.', '32.6%', '#FF8FA8', '#D91E4E']]
+  .map((r, i) => `<div class="pth" style="--i:${i};--w:${r[3]};--c1:${r[4]};--c2:${r[5]}"><div class="rw"><b>${r[0]}</b><span class="val">${r[1]}</span></div><div class="tr"><i></i></div><span class="cap">${r[2]}</span></div>`).join('')}
+  <p class="src">Podíl žen, které žijí 5 let po diagnóze. SEER, USA, diagnózy 2015–2021. Průměr za skupinu žen, ne předpověď pro jednu z nich.</p></div>`;
+
+function home() {
+  hist = [];
+  const v = el('div', 'view');
+  v.appendChild(el('h1', 'hi', `Dobrý den, ${P.first}`));
+  v.appendChild(el('p', 'sub', 'Vaše zdraví a prevence'));
+  if (P.due) {
+    const c = el('div', 'card'); c.style.animation = 'rise .6s both';
+    c.append(el('span', 'chip', P.chip), el('h2', 'big', P.h), el('p', 'mut', P.p));
+    const go = el('button', 'btn', `${ico('i-cal')}Vybrat termín`); go.type = 'button'; go.addEventListener('click', () => centers());
+    const q = el('button', 'btn soft', 'Mám otázku nebo obavu'); q.type = 'button'; q.addEventListener('click', () => concerns());
+    c.append(go, q); v.appendChild(c);
+    const w = el('div', 'card'); w.append(el('h2', 'big', 'Čím dřív, tím líp'), el('div', null, survey())); v.appendChild(w);
+  } else {
+    const c = el('div', 'card'); c.append(el('span', 'chip ok', P.chip), el('h2', 'big', P.h), el('p', 'mut', P.p));
+    const r = el('button', 'btn soft', `${ico('i-bell')}Připomenout se včas`); r.type = 'button'; r.addEventListener('click', () => { r.textContent = 'Připomeneme se. Nemusíte nic hlídat.'; r.disabled = true; });
+    c.append(r); v.appendChild(c);
+  }
+  v.appendChild(el('p', 'sect', 'Moje preventivní prohlídky'));
+  const rows = el('div', 'rows');
+  [[P.due ? 'dotwarn' : '', 'Mamografický screening', P.due ? 'Doporučeno nyní' : 'Za 10 měsíců', ''], ['', 'Prohlídka u praktika', 'Naposledy loni', ''], ['', 'Prevence u gynekologa', 'Naposledy loni', ''], ['dotoff', 'Screening tlustého střeva', 'Od 50 let', '']]
+    .forEach(([k, a, b]) => rows.appendChild(el('div', 'row static', `<i class="dotok ${k}"></i><span class="rt"><b>${a}</b><small>${b}</small></span>`)));
+  v.appendChild(rows);
+  v.appendChild(el('div', 'safety', `${ico('i-bell')}<span>Máte změnu na prsu, bulku, výtok nebo bolest? Nečekejte na screening a jděte k lékaři hned.</span>`));
+  mount(v);
+  notify();
+}
+
+let notifTimer;
+function notify() {
+  $('.notif')?.remove(); clearTimeout(notifTimer);
+  if (!P.push) return;
+  const n = el('button', 'notif', `<i>${ico('i-bell')}</i><b>Moje zdraví · teď</b><span>${P.push[0]}. ${P.push[1]}</span>`); n.type = 'button';
+  n.setAttribute('aria-label', 'Upozornění: ' + P.push[0]);
+  n.addEventListener('click', () => { n.remove(); centers(); });
+  $('.phone').appendChild(n); notifTimer = setTimeout(() => n.remove(), 9000);
+}
+
+function concerns() {
+  $('.notif')?.remove();
+  const v = el('div', 'view'); v.appendChild(header('Co vás zdržuje?', home));
+  const items = [
+    ['Jsem zdravá, proč jít', 'Cítit se dobře je dobrý začátek. Screening je právě pro ženy bez potíží.', 'Změnu často nepoznáte sama. Mamograf ji zachytí dřív, než se objeví příznaky, a změna odhalená včas se léčí úspěšněji.'],
+    ['Bude to bolet', 'Řekneme to na rovinu: někomu je to nepříjemné, někomu i bolestivé. Většinou to ale trvá jen chvíli.', 'Prs se při každém snímku na pár sekund stlačí. Celá návštěva trvá do půl hodiny. <b>Zavolejte a řekněte, že se bojíte.</b> Personál s tím počítá. Vhodný je týden po menstruaci, kdy bývají prsa méně citlivá.'],
+    ['Bojím se výsledku', 'Bát se je normální. Většina vyšetření dopadne v pořádku.', 'Zavolání zpět není diagnóza. Obvykle jde o upřesnění, například ultrazvuk, a většina takových vyšetření skončí v pořádku. Dávka záření je velmi nízká.'],
+  ];
+  const acc = el('div', 'acc');
+  items.forEach(([q, a, b], i) => {
+    const h = el('button', 'ah', `<span>${q}</span>${ico('i-chev')}`); h.type = 'button'; h.setAttribute('aria-expanded', 'false'); h.id = 'ah' + i;
+    const body = el('div', 'ab', `<p><b>${a}</b></p><p>${b}</p>`); body.hidden = true; body.setAttribute('role', 'region'); body.setAttribute('aria-labelledby', h.id);
+    h.addEventListener('click', () => { const o = h.getAttribute('aria-expanded') === 'true'; h.setAttribute('aria-expanded', !o); body.hidden = o; });
+    acc.append(h, body);
+  });
+  v.appendChild(acc);
+  const w = el('div', 'card'); w.append(el('h2', 'big', 'Čím dřív, tím líp'), el('div', null, survey())); v.appendChild(w);
+  const go = el('button', 'btn', `${ico('i-cal')}Vybrat termín`); go.type = 'button'; go.style.marginTop = '14px'; go.addEventListener('click', () => centers());
+  v.appendChild(go);
+  mount(v);
+}
+
+function centers() {
+  $('.notif')?.remove();
+  const list = CENTERS.filter((c) => c.region.includes(P.region)).sort((a, b) => (a.wait ?? 999) - (b.wait ?? 999) || a.city.localeCompare(b.city, 'cs'));
+  const v = el('div', 'view'); v.appendChild(header('Vyberte centrum', home));
+  v.appendChild(el('p', 'mut', `${P.region.replace('Moravskoslezský', 'Moravskoslezský kraj').replace('Jihomoravský', 'Jihomoravský kraj').replace('Vysočina', 'Kraj Vysočina')} · podle nejbližšího volného termínu`));
+  const rows = el('div', 'rows');
+  list.forEach((c, n) => {
+    const b = el('button', 'row', `<span class="rt"><b>${c.name}</b><small>${c.address}, ${c.city}</small></span><span class="rr">${n === 0 ? '<em>Nejdřív</em>' : ''}<strong>${inDays(c)}</strong></span>${ico('i-chev')}`);
+    b.type = 'button'; b.addEventListener('click', () => { S.center = c; S.date = bookableDays(c)[0]; S.time = null; times(); });
+    rows.appendChild(b);
+  });
+  v.appendChild(rows);
+  v.appendChild(el('p', 'src', 'Centra a čekací doby z veřejného seznamu mamo.cz. V ostré verzi by se otevřel objednávkový systém konkrétního centra.'));
+  mount(v);
+}
+
+function times() {
+  const c = S.center, ds = bookableDays(c);
+  const v = el('div', 'view'); v.appendChild(header('Vyberte termín', centers));
+  v.appendChild(el('p', 'mut', `${c.name} · ${c.address}, ${c.city}`));
+  const strip = el('div', 'days'); strip.style.marginTop = '12px'; const host = el('div', 'slots');
+  const bar = el('div', 'bar'), sum = el('p', 'sum'), go = el('button', 'btn', 'Rezervovat'); go.type = 'button'; go.addEventListener('click', () => done()); bar.append(sum, go);
+  const refresh = () => {
+    [...strip.children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.d === isoD(S.date)));
+    host.replaceChildren(); const sl = slotsFor(c, S.date);
+    if (S.time != null && !sl.some((x) => x.m === S.time && !x.taken)) S.time = null;
+    sl.forEach((x) => { const b = el('button', 'slot', fmtT(x.m)); b.type = 'button'; b.disabled = x.taken; b.setAttribute('aria-pressed', S.time === x.m); if (x.taken) b.setAttribute('aria-label', fmtT(x.m) + ', obsazeno'); b.addEventListener('click', () => { S.time = x.m; refresh(); }); host.appendChild(b); });
+    sum.textContent = S.time != null ? `${fmtD(S.date, { weekday: 'long', day: 'numeric', month: 'long' })}, ${fmtT(S.time)}` : 'Vyberte čas';
+    go.disabled = S.time == null;
+  };
+  ds.forEach((d) => { const b = el('button', 'day', `<small>${fmtD(d, { weekday: 'short' })}</small><b>${d.getDate()}</b><span>${fmtD(d, { month: 'short' })}</span>`); b.type = 'button'; b.dataset.d = isoD(d); b.addEventListener('click', () => { S.date = d; refresh(); }); strip.appendChild(b); });
+  v.append(strip, host, el('p', 'src', 'Přeškrtnuté časy jsou obsazené. Časy se řídí otevírací dobou centra.'), bar);
+  mount(v); refresh();
+}
+
+function done() {
+  const c = S.center;
+  const v = el('div', 'view');
+  v.appendChild(el('div', 'okc', `<svg viewBox="0 0 120 120" role="img" aria-label="Hotovo"><circle pathLength="100" cx="60" cy="60" r="52" fill="none" stroke="var(--teal)" stroke-width="7" stroke-linecap="round" transform="rotate(-90 60 60)"/><path pathLength="100" d="M36 62l16 16 32-36" fill="none" stroke="var(--teal)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>`));
+  const h = el('h1', 'h1', `Máte hotovo, ${P.first}.`); h.style.textAlign = 'center'; h.style.marginTop = '10px'; v.appendChild(h);
+  const t = el('div', 'tk', `<div class="tkh"><small>${fmtD(S.date, { weekday: 'long' })}</small><b>${fmtD(S.date, { day: 'numeric', month: 'long' })}</b><span>${fmtT(S.time)}</span></div><div class="tkb"><div><small>Centrum</small><b></b><div class="mut ad"></div></div><div><small>Pacientka</small><b class="nm"></b></div></div>`);
+  $('.tkb b', t).textContent = c.name; $('.ad', t).textContent = `${c.address}, ${c.city}`; $('.nm', t).textContent = P.name;
+  v.appendChild(t);
+  const rows = el('div', 'rows');
+  [['cal', 'Přidat do kalendáře'], ['sms', 'Připomenout SMS den předem']].forEach(([k, label]) => {
+    const r = el('div', 'tog', `<span>${label}</span>`); const sw = el('button', 'sw', '<i></i>'); sw.type = 'button'; sw.setAttribute('role', 'switch'); sw.setAttribute('aria-label', label); sw.setAttribute('aria-checked', S[k]);
+    sw.addEventListener('click', () => { S[k] = !S[k]; sw.setAttribute('aria-checked', S[k]); }); r.appendChild(sw); rows.appendChild(r);
+  });
+  v.appendChild(rows);
+  v.appendChild(el('div', 'demo', 'Ukázka. Nic se nerezervovalo a nikomu se neodeslalo. V ostré verzi by termín potvrdil systém centra.'));
+  if (c.phone) { const a = el('a', 'btn soft', `${ico('i-phone')}${c.phone.split(/,\s*/)[0]}`); a.href = 'tel:' + c.phone.split(/,\s*/)[0].replace(/\s/g, ''); a.style.marginTop = '14px'; a.style.textDecoration = 'none'; v.appendChild(a); }
+  const fin = el('button', 'btn', 'Hotovo'); fin.type = 'button'; fin.style.marginTop = '10px'; fin.addEventListener('click', home); v.appendChild(fin);
+  mount(v);
+}
+
+/* ---- persona switcher + chrome ---- */
+function pick(id) {
+  P = PERSONAS.find((p) => p.id === id); S = { center: null, date: null, time: null, sms: true, cal: true };
+  [...$('#pers').children].forEach((b) => b.setAttribute('aria-pressed', b.dataset.id === id));
+  $('#why').innerHTML = `<b>Proč takto:</b> ${P.why}`;
+  home();
+}
+PERSONAS.forEach((p) => { const b = el('button', null, `<b>${p.name}, ${p.age}</b><small>${p.seg}</small>`); b.type = 'button'; b.dataset.id = p.id; b.addEventListener('click', () => pick(p.id)); $('#pers').appendChild(b); });
+const tick = () => { const d = new Date(); $('#clock').textContent = `${d.getHours()}:${pad(d.getMinutes())}`; }; tick(); setInterval(tick, 20000);
+pick('E');
+</script>
+</body>
+</html>
