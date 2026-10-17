@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cesta k mamografii</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* layout: one wide process figure, a tuning table, a second figure for what happens after booking, then rules and tests */
+:root{
+  --paper:#F5F7F5; --card:#FFFFFF; --ink:#18211F; --muted:#586461; --line:#C6CFCB;
+  --accent:#C4244C; --accent-soft:#FBE4EA; --ok:#0B7A63; --ok-soft:#DCF1E9; --warn:#97580A; --warn-soft:#FBEBD2;
+  --f:'IBM Plex Sans','Segoe UI',system-ui,sans-serif; --m:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F1513; --card:#18201E; --ink:#E6ECEA; --muted:#98A5A1; --line:#33403C;
+  --accent:#FF6F8F; --accent-soft:#3A1822; --ok:#4FCBA9; --ok-soft:#10312A; --warn:#F2B45B; --warn-soft:#33270F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1513; --card:#18201E; --ink:#E6ECEA; --muted:#98A5A1; --line:#33403C;
+  --accent:#FF6F8F; --accent-soft:#3A1822; --ok:#4FCBA9; --ok-soft:#10312A; --warn:#F2B45B; --warn-soft:#33270F; color-scheme:dark}
+body{background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--f);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+main{max-width:1180px;margin:0 auto;display:grid;gap:44px}
+h1,h2,h3,p,ul,ol,figure{margin:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.eyebrow{font:600 12px var(--m);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;text-wrap:balance;margin-top:8px}
+.lede{max-width:46em;color:var(--muted);font-size:1.08rem;margin-top:12px;text-wrap:pretty}
+h2{font-size:1.4rem;font-weight:650;letter-spacing:-.01em;text-wrap:balance}
+.sec{display:grid;gap:14px;min-width:0}
+.sec>p{max-width:46em;color:var(--muted)}
+
+/* figures */
+figure{display:grid;gap:10px;min-width:0}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.scroll svg{display:block;width:100%;min-width:1000px;height:auto}
+figcaption{font-size:.92rem;color:var(--muted);max-width:60em}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.84rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border-radius:4px;border:1.6px solid var(--line);background:var(--card)}
+.sw.ai{border-color:var(--accent);background:var(--accent-soft)}
+.sw.end{border-color:var(--ok);background:var(--ok-soft)}
+.sw.pause{border:1.6px dashed var(--warn);background:var(--warn-soft)}
+.sw.dec{transform:rotate(45deg) scale(.8);border-radius:2px}
+svg .n rect,svg .n polygon{fill:var(--card);stroke:var(--muted);stroke-width:1.6}
+svg .n.dec polygon{fill:var(--paper);stroke:var(--ink)}
+svg .n.ai rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.2}
+svg .n.end rect{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2}
+svg .n.pause rect{fill:var(--warn-soft);stroke:var(--warn);stroke-dasharray:5 4}
+svg .t{font:650 13.5px var(--f);fill:var(--ink);text-anchor:middle}
+svg .s{font:400 12.5px var(--f);fill:var(--muted);text-anchor:middle}
+svg .n.ai .t{fill:var(--accent)} svg .n.end .t{fill:var(--ok)}
+svg .ar{fill:none;stroke:var(--muted);stroke-width:1.7;stroke-linejoin:round}
+svg .mk{fill:var(--muted)}
+svg .lbl{font:600 11.5px var(--m);fill:var(--muted)}
+
+/* tiers table */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.95rem}
+th,td{text-align:left;padding:12px 16px;border-top:1px solid var(--line);vertical-align:top}
+thead th{border-top:none;font:600 12px var(--m);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td b{font-weight:650}
+td.n,th.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 12px var(--m);padding:2px 9px;border-radius:99px;background:var(--paper);border:1px solid var(--line)}
+.note{font-size:.88rem;color:var(--muted)}
+
+/* message sample */
+.msgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:6px;align-content:start}
+.msg small{font:600 11.5px var(--m);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.msg q{quotes:none;font-size:1rem}
+
+/* two columns lists */
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
+.two>div{min-width:0}
+h3{font-size:1.02rem;font-weight:650;margin-bottom:8px}
+ul{padding-left:1.15em;display:grid;gap:7px}
+li{color:var(--ink)} li span{color:var(--muted)}
+footer{font-size:.84rem;color:var(--muted);max-width:60em}
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Návrh procesu · Rakathon 2026</p>
+    <h1>Cesta k mamografii</h1>
+    <p class="lede">Model určí, komu se jak ozvat. Pozvánku doplní SMS, push a e-mail s odkazem na web, kde se dá rovnou objednat. Kdo se neobjedná, dostane předehru a pak hovor od AI asistentky. Když se nedovolá, přijde SMS se dvěma až třemi termíny.</p>
+  </header>
+
+  <section class="sec" aria-labelledby="h-a">
+    <h2 id="h-a">Od pozvánky k termínu</h2>
+    <figure>
+      <div class="scroll" tabindex="0" role="group" aria-label="Diagram, lze posouvat do stran"><svg viewBox="0 0 1400 730" role="img" aria-label="Postup od pozvánky k termínu: model zařadí ženu, pošle se SMS, push a e-mail, po čekání zavolá AI, a když se nedovolá, přijde SMS se dvěma až třemi termíny."><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" class="mk"/></marker></defs><polyline points="180,270 220,270" class="ar" marker-end="url(#ah)"/><polyline points="100,234 100,132" class="ar" marker-end="url(#ah)"/><text x="110" y="185" class="lbl" text-anchor="start">není na řadě</text><polyline points="380,270 408,270" class="ar" marker-end="url(#ah)"/><polyline points="592,270 620,270" class="ar" marker-end="url(#ah)"/><text x="591" y="258" class="lbl" text-anchor="middle">ne</text><polyline points="500,220 500,150 1300,150 1300,234" class="ar" marker-end="url(#ah)"/><text x="900" y="142" class="lbl" text-anchor="middle">ano, sama přes web nebo app</text><polyline points="780,270 820,270" class="ar" marker-end="url(#ah)"/><polyline points="980,270 1220,270" class="ar" marker-end="url(#ah)"/><text x="1100" y="258" class="lbl" text-anchor="middle">domluveno</text><polyline points="900,306 900,385" class="ar"/><polyline points="700,385 1100,385" class="ar"/><polyline points="700,385 700,434" class="ar" marker-end="url(#ah)"/><text x="710" y="405" class="lbl" text-anchor="start">odmítla</text><polyline points="900,385 900,434" class="ar" marker-end="url(#ah)"/><text x="910" y="405" class="lbl" text-anchor="start">nezvedla 2×</text><polyline points="1100,385 1100,434" class="ar" marker-end="url(#ah)"/><text x="1110" y="405" class="lbl" text-anchor="start">váhá</text><polyline points="900,506 900,605" class="ar" marker-end="url(#ah)"/><polyline points="992,655 1300,655 1300,306" class="ar" marker-end="url(#ah)"/><text x="1000" y="645" class="lbl" text-anchor="middle">ano</text><polyline points="1180,470 1300,470" class="ar" marker-end="url(#ah)"/><text x="1236" y="462" class="lbl" text-anchor="middle">vybere termín</text><polyline points="808,655 780,655" class="ar" marker-end="url(#ah)"/><text x="818" y="645" class="lbl" text-anchor="middle">ne</text><g class="n"><rect x="20" y="233.5" width="160" height="73.0" rx="9"/><text x="100" y="258" class="t">1 · Model</text><text x="100" y="274" class="s">skóre a segment</text><text x="100" y="292" class="s">každé pozvané ženy</text></g><g class="n pause"><rect x="20" y="58.5" width="160" height="73.0" rx="9"/><text x="100" y="82" class="t">Není na řadě</text><text x="100" y="100" class="s">(segment A) bez kontaktu,</text><text x="100" y="116" class="s">připomenout později</text></g><g class="n"><rect x="220" y="225.0" width="160" height="90.0" rx="9"/><text x="300" y="249" class="t">2 · První kontakt</text><text x="300" y="266" class="s">SMS + push + e-mail</text><text x="300" y="283" class="s">odkaz na web, video</text><text x="300" y="300" class="s">papír jen bez kontaktu</text></g><g class="n dec"><polygon points="500,220 592,270 500,320 408,270"/><text x="500" y="266" class="t">Objednala se</text><text x="500" y="283" class="s">sama?</text></g><g class="n"><rect x="620" y="225.0" width="160" height="90.0" rx="9"/><text x="700" y="249" class="t">3 · Předehra</text><text x="700" y="266" class="s">po 14 / 7 / 3 dnech</text><text x="700" y="283" class="s">SMS: zítra vám volá</text><text x="700" y="300" class="s">robot VZP</text></g><g class="n ai"><rect x="820" y="233.5" width="160" height="73.0" rx="9"/><text x="900" y="258" class="t">4 · AI hovor</text><text x="900" y="274" class="s">max. 2 pokusy, 9–19 h</text><text x="900" y="292" class="s">nabídne 2–3 termíny</text></g><g class="n end"><rect x="1220" y="233.5" width="160" height="73.0" rx="9"/><text x="1300" y="258" class="t">5 · Termín v aplikaci</text><text x="1300" y="274" class="s">push + SMS potvrzení</text><text x="1300" y="292" class="s">pokračuje: obrázek 2</text></g><g class="n pause"><rect x="620" y="433.5" width="160" height="73.0" rx="9"/><text x="700" y="458" class="t">Odmítla</text><text x="700" y="474" class="s">zapsat důvod, pauza</text><text x="700" y="492" class="s">žádá nevolat = stop všeho</text></g><g class="n"><rect x="820" y="433.5" width="160" height="73.0" rx="9"/><text x="900" y="458" class="t">SMS se 2–3 termíny</text><text x="900" y="474" class="s">nejbližší centrum,</text><text x="900" y="492" class="s">potvrzení jedním klepnutím</text></g><g class="n"><rect x="1020" y="433.5" width="160" height="73.0" rx="9"/><text x="1100" y="458" class="t">SMS + video</text><text x="1100" y="474" class="s">„Proč to má smysl“,</text><text x="1100" y="492" class="s">jedna připomínka</text></g><g class="n dec"><polygon points="900,605 992,655 900,705 808,655"/><text x="900" y="651" class="t">Vybrala do</text><text x="900" y="668" class="s">5 dnů?</text></g><g class="n pause"><rect x="620" y="618.5" width="160" height="73.0" rx="9"/><text x="700" y="642" class="t">Poslední push + e-mail</text><text x="700" y="660" class="s">pak pauza do dalšího kola</text><text x="700" y="676" class="s">segment H: navigátorka</text></g></svg></div>
+      <figcaption>Většina žen má skončit v zeleném poli nejpozději po hovoru. Hovor je jediný krok, který stojí čas a může obtěžovat, proto přichází až po čekání a po SMS, která ho předem ohlásí.</figcaption>
+      <div class="legend" aria-label="Legenda">
+        <span><i class="sw"></i>krok systému</span>
+        <span><i class="sw dec"></i>rozhodnutí</span>
+        <span><i class="sw ai"></i>AI hovor</span>
+        <span><i class="sw end"></i>termín domluven</span>
+        <span><i class="sw pause"></i>pauza nebo konec kontaktu</span>
+      </div>
+    </figure>
+  </section>
+
+  <section class="sec" aria-labelledby="h-b">
+    <h2 id="h-b">Skóre modelu mění rytmus, ne text</h2>
+    <p>Model nerozhoduje, jestli žena dostane pozvánku, ale jak dlouho se čeká na hovor a kolik zpráv dostane. Čím nižší šance, že přijde sama, tím dřív a osobněji se jí ozveme. Ženy, které jsou nedávno po screeningu, neslyší nic.</p>
+    <div class="tw" tabindex="0" role="group" aria-label="Tabulka, lze posouvat do stran">
+      <table>
+        <thead><tr><th>Šance, že přijde</th><th>Segmenty</th><th class="n">Z dat: přijde do 12 měs.</th><th class="n">Čekání před hovorem</th><th>Co navíc</th></tr></thead>
+        <tbody>
+          <tr><td><b>Vysoká</b></td><td>B první pozvánka, C dřívější účastnice s gynekologem</td><td class="n">41–53 %</td><td class="n"><span class="pill">14 dní</span></td><td>Stačí odkaz a video. Hovor jen pro ty, kdo se neozvou.</td></tr>
+          <tr><td><b>Střední</b></td><td>D dřívější účastnice, E bez screeningu ale s gynekologem</td><td class="n">21–23 %</td><td class="n"><span class="pill">7 dní</span></td><td>Zpráva naváže na gynekologa. Důraz na jednoduché objednání.</td></tr>
+          <tr><td><b>Nízká</b></td><td>F, G, H bez vazby na prevenci</td><td class="n">2–9 %</td><td class="n"><span class="pill">3 dny</span></td><td>Hovor dřív, žádné další dopisy. Segment H: navigátorka nebo mobilní jednotka.</td></tr>
+          <tr><td><b>Nekontaktovat</b></td><td>A nedávno vyšetřená</td><td class="n">2 %</td><td class="n">–</td><td>Jen připomenutí, až bude čas.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Podíly pocházejí z dat výzvy (segmenty A–H). Počty dnů jsou návrh, který má ověřit pilotní test. Nejsou z dat.</p>
+  </section>
+
+  <section class="sec" aria-labelledby="h-c">
+    <h2 id="h-c">Tři zprávy, které žena uvidí</h2>
+    <div class="msgs">
+      <div class="msg"><small>SMS · push · e-mail, den 0</small><q>Dobrý den, paní Nováková, přišla vám pozvánka na mamografii. Termín si vyberete tady: odkaz. Jak to probíhá, ukáže krátké video.</q></div>
+      <div class="msg"><small>SMS, den před hovorem</small><q>Zítra 18. 10. 2026 vám bude volat robot VZP ohledně termínu na mamograf. Vaše VZP</q></div>
+      <div class="msg"><small>SMS, když se nedovolal</small><q>Nedokončili jsme to. Tady máte 3 termíny v Novém Jičíně: odkaz. Stačí klepnout na ten, který vám vyhovuje.</q></div>
+    </div>
+    <p class="note">Texty jsou návrh z tabule a ukázkové osoby jsou smyšlené. Každá zpráva obsahuje odkaz na web, kde jde objednat bez hovoru, a možnost odhlásit se.</p>
+  </section>
+
+  <section class="sec" aria-labelledby="h-d">
+    <h2 id="h-d">Po rezervaci</h2>
+    <figure>
+      <div class="scroll" tabindex="0" role="group" aria-label="Diagram, lze posouvat do stran"><svg viewBox="0 0 1400 330" role="img" aria-label="Po rezervaci: okamžité potvrzení, potvrzení dva dny předem, návštěva a kontrola v datech po čtyřech týdnech; při neúspěchu se termín uvolní a nabídnou se nové."><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" class="mk"/></marker></defs><polyline points="180,100 220,100" class="ar" marker-end="url(#ah)"/><polyline points="380,100 408,100" class="ar" marker-end="url(#ah)"/><polyline points="592,100 620,100" class="ar" marker-end="url(#ah)"/><text x="606" y="92" class="lbl" text-anchor="middle">ano</text><polyline points="780,100 808,100" class="ar" marker-end="url(#ah)"/><polyline points="992,100 1020,100" class="ar" marker-end="url(#ah)"/><text x="1004" y="92" class="lbl" text-anchor="middle">ano</text><polyline points="500,150 500,218" class="ar" marker-end="url(#ah)"/><text x="510" y="180" class="lbl" text-anchor="start">NE nebo bez odpovědi</text><polyline points="900,150 900,218" class="ar" marker-end="url(#ah)"/><text x="910" y="180" class="lbl" text-anchor="start">ne</text><g class="n end"><rect x="20" y="72.0" width="160" height="56.0" rx="9"/><text x="100" y="96" class="t">Termín uložen</text><text x="100" y="113" class="s">v aplikaci i u centra</text></g><g class="n"><rect x="220" y="63.5" width="160" height="73.0" rx="9"/><text x="300" y="88" class="t">Ihned: push + SMS</text><text x="300" y="104" class="s">datum, adresa, mapa</text><text x="300" y="122" class="s">video „Jak to probíhá?“</text></g><g class="n dec"><polygon points="500,50 592,100 500,150 408,100"/><text x="500" y="88" class="t">2 dny předem:</text><text x="500" y="104" class="s">potvrdí tlačítkem</text><text x="500" y="122" class="s">ANO / NE?</text></g><g class="n"><rect x="620" y="63.5" width="160" height="73.0" rx="9"/><text x="700" y="88" class="t">Návštěva</text><text x="700" y="104" class="s">centrum provede</text><text x="700" y="122" class="s">mamografii</text></g><g class="n dec"><polygon points="900,50 992,100 900,150 808,100"/><text x="900" y="88" class="t">+4 týdny: data</text><text x="900" y="104" class="s">proběhla</text><text x="900" y="122" class="s">mamografie?</text></g><g class="n end"><rect x="1020" y="63.5" width="160" height="73.0" rx="9"/><text x="1100" y="88" class="t">Hotovo</text><text x="1100" y="104" class="s">výsledek zpět do modelu</text><text x="1100" y="122" class="s">a do vyhodnocení testů</text></g><g class="n pause"><rect x="420" y="218.5" width="160" height="73.0" rx="9"/><text x="500" y="242" class="t">Uvolnit termín</text><text x="500" y="260" class="s">a nabídnout 2 nové</text><text x="500" y="276" class="s">(jako SMS se 2–3 termíny)</text></g><g class="n pause"><rect x="820" y="218.5" width="160" height="73.0" rx="9"/><text x="900" y="242" class="t">1 SMS s novým</text><text x="900" y="260" class="s">termínem, pak pauza</text><text x="900" y="276" class="s">do dalšího kola</text></g></svg></div>
+      <figcaption>Termín, který žena nepotvrdí, se uvolní pro někoho jiného a nabídnou se nové. Po čtyřech týdnech se v datech ověří, jestli mamografie opravdu proběhla. Výsledek se vrací do modelu a do vyhodnocení testů.</figcaption>
+    </figure>
+  </section>
+
+  <section class="two" aria-label="Pravidla a testy">
+    <div>
+      <h3>Pravidla, která platí vždy</h3>
+      <ul>
+        <li>Asistentka se na začátku představí jako AI a ověří, že mluví se správnou ženou.</li>
+        <li>„Nevolejte mi“ okamžitě zastaví všechny další hovory i zprávy.</li>
+        <li>Hovory jen v pracovní dny 9–19 h, nejvýš dva pokusy v různou dobu.</li>
+        <li>Souhrnný strop kontaktů napříč kanály, aby se zprávy nehromadily.</li>
+        <li>Příznaky (bulka, výtok, bolest): odkaz k lékaři, ne ke screeningu.</li>
+        <li>AI nestanovuje diagnózu a nevymýšlí statistiky.</li>
+        <li>Když AI neví nebo žena chce člověka, předá hovor lidskému operátorovi.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Jak poznáme, že to funguje</h3>
+      <ul>
+        <li>Náhodně rozdělit ženy po dosažení stejného kroku: jen zprávy, zprávy + hovor, zprávy + pevně nabídnutý termín.</li>
+        <li>Hlavní měřítko: objednání do 14 dní a screening do 3, 6 a 12 měsíců (tytéž štítky jako v datech).</li>
+        <li>Vedlejší: podíl odhlášených, stížnosti, náklad na jednu domluvenou ženu.</li>
+        <li>Po segmentech: pomáhá hovor stejně vysokému i nízkému skóre?</li>
+        <li>Znovu natrénovat model na výsledcích, ať skóre počítá i s novým procesem.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Návrh vychází z tabule týmu a z analýzy dat Rakathonu 2026. Čekací doby, texty a počty pokusů se ladí podle pilotu. Souhlasy, právní základ a ochrana osobních údajů musí před ostrým provozem schválit pojišťovna a její právníci.</footer>
+</main>
+</body>
+</html>

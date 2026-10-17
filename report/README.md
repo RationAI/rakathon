@@ -1,6 +1,6 @@
 # Rakathon 2026 report
 
-Four self-contained pages sharing one top navigation. Open `index.html` in a browser; every page is a single file
+Four self-contained pages sharing one top navigation, plus a standalone process page (`workflow.html`). Open `index.html` in a browser; every page is a single file
 (fonts load from Google Fonts and fall back to system fonts offline). Light by default; the theme button switches to dark.
 
 | page | content | built by (from `report/`) |
@@ -9,6 +9,7 @@ Four self-contained pages sharing one top navigation. Open `index.html` in a bro
 | `response_report.html` | regional report, geospatial only: district and region maps, centres, access vs response, population | `build_report.py` |
 | `classifiers.html` | predictive models: risk score, the models and their ceiling, drivers, segments | `build_classifiers.py` (~1 min) |
 | `index.html` | interventions and tests: segment → barrier → intervention → A/B test, shared protocol, sample-size planner, system changes, 28 sources | `build_interventions.py` |
+| `workflow.html` | proposed outreach workflow (Czech, standalone, own styles, no builder): model score → SMS/push/e-mail → AI call → booking and confirmation, with rules and test plan | edited by hand |
 
 Each builder fills `<page>.template.html` with data (`__DATA__`) and inlines the shared stylesheet `site.css`
 (except the regional report, which keeps its own CSS with the same tokens). Run with `PYTHONUTF8=1 uv run python build_*.py`.
