@@ -306,7 +306,20 @@ a.btn{text-decoration:none}
 .sbody .actions{justify-content:center}
 @media (max-width:480px){.rowb.two{flex-wrap:wrap}.rowb .rr{justify-items:start;text-align:left;order:3}.day{width:70px}}
 
+/* videos: 30 s, 4:5, made by presentation/video/render.py into video/ (with a poster still) */
+.vidsec{padding-block:clamp(40px,8vh,90px) clamp(32px,6vh,72px)}
+.vids{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:min(100%,860px);margin:0 auto}
+.vid{margin:0;display:grid;gap:12px;width:100%}
+.vid video{display:block;width:100%;aspect-ratio:4/5;border-radius:28px;background:var(--card);object-fit:cover;box-shadow:0 30px 60px -30px var(--shadow)}
+.vid video::-webkit-media-controls-fullscreen-button{display:none}  /* no fullscreen (see video() below) */
+.vid figcaption{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding-inline:8px;text-align:left}
+.vid figcaption b{font-weight:650;font-size:1.1rem;letter-spacing:-.01em}
+.vid figcaption span{color:var(--ink2);font-size:.95rem;white-space:nowrap}
+.visual .vid{width:min(100%,360px)}
+@media (max-width:480px){.visual .vid{width:min(100%,300px)}}  /* the flow step fits above the sticky controls */
+
 @media (max-width:860px){
+  .vids{grid-template-columns:1fr;width:min(100%,440px)}
   .tiles{grid-template-columns:1fr}
   .tile{min-height:240px}
   .tile .orb{width:190px;right:-40px;bottom:-50px}
@@ -384,6 +397,7 @@ const FLOWS = {
   ] },
   bolest: { q: 'Bude to bolet', sub: 'Co přesně vás čeká.', tag: 'Bolest', kick: 'Průběh vyšetření', orb: 'peach', steps: [
     { vis: 'orb', tint: 'peach', h: 'Řekneme to na rovinu.', p: 'Někomu je to nepříjemné, někomu i bolestivé. Většinou to ale trvá jen chvíli a dá se to zmírnit.' },
+    { vis: 'video', video: 'exam', h: 'Podívejte se, jak to probíhá.', p: 'Od příchodu po výsledek za půl minuty.' },
     { vis: 'press', h: 'Zkuste si, jak krátké to je.', p: 'Prs se při každém snímku na pár sekund stlačí. Spusťte si ukázku.', src: 'Ilustrativně. Skutečná délka se liší podle centra a vyšetření.' },
     { vis: 'visit', h: 'Celá návštěva do půl hodiny.', p: 'Samotné snímky jsou otázkou minut. Zbytek je příchod a převlečení.' },
     { vis: 'tips', h: 'Tři věci, které pomáhají.', p: 'Hlavně to druhé: řekněte, že se bojíte.' },
@@ -398,8 +412,21 @@ const FLOWS = {
   ] },
 };
 
+/* 30 s videos in video/, made by presentation/video/render.py; nothing is loaded until play (preload none + poster) */
+const VIDEOS = {
+  exam: { file: 'jak_probiha_mamografie', title: 'Jak probíhá mamografie', label: 'Video: jak probíhá mamografie, od příchodu po výsledek, 30 sekund' },
+  surv: { file: 'cim_driv_tim_lip', title: 'Čím dřív, tím líp', label: 'Video: čím dřív se rakovina prsu odhalí, tím víc žen přežije, 30 sekund' },
+};
+const video = (k) => { const x = VIDEOS[k]; return `<figure class="vid"><video controls controlslist="nofullscreen" playsinline preload="none" poster="video/${x.file}.jpg" aria-label="${x.label}">
+  <source src="video/${x.file}.mp4" type="video/mp4"></video><figcaption><b>${x.title}</b><span>30 s</span></figcaption></figure>`; };
+// no fullscreen: controlslist covers Chrome; Firefox and Safari ignore it, so leave fullscreen at once and drop double-clicks
+document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement?.tagName === 'VIDEO') document.exitFullscreen(); });
+document.addEventListener('webkitbeginfullscreen', (e) => e.target.webkitExitFullscreen?.(), true);  // iOS player, does not bubble
+document.addEventListener('dblclick', (e) => { if (e.target.closest?.('video')) e.preventDefault(); }, true);
+
 /* ================= visuals ================= */
 const VIS = {
+  video: (s) => video(s.video),
   orb: (s) => `<div class="orb ${s.tint || ''}" role="img" aria-label="Zářící koule"></div>`,
   timeline: () => `<div class="tl" role="img" aria-label="Screening zachytí změnu dřív, než se objeví příznaky">
     <div class="tl-track"><i class="tl-fill"></i>
@@ -473,6 +500,10 @@ function home() {
   ss.append(sh, el('div', null, VIS.surv()).firstElementChild, txt('p', 'src', 'Zdroj: SEER Cancer Stat Facts, USA, diagnózy 2015–2021. Průměr za skupinu žen, ne předpověď pro jednu z nich.'));
   v.appendChild(ss);
   if ('IntersectionObserver' in window) { const io = new IntersectionObserver((e) => { if (e[0].isIntersecting) { ss.classList.remove('pending'); io.disconnect(); } }, { threshold: 0.25 }); io.observe(ss); } else ss.classList.remove('pending');
+  const vs = el('section', 'vidsec'); vs.id = 'videa';
+  const vh = el('div', 'sechead'); vh.append(txt('p', 'eyebrow', 'Za půl minuty'), txt('h2', 'h2', 'Podívejte se, jak to chodí.'));
+  vs.append(vh, el('div', 'vids', video('exam') + video('surv')));
+  v.appendChild(vs);
   const sec = el('section'); sec.id = 'tiles';
   const hd = el('div', 'sechead'); hd.appendChild(txt('h2', 'h2', 'Co vás zdržuje?')); const ld = txt('p', 'lede', 'Vyberte svou obavu. Odpovíme vám během minuty.'); ld.style.margin = '0 auto'; hd.appendChild(ld);
   sec.appendChild(hd);
@@ -656,6 +687,7 @@ function schedDone() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (e.target.closest?.('video, input')) return;  // arrows seek in a video and move in a field
   const next = $('.controls .circ.pri, .controls .btn'); const back = $('.controls .circ:not(.pri)');
   if (e.key === 'ArrowRight' && next) next.click();
   if (e.key === 'ArrowLeft' && back) back.click();

@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Pozvánka video</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap">
+<script src="screens/coords.js"></script>
+<script src="shared.js"></script>
+<style>
+/* 30 s, 1920 x 1080. Everything is positioned by render(t) below; no CSS animations, so any frame can be rendered on its own.
+   Colours and type follow the patient webapp (webapp/index.template.html). */
+:root { --bg: #FBFBFD; --ink: #1D1D1F; --ink2: #6E6E73; --accent: #D91E4E; --line: #D2D2D7; --teal: #0E8A86; --lilac: #8B6CFF; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink);
+  font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+.grad { background: linear-gradient(90deg, #FF2D55, #FF8A5B); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .5; }
+
+/* ---------- scene 1: the planner in a browser window ---------- */
+#s1 { position: absolute; inset: 0; transform-origin: 1260px 545px; }
+#win { left: 660px; top: 150px; width: 1200px; height: 790px; border-radius: 16px; overflow: hidden; background: #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 40px 90px rgba(60,20,40,.18), 0 10px 24px rgba(0,0,0,.08); }
+#chrome { position: absolute; left: 0; top: 0; right: 0; height: 40px; background: #F1F1F4; border-bottom: 1px solid #E2E2E7; display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+#chrome i { width: 12px; height: 12px; border-radius: 50%; background: #FF5F57; }
+#chrome i:nth-child(2) { background: #FEBC2E; } #chrome i:nth-child(3) { background: #28C840; }
+#chrome span { margin-left: 18px; flex: 0 1 520px; height: 26px; border-radius: 8px; background: #fff; font-size: 13px; color: var(--ink2); display: flex; align-items: center; padding: 0 12px; }
+#view { position: absolute; left: 0; top: 40px; width: 1200px; height: 750px; overflow: hidden; }
+#page { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+#page img { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; }
+#cursor { left: 0; top: 0; width: 34px; height: 44px; transform-origin: 4px 4px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
+.ring { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 3px solid var(--accent); }
+.msg { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 18px; background: #fff; display: grid; place-items: center;
+  box-shadow: 0 10px 24px rgba(120,20,50,.18), 0 0 0 1px rgba(0,0,0,.04); }
+.msg svg { width: 34px; height: 34px; }
+
+/* ---------- the two women ---------- */
+#world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+#wbg { position: absolute; left: -1600px; top: -600px; width: 5120px; height: 2280px;
+  background: linear-gradient(90deg, #FFF0F3 0 2560px, #F3F0FF 2560px); }
+.panel { position: absolute; top: 0; width: 960px; height: 1080px; }
+.dim { position: absolute; left: -400px; top: -300px; width: 1760px; height: 1680px; background: #FBFBFD; opacity: 0; }
+#pM .dim { left: 0; }
+.woman { position: absolute; left: 40px; top: 470px; width: 440px; height: 616px; transform-origin: 220px 616px; }
+.tag { position: absolute; left: 64px; top: 498px; display: flex; gap: 10px; align-items: center; }
+.tag b, .tag em { font-style: normal; height: 48px; padding: 0 20px; border-radius: 24px; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 22px; font-weight: 650; background: #fff; box-shadow: 0 6px 18px rgba(60,20,60,.10); white-space: nowrap; }
+.tag b span { font-weight: 450; color: var(--ink2); }
+.tag em { background: var(--teal); color: #fff; }
+
+/* phone: screen 390 x 844 CSS px, as the screenshots */
+.phone { position: absolute; width: 414px; height: 868px; border-radius: 62px; background: #1A1A1E; transform-origin: 207px 434px;
+  box-shadow: inset 0 0 0 2px #3B3B42, 0 50px 90px rgba(50,20,70,.22), 0 14px 28px rgba(0,0,0,.12); }
+.scr { position: absolute; left: 12px; top: 12px; width: 390px; height: 844px; border-radius: 50px; overflow: hidden; background: #000; }
+.layer { position: absolute; inset: 0; }
+.lock { color: #fff; text-align: center; }
+.ldate { position: absolute; top: 196px; width: 100%; font-size: 20px; font-weight: 550; opacity: .9; }
+.ltime { position: absolute; top: 218px; width: 100%; font-size: 92px; font-weight: 650; letter-spacing: -.02em; }
+.app { background: var(--bg); }
+.appview { position: absolute; left: 0; top: 44px; width: 390px; height: 800px; overflow: hidden; background: var(--bg); }
+.appview img { position: absolute; left: 0; top: 0; width: 390px; }
+.navpin { position: absolute; left: 0; top: 44px; width: 390px; height: 56px; background-size: 390px auto; background-position: 0 0; }
+.sb { position: absolute; left: 0; top: 0; width: 390px; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 40px; font-size: 16px; font-weight: 650; }
+.sb svg { height: 13px; }
+.island { position: absolute; left: 135px; top: 11px; width: 120px; height: 34px; border-radius: 17px; background: #000; }
+.notif { position: absolute; left: 10px; top: 54px; width: 370px; padding: 13px 14px; border-radius: 24px; background: rgba(255,255,255,.86);
+  backdrop-filter: blur(20px); display: flex; gap: 12px; align-items: flex-start; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.notif .ic { flex: none; width: 40px; height: 40px; border-radius: 10px; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
+.notif .ic i { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFC2D1, #FF4D79 60%, #C2185B); }
+.notif .tx { flex: 1; font-size: 15px; line-height: 1.32; color: #111; }
+.notif .tx b { display: flex; justify-content: space-between; font-weight: 650; }
+.notif .tx b small { font-weight: 450; color: #6E6E73; font-size: 13px; }
+.off { background: #000; }
+.tap { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: rgba(40,30,50,.22); box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
+.tap i { position: absolute; inset: -2px; border-radius: 50%; border: 3px solid rgba(217,30,78,.8); }
+/* call screens */
+.call { background: linear-gradient(180deg, #2B1F45 0%, #17121F 70%); color: #fff; text-align: center; }
+.call .lab { position: absolute; top: 118px; width: 100%; font-size: 18px; color: rgba(255,255,255,.72); display: flex; gap: 8px; justify-content: center; align-items: center; }
+.call .lab span { font-size: 13px; font-weight: 700; letter-spacing: .04em; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,.16); color: #fff; }
+.call .nm { position: absolute; top: 150px; width: 100%; font-size: 36px; font-weight: 650; letter-spacing: -.01em; }
+.call .sub { position: absolute; top: 200px; width: 100%; font-size: 18px; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; }
+.av { position: absolute; left: 50%; width: 132px; height: 132px; margin-left: -66px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #FFC2D1, #FF4D79 58%, #9C1B57); }
+.pulse { position: absolute; left: 50%; border-radius: 50%; border: 2px solid rgba(255,140,170,.7); }
+.cbtn { position: absolute; top: 690px; width: 78px; height: 78px; margin-left: -39px; border-radius: 50%; display: grid; place-items: center; }
+.cbtn svg { width: 34px; height: 34px; fill: #fff; }
+.cbl { position: absolute; top: 778px; width: 140px; margin-left: -70px; font-size: 15px; color: rgba(255,255,255,.85); }
+.wave { position: absolute; left: 0; width: 100%; top: 330px; height: 120px; display: flex; gap: 6px; align-items: center; justify-content: center; }
+.wave i { width: 7px; border-radius: 4px; background: linear-gradient(#FF8FA8, #FF4D79); }
+.booked { position: absolute; left: 22px; right: 22px; top: 470px; border-radius: 24px; background: #fff; color: var(--ink); text-align: left; padding: 20px 22px; }
+.booked b { display: flex; gap: 10px; align-items: center; color: var(--teal); font-size: 20px; font-weight: 700; }
+.booked p { font-size: 22px; font-weight: 650; margin-top: 10px; }
+.booked small { display: block; font-size: 15px; color: var(--ink2); margin-top: 6px; }
+.keys { position: absolute; top: 690px; left: 0; width: 100%; }
+
+/* speech bubbles of the AI call */
+#bubbles { position: absolute; left: 1170px; top: 170px; width: 690px; display: flex; flex-direction: column; gap: 20px; }
+.bub { align-self: flex-start; max-width: 600px; padding: 16px 24px 18px; border-radius: 8px 28px 28px 28px; background: #fff;
+  font-size: 29px; line-height: 1.28; font-weight: 500; box-shadow: 0 10px 26px rgba(60,30,90,.10); }
+.bub small { display: flex; gap: 8px; align-items: center; font-size: 17px; font-weight: 650; color: var(--accent); margin-bottom: 4px; }
+.bub small span { font-size: 12px; letter-spacing: .05em; padding: 2px 7px; border-radius: 5px; background: var(--accent); color: #fff; }
+.bub.me { align-self: flex-end; border-radius: 28px 8px 28px 28px; background: #E9E3FF; }
+.bub.me small { color: #5B3FD9; justify-content: flex-end; }
+
+/* days later */
+#later { position: absolute; inset: 0; background: rgba(251,251,253,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px; }
+.cal { width: 280px; height: 300px; border-radius: 36px; background: #fff; overflow: hidden; box-shadow: 0 30px 70px rgba(60,20,60,.16), 0 0 0 1px rgba(0,0,0,.04); text-align: center; }
+.cal .mo { height: 72px; background: var(--accent); color: #fff; font-size: 30px; font-weight: 700; letter-spacing: .06em; display: grid; place-items: center; }
+.cal .dd { font-size: 150px; font-weight: 750; letter-spacing: -.05em; line-height: 210px; font-variant-numeric: tabular-nums; }
+#later h2 { font-size: 76px; font-weight: 780; letter-spacing: -.04em; }
+
+/* end card */
+#end { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+#end .eb { font-size: 26px; font-weight: 650; color: var(--accent); margin-bottom: 26px; position: relative; }
+#end h1 { font-size: 132px; font-weight: 780; letter-spacing: -.05em; line-height: 1; position: relative; }
+#end .steps { display: flex; gap: 22px; margin-top: 64px; position: relative; }
+#end .steps div { display: flex; gap: 14px; align-items: center; padding: 18px 28px 18px 18px; border-radius: 22px; background: #fff; font-size: 25px; font-weight: 550;
+  box-shadow: 0 10px 30px rgba(60,20,60,.08); }
+#end .steps b { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 22px; }
+
+/* captions */
+.cap { position: absolute; }
+.cap small { display: block; font-size: 24px; font-weight: 650; color: var(--accent); margin-bottom: 14px; letter-spacing: -.005em; }
+.cap p { font-size: 54px; font-weight: 760; letter-spacing: -.035em; line-height: 1.08; text-wrap: balance; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><i class="blob" id="b1" style="width:760px;height:760px;background:#FF9AB5"></i><i class="blob" id="b2" style="width:680px;height:680px;background:#B6A4FF"></i></div>
+  <div id="world"><div id="wbg"></div><div class="panel" id="pJ" style="left:0"></div><div class="panel" id="pM" style="left:960px"></div></div>
+  <div id="s1">
+    <div id="win" class="abs"><div id="chrome"><i></i><i></i><i></i><span>127.0.0.1:8000 · Plánovač pozvánek</span></div>
+      <div id="view"><div id="page"><img id="pb" src="screens/planner_before.png"><img id="pa" src="screens/planner_after.png"></div></div></div>
+    <div class="ring abs" id="ring1"></div>
+    <div id="fly"></div>
+    <svg id="cursor" class="abs" viewBox="0 0 34 44"><path d="M3 3 L3 34 L11 27 L17 41 L23 38 L17 25 L28 25 Z" fill="#111" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>
+  </div>
+  <div id="bubbles"></div>
+  <div id="later"><div class="cal"><div class="mo" id="calMo">ŘÍJEN</div><div class="dd" id="calDd">17</div></div><h2>O dva týdny později</h2></div>
+  <div id="end">
+    <i class="blob" id="e1" style="width:700px;height:700px;background:#FF9AB5;left:120px;top:60px"></i>
+    <i class="blob" id="e2" style="width:640px;height:640px;background:#B6A4FF;right:120px;top:280px"></i>
+    <div class="eb">Pozvánky na mamografii, které fungují</div>
+    <h1>Každá žena jinak.<br><span class="grad">Každá včas.</span></h1>
+    <div class="steps"><div><b>1</b>Model najde ženy, které by nepřišly</div><div><b>2</b>Web jim vysvětlí, čeho se nebát</div><div><b>3</b>Kdo nereaguje, tomu zavolá AI</div></div>
+  </div>
+  <div id="caps"></div>
+</div>
+
+<script>
+const C = window.COORDS;
+const center = (b) => [b.x + b.width / 2, b.y + b.height / 2];
+
+// ---------------------------------------------------------------- timeline (seconds)
+const T = {
+  click: 3.0, sent: 4.4, toWorld: 5.7, notify: 6.65,
+  jIn: 7.8, jTapNotif: 8.8, jScroll: [9.3, 10.9], jTapTile: 11.0, jTapBook: 12.5, jTapSlot: 13.2, jTapGo: 13.7, jDone: 13.9,
+  toM: 15.0, mSwipe: 16.4, mOff: 16.9, later: [17.4, 19.2], ring: 19.3, accept: 21.0,
+  lines: [21.4, 23.0, 24.0, 25.9], booked: 26.4, end: 28.0, total: 30.0,
+};
+const CAPS = [
+  { a: 0.3, b: 3.4, x: 90, y: 395, w: 520, eb: "Pracovnice VZP", tx: "Model najde ženy, které by na pozvánku nejspíš nepřišly." },
+  { a: 3.6, b: 5.75, x: 90, y: 395, w: 520, eb: "Pracovnice VZP", tx: "Jedním kliknutím jim pošle zprávu s odkazem." },
+  { a: 6.3, b: 7.95, x: 84, y: 92, w: 430, eb: "Ve stejnou chvíli", tx: "Zpráva přijde Janě i Marii." },
+  { a: 8.3, b: 12.45, x: 84, y: 92, w: 430, eb: "Jana, 52 let", tx: "Na webu si přečte, čeho se nemusí bát…" },
+  { a: 12.6, b: 15.0, x: 84, y: 92, w: 430, eb: "Jana, 52 let", tx: "…a hned se objedná." },
+  { a: 15.9, b: 17.45, x: 84, y: 92, w: 430, eb: "Marie, 61 let", tx: "Marie zprávu nechá být." },
+  { a: 19.45, b: 21.3, x: 84, y: 92, w: 430, eb: "Marie, 61 let", tx: "Ozve se jí AI asistentka." },
+  { a: 21.45, b: 28.0, x: 84, y: 92, w: 430, eb: "Marie, 61 let", tx: "Vysvětlí, čeho se nemusí bát, a najde jí termín." },
+];
+const LINES = [
+  { me: false, tx: "Dobrý den, paní Marie. Volám kvůli mamografii, kterou máte zdarma." },
+  { me: true, tx: "Já se toho trochu bojím." },
+  { me: false, tx: "To je normální. Snímek trvá jen pár sekund. Mám vám najít termín?" },
+  { me: true, tx: "Dobře, ráno mi to vyhovuje." },
+];
+// day roll for "two weeks later": 17 Oct -> 31 Oct
+const ROLL = [T.later[0] + 0.25, T.later[1] - 0.35], DAYS = 14;
+const day = (t) => Math.round(DAYS * P(t, ROLL[0], ROLL[1]));
+
+// sound cues, read by render.py: [name, time, (duration)]
+window.CUES = [
+  ["whoosh", 0.0, 0.6], ["click", T.click], ["tick", 3.2], ["tick", 3.42], ["tick", 3.64], ["send", T.sent], ["send", T.sent + 0.35],
+  ["whoosh", T.toWorld, 0.7], ["notify", T.notify], ["notify", T.notify + 0.12], ["whoosh", T.jIn, 0.6],
+  ["tap", T.jTapNotif], ["tap", T.jTapTile], ["tap", T.jTapBook], ["tap", T.jTapSlot], ["tap", T.jTapGo], ["success", T.jDone + 0.05],
+  ["whoosh", T.toM, 1.0], ["swipe", T.mSwipe], ["ring", T.ring, T.accept - T.ring - 0.1], ["tap", T.accept],
+  ...T.lines.map((x) => ["pop", x]), ["success", T.booked], ["chord", T.end],
+];
+window.MUSIC = { rests: [[17.3, 19.2]] };  // no arpeggio during "two weeks later"
+for (let k = 1; k <= DAYS; k++) {  // a clock tick at every day change
+  let lo = ROLL[0], hi = ROLL[1];
+  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (DAYS * P(m, ROLL[0], ROLL[1]) < k - 0.5) lo = m; else hi = m; }
+  CUES.push(["clock", hi]);
+}
+
+const ICONS = `<svg viewBox="0 0 64 13"><g fill="currentColor"><rect x="0" y="8" width="3" height="5" rx="1"/><rect x="5" y="5.5" width="3" height="7.5" rx="1"/><rect x="10" y="3" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="13" rx="1"/>
+  <path d="M30 4.5a9 9 0 0 1 12 0l-1.6 1.7a6.6 6.6 0 0 0-8.8 0zM32.6 7.3a5.2 5.2 0 0 1 6.8 0L36 10.8z"/>
+  <rect x="47" y="1" width="15" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="49" y="3" width="10" height="7" rx="1.5"/><rect x="62.6" y="4.5" width="1.4" height="4" rx=".7"/></g></svg>`;
+const PHONE_ICON = `<svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>`;
+
+function phone(who, wall, body) {
+  return `<div class="phone"><div class="scr">
+    <div class="layer lock" style="background:${wall}"><div class="ldate">sobota 17. října</div><div class="ltime">10:24</div></div>
+    <div class="layer app"><div class="appview"></div><div class="navpin"></div></div>
+    <div class="layer off" style="opacity:0"></div>
+    ${who === "M" ? callHTML() : ""}
+    <div class="notif"><div class="ic"><i></i></div><div class="tx"><b>Pár minut pro sebe<small>teď</small></b>${body}</div></div>
+    <div class="sb"><span>10:24</span>${ICONS}</div><div class="island"></div>
+    <div class="tap"><i></i></div>
+  </div></div>`;
+}
+function callHTML() {
+  const bars = Array.from({ length: 26 }, () => "<i></i>").join("");
+  return `<div class="layer call" id="incoming" style="opacity:0">
+      <div class="lab">Volá vám <span>AI</span></div><div class="nm">Pár minut pro sebe</div><div class="sub">asistentka pro mamografický screening</div>
+      <i class="pulse" id="pu1"></i><i class="pulse" id="pu2"></i><div class="av" style="top:300px"></div>
+      <div class="cbtn" style="left:95px;background:#FF3B30">${PHONE_ICON.replace("<svg", '<svg style="transform:rotate(135deg)"')}</div><div class="cbl" style="left:95px">Odmítnout</div>
+      <div class="cbtn" id="acc" style="left:295px;background:#30D158">${PHONE_ICON}</div><div class="cbl" style="left:295px">Přijmout</div></div>
+    <div class="layer call" id="incall" style="opacity:0">
+      <div class="lab">Hovor <span>AI</span></div><div class="nm">Pár minut pro sebe</div><div class="sub" id="timer">00:00</div>
+      <div class="av" style="top:250px;width:72px;height:72px;margin-left:-36px"></div>
+      <div class="wave" id="wave">${bars}</div>
+      <div class="booked" id="booked"><b><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>Termín je zarezervovaný</b>
+        <p>čtvrtek 12. listopadu, 8:20</p><small>Nemocnice Blansko · SMS připomínka den předem</small></div>
+      <div class="cbtn" style="left:195px;background:#FF3B30">${PHONE_ICON.replace("<svg", '<svg style="transform:rotate(135deg)"')}</div></div>`;
+}
+
+function panel(id, w, name, age, wall, body) {
+  const p = $(id);
+  p.innerHTML = `${woman(w)}<div class="tag"><b>${name}<span>${age}</span></b><em style="opacity:0">✓ objednaná</em></div>
+    <div class="dim"></div>`;
+  p.insertAdjacentHTML("beforeend", phone(id === "#pJ" ? "J" : "M", wall, body));
+  css($(".phone", p), { left: "473px", top: "86px" });
+}
+panel("#pJ", JANA, "Jana", "52 let", "linear-gradient(165deg,#FFB3C6 0%,#FF6F92 48%,#B9A6FF 100%)",
+  "Dobrý den, máte nárok na mamografii zdarma. Podívejte se, co vás čeká.");
+panel("#pM", MARIE, "Marie", "61 let", "linear-gradient(165deg,#A9C1FF 0%,#B6A4FF 50%,#FFB8CA 100%)",
+  "Dobrý den, máte nárok na mamografii zdarma. Podívejte se, co vás čeká.");
+
+// Jana's app screens
+const SHOTS = ["web_home_full", "web_check", "web_slot0", "web_slot", "web_done"];
+const jView = $("#pJ .appview");
+jView.innerHTML = SHOTS.map((s) => `<img id="${s}" src="screens/${s}.png">`).join("");
+css($("#pJ .navpin"), { backgroundImage: "url(screens/web_home_full.png)" });
+$("#pM .navpin").remove();
+
+// flying messages, bubbles, captions
+const MSG = `<svg viewBox="0 0 24 24" fill="none" stroke="#D91E4E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H10l-5 4v-4H4z"/></svg>`;
+$("#fly").innerHTML = Array.from({ length: 9 }, () => `<div class="msg">${MSG}</div>`).join("");
+$("#bubbles").innerHTML = LINES.map((l) => `<div class="bub${l.me ? " me" : ""}"><small>${l.me ? "Marie" : "Asistentka <span>AI</span>"}</small>${nb(l.tx)}</div>`).join("");
+$("#caps").innerHTML = CAPS.map((c) => `<div class="cap" style="left:${c.x}px;top:${c.y}px;width:${c.w}px"><small>${c.eb}</small><p>${nb(c.tx)}</p></div>`).join("");
+
+// ---------------------------------------------------------------- render one frame
+const PJ = { phone: $("#pJ .phone"), x: 473, y: 86 }, PM = { phone: $("#pM .phone"), x: 1433, y: 86 };
+const PHONE_SCALE = 0.8;
+const BASE = 1200 / 1440;           // planner screenshot -> browser view
+const [AX, AY] = center(C.apply), [TX, TY] = center(C.toast);
+const TILE = [C.tile_fear.x + C.tile_fear.width / 2, C.tile_fear.y + C.tile_fear.height / 2];
+const SCROLL = clamp(TILE[1] - 470, 0, C.home_height - 800);
+
+function plannerCam(t) {
+  const [fx, fy, z] = K(t, [[0, [720, 450, 1]], [1.2, [720, 450, 1]], [2.6, [AX + 160, AY + 60, 1.8]], [3.5, [AX + 160, AY + 60, 1.8]], [4.3, [720, 450, 1]]]);
+  const s = BASE * z, tx = clamp(600 - fx * s, 1200 - 1440 * s, 0), ty = clamp(375 - fy * s, 750 - 900 * s, 0);
+  return { s, tx, ty, at: (x, y) => [660 + tx + x * s, 190 + ty + y * s] };
+}
+
+function tap(el, t, t0, x, y) {
+  const v = t > t0 - 0.28 && t < t0 + 0.45;
+  if (!v) return false;
+  const p = P(t, t0 - 0.28, t0, E.out), q = P(t, t0, t0 + 0.45, E.out);
+  css(el, { left: x + "px", top: y + "px", opacity: String(Math.min(p, 1 - q)), transform: `scale(${L(1.35, 0.9, p) + 0.1 * q})` });
+  css($("i", el), { transform: `scale(${1 + 1.4 * q})`, opacity: String(t > t0 ? 1 - q : 0) });
+  return true;
+}
+
+function render(t) {
+  // background blobs (scene 1)
+  css($("#b1"), { left: `${-120 + 40 * Math.sin(t * 0.5)}px`, top: `${380 + 30 * Math.cos(t * 0.4)}px` });
+  css($("#b2"), { left: `${300 + 50 * Math.cos(t * 0.45)}px`, top: `${-160 + 40 * Math.sin(t * 0.5)}px` });
+
+  // ---- scene 1: planner
+  // scene 1 -> 2: a push to the left, following the messages that flew off to the right
+  const push = 1920 * P(t, T.toWorld, T.toWorld + 0.7), s1o = push < 1920 ? 1 : 0;
+  css($("#s1"), { transform: `translateX(${-push}px)`, display: s1o > 0 ? "" : "none" });
+  css($("#bg"), { transform: `translateX(${-push}px)`, display: s1o > 0 ? "" : "none" });
+  if (s1o > 0) {
+    const win0 = P(t, 0, 0.8, E.out);
+    css($("#win"), { transform: `translateY(${L(60, 0, win0)}px)`, opacity: String(win0) });
+    const cam = plannerCam(t);
+    css($("#page"), { transform: `translate(${cam.tx}px,${cam.ty}px) scale(${cam.s})` });
+    $("#pa").style.opacity = t >= T.click + 0.12 ? 1 : 0;  // a cut: the two layouts differ, a crossfade would ghost
+    // cursor (constant size, placed in screen space)
+    const cp = K(t, [[0, [1260, 860]], [1.3, [1260, 860]], [2.8, [AX + 8, AY + 6]]]);
+    const [cx, cy] = cam.at(cp[0], cp[1]);
+    const press = t > T.click - 0.05 && t < T.click + 0.15 ? 0.85 : 1;
+    css($("#cursor"), { transform: `translate(${cx - 4}px,${cy - 4}px) scale(${press})`, opacity: String(win(t, 0.9, 4.4, 0.4)) });
+    const [rx, ry] = cam.at(AX, AY), rq = P(t, T.click, T.click + 0.55, E.out);
+    css($("#ring1"), { left: rx + "px", top: ry + "px", transform: `scale(${1 + 5 * rq})`, opacity: String(t > T.click ? 0.8 * (1 - rq) : 0) });
+    // messages fly from the toast to the right edge
+    const [sx, sy] = cam.at(TX, TY);
+    [...$("#fly").children].forEach((m, i) => {
+      const a = T.sent + i * 0.09, p = P(t, a, a + 0.95, E.in), ex = 2010, ey = 140 + i * 95, kx = (sx + ex) / 2 + 60, ky = Math.min(sy, ey) - 260;
+      const x = (1 - p) ** 2 * sx + 2 * (1 - p) * p * kx + p * p * ex, y = (1 - p) ** 2 * sy + 2 * (1 - p) * p * ky + p * p * ey;
+      css(m, { left: x + "px", top: y + "px", opacity: String(t > a ? Math.min(1, P(t, a, a + 0.12, E.lin) * 3) * (1 - P(t, a + 0.7, a + 0.95, E.lin)) : 0), transform: `scale(${L(0.5, 1.15, P(t, a, a + 0.4, E.out))}) rotate(${-12 + 24 * p}deg)` });
+    });
+  }
+
+  // ---- world: camera over the two women
+  const wo = push > 0 ? 1 : 0, wx = 1920 - push;
+  const endo = P(t, T.end, T.end + 0.6);
+  css($("#world"), { display: wo > 0 && endo < 1 ? "" : "none" });
+  if (wo > 0 && endo < 1) {
+    const J = [560, 540, 1.35], M = [1700, 540, 1.3], O = [960, 540, 1];
+    let [fx, fy, z] = K(t, [[0, O], [T.jIn, O], [T.jIn + 0.8, J], [T.toM, J, "in"], [T.toM + 0.6, [1100, 560, 1.02], "out"], [T.toM + 1.2, M]]);
+    z *= L(1, 1.04, endo);
+    // the phone buzzes while ringing
+    let jx = 0;
+    if (t > T.ring && t < T.accept && (t - T.ring) % 1.0 < 0.55) jx = 3 * Math.sin(t * 160);
+    css($("#world"), { transform: `translate(${960 - fx * z + wx}px,${540 - fy * z}px) scale(${z})`, opacity: String(1 - endo) });
+    css($("#pJ .dim"), { opacity: String(0.55 * P(t, T.toM + 0.3, T.toM + 1.1)) });
+    css($("#pM .dim"), { opacity: String(0.5 * win(t, T.jIn, T.toM + 0.6, 0.8)) });
+    css(PJ.phone, { transform: `translateY(${6 * Math.sin(t * 1.3)}px) scale(${PHONE_SCALE})` });
+    css(PM.phone, { transform: `translate(${jx}px,${6 * Math.sin(t * 1.3 + 1.7)}px) rotate(${jx * 0.4}deg) scale(${PHONE_SCALE})` });
+    for (const [p, off] of [["#pJ", 0], ["#pM", 1.3]]) {
+      const svg = $(p + " .woman");
+      css(svg, { transform: `translateY(${3 * Math.sin(t * 1.1 + off)}px)` });
+      blink(svg, t, off);
+    }
+    // smiles and badges
+    const jHappy = P(t, T.jDone, T.jDone + 0.4), mHappy = P(t, T.booked, T.booked + 0.4);
+    $("#pJ .m0").style.opacity = 1 - jHappy; $("#pJ .m1").style.opacity = jHappy;
+    $("#pM .m0").style.opacity = 1 - mHappy; $("#pM .m1").style.opacity = mHappy;
+    const jb = P(t, T.jDone + 0.2, T.jDone + 0.7, E.back), mb = P(t, T.booked + 0.2, T.booked + 0.7, E.back);
+    css($("#pJ .tag em"), { opacity: String(clamp(jb)), transform: `scale(${L(0.6, 1, jb)})` });
+    css($("#pM .tag em"), { opacity: String(clamp(mb)), transform: `scale(${L(0.6, 1, mb)})` });
+    renderJana(t);
+    renderMarie(t);
+  }
+
+  // ---- speech bubbles
+  const bubs = [...$("#bubbles").children];
+  T.lines.forEach((a, i) => {
+    const p = P(t, a, a + 0.4, E.back), out = P(t, T.end - 0.1, T.end + 0.4);
+    css(bubs[i], { opacity: String(clamp(p) * (1 - out)), transform: `translateY(${L(24, 0, clamp(p))}px) scale(${L(0.92, 1, p)})`, transformOrigin: LINES[i]?.me ? "right top" : "left top" });
+  });
+
+  // ---- two weeks later
+  const lo = win(t, T.later[0], T.later[1], 0.4);
+  css($("#later"), { opacity: String(lo), display: lo > 0 ? "flex" : "none" });
+  if (lo > 0) {
+    const d = day(t), dd = 17 + d;
+    $("#calDd").textContent = dd;
+    $("#calMo").textContent = "ŘÍJEN";
+    css($(".cal"), { transform: `translateY(${L(30, 0, P(t, T.later[0], T.later[0] + 0.5, E.out))}px) rotate(${-3 + 6 * P(t, ROLL[0], ROLL[1])}deg)` });
+    css($("#later h2"), { transform: `translateY(${L(24, 0, P(t, T.later[0] + 0.15, T.later[0] + 0.65, E.out))}px)` });
+  }
+
+  // ---- end card
+  css($("#end"), { opacity: String(endo), display: endo > 0 ? "flex" : "none" });
+  if (endo > 0) {
+    const r = (a) => P(t, T.end + a, T.end + a + 0.6, E.out);
+    css($("#end .eb"), { opacity: String(r(0.1)), transform: `translateY(${L(20, 0, r(0.1))}px)` });
+    css($("#end h1"), { opacity: String(r(0.2)), transform: `translateY(${L(30, 0, r(0.2))}px)`, filter: `blur(${L(8, 0, r(0.2))}px)` });
+    [...$("#end .steps").children].forEach((s, i) => css(s, { opacity: String(r(0.55 + i * 0.12)), transform: `translateY(${L(24, 0, r(0.55 + i * 0.12))}px)` }));
+    css($("#e1"), { transform: `translate(${30 * Math.sin(t)}px,${20 * Math.cos(t)}px)` });
+    css($("#e2"), { transform: `translate(${-30 * Math.sin(t)}px,${20 * Math.sin(t * 0.8)}px)` });
+  }
+
+  // ---- captions
+  [...$("#caps").children].forEach((el, i) => {
+    const c = CAPS[i], o = win(t, c.a, c.b, 0.4), p = P(t, c.a, c.a + 0.5, E.out);
+    css(el, { opacity: String(o), transform: `translateY(${L(22, 0, p)}px)`, display: o > 0 ? "" : "none" });
+  });
+}
+
+function notifIn(el, t, a) {
+  const p = P(t, a, a + 0.55, E.back);
+  return { p, set: (extraY = 0, op = 1) => css(el, { transform: `translateY(${L(-150, 0, p) + extraY}px)`, opacity: String(clamp(p * 2) * op) }) };
+}
+
+function renderJana(t) {
+  const root = $("#pJ"), scr = $(".scr", root);
+  const n = notifIn($(".notif", root), t, T.notify);
+  const open = P(t, T.jTapNotif + 0.05, T.jTapNotif + 0.45, E.out);
+  n.set(L(0, -20, open), 1 - open);
+  const app = $(".app", root);
+  css(app, { opacity: String(open), transform: `scale(${L(0.9, 1, open)})`, borderRadius: "40px" });
+  $(".lock", root).style.opacity = 1 - open;
+  $(".sb", root).style.color = open > 0.5 ? "#1D1D1F" : "#fff";
+  // which screen is up, with a short slide between screens
+  const scroll = SCROLL * P(t, T.jScroll[0], T.jScroll[1]);
+  const steps = [[-1, "web_home_full"], [T.jTapTile + 0.05, "web_check"], [T.jTapBook + 0.1, "web_slot0"], [T.jTapSlot + 0.02, "web_slot"], [T.jTapGo + 0.12, "web_done"]];
+  let cur = 0; steps.forEach(([a], i) => { if (t >= a) cur = i; });
+  steps.forEach(([a, id], i) => {
+    const img = $("#" + id), slide = i === 3 ? 1 : P(t, a, a + 0.32, E.out);
+    const vis = i === cur || (i === cur - 1 && slide < 1);
+    const curSlide = P(t, steps[cur][0], steps[cur][0] + 0.32, E.out);
+    if (!vis) { img.style.opacity = 0; return; }
+    if (i === cur) css(img, { opacity: String(i === 3 ? 1 : curSlide), transform: `translate(${i === 3 ? 0 : L(40, 0, curSlide)}px,${i === 0 ? -scroll : 0}px)` });
+    else css(img, { opacity: "1", transform: `translate(0,${i === 0 ? -scroll : 0}px)` });
+  });
+  $(".navpin", root).style.opacity = cur === 0 ? 1 : 0;
+  // taps (screen coords = page coords + 44 px status bar)
+  const tp = $(".tap", root);
+  const hit = tap(tp, t, T.jTapNotif, 195, 100) ||
+    tap(tp, t, T.jTapTile, TILE[0], TILE[1] - SCROLL + 44) ||
+    tap(tp, t, T.jTapBook, ...[center(C.navbook)[0], center(C.navbook)[1] + 44]) ||
+    tap(tp, t, T.jTapSlot, ...[center(C.slot)[0], center(C.slot)[1] + 44]) ||
+    tap(tp, t, T.jTapGo, ...[center(C.continue)[0], center(C.continue)[1] + 44]);
+  if (!hit) tp.style.opacity = 0;
+}
+
+function renderMarie(t) {
+  const root = $("#pM");
+  const n = notifIn($(".notif", root), t, T.notify + 0.12);
+  const sw = P(t, T.mSwipe, T.mSwipe + 0.35, E.in);
+  n.set(L(0, -160, sw), 1 - sw);
+  $(".app", root).style.opacity = 0;
+  $(".off", root).style.opacity = P(t, T.mOff, T.mOff + 0.3);  // screen off; the call lights up above it
+  // incoming call, then a short dip to black and the call itself (no crossfade: the layouts differ)
+  const inc = P(t, T.ring, T.ring + 0.3, E.out), acc = P(t, T.accept + 0.14, T.accept + 0.4, E.out);
+  $("#incoming").style.opacity = inc * (1 - P(t, T.accept + 0.02, T.accept + 0.12, E.lin));
+  $("#incall").style.opacity = acc;
+  $(".sb", root).style.color = "#fff";
+  // ringing pulses around the avatar
+  ["#pu1", "#pu2"].forEach((id, i) => {
+    const k = ((t - T.ring) * 0.9 + i * 0.5) % 1, r = 66 + 70 * k;
+    css($(id), { width: 2 * r + "px", height: 2 * r + "px", marginLeft: -r + "px", top: 366 - r + "px", opacity: String(t > T.ring ? 0.8 * (1 - k) : 0) });
+  });
+  // call timer runs 9x faster: the conversation is shortened
+  const sec = Math.max(0, Math.floor((t - T.accept) * 9));
+  $("#timer").textContent = `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
+  const speaking = [[T.lines[0], T.lines[1] - 0.2, 1], [T.lines[1], T.lines[2] - 0.2, 0.55], [T.lines[2], T.lines[3] - 0.2, 1], [T.lines[3], T.booked - 0.1, 0.55]]
+    .reduce((v, [a, b, s]) => Math.max(v, s * win(t, a, b, 0.15)), 0.08);
+  [...$("#wave").children].forEach((b, i) => {
+    const h = 8 + 90 * speaking * (0.35 + 0.65 * Math.abs(Math.sin(t * 9 + i * 1.7) * Math.sin(t * 4.3 + i * 0.6)));
+    b.style.height = h + "px";
+  });
+  const bk = P(t, T.booked, T.booked + 0.5, E.back);
+  css($("#booked"), { opacity: String(clamp(bk)), transform: `translateY(${L(40, 0, clamp(bk))}px) scale(${L(0.9, 1, bk)})` });
+  css($("#wave"), { opacity: String(1 - clamp(bk)) });
+  const tp = $(".tap", root);
+  const hit = tap(tp, t, T.accept, 295, 729);
+  if (!hit) {
+    // a swipe-up gesture over the notification
+    const g = win(t, T.mSwipe - 0.25, T.mSwipe + 0.4, 0.12);
+    if (g > 0) css(tp, { left: "195px", top: `${L(150, 40, P(t, T.mSwipe - 0.15, T.mSwipe + 0.35))}px`, opacity: String(g), transform: "scale(1)" });
+    else tp.style.opacity = 0;
+  }
+}
+
+boot(render, T.total);
+</script>
+</body>
+</html>

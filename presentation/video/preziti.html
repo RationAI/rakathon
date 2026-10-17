@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Čím dřív, tím líp</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap">
+<script src="shared.js"></script>
+<style>
+/* 30 s, 1080 x 1350 (4:5, for the webapp on a phone). Survival by stage as in webapp/index.template.html and
+   presentation/survival_by_stage.py (SEER, 5-year relative survival, diagnoses 2015-2021); Czech screening
+   coverage from data/uzis_mamo_coverage.csv (ÚZIS, 2024, women 45+). */
+:root { --bg: #FBFBFD; --card: #F2F2F6; --ink: #1D1D1F; --ink2: #6E6E73; --line: #D2D2D7; --accent: #D91E4E; --teal: #0E8A86; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1350px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; }
+.grad { background: linear-gradient(90deg, #FF2D55, #FF8A5B); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.blob { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .32; }
+.txt { position: absolute; left: 70px; right: 70px; top: 176px; text-align: center; }
+.eb { font-size: 32px; font-weight: 650; color: var(--accent); }
+.st { font-size: 104px; font-weight: 760; letter-spacing: -.045em; line-height: 1.02; margin-top: 12px; text-wrap: balance; }
+.sb { font-size: 42px; color: var(--ink2); line-height: 1.28; margin-top: 22px; text-wrap: balance; letter-spacing: -.012em; }
+.src { position: absolute; left: 90px; right: 90px; text-align: center; font-size: 23px; line-height: 1.35; color: #8E8E93; }
+.orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFC2D1, #FF4D79 60%, #C2185B); box-shadow: 0 60px 120px -40px rgba(255,45,85,.55); }
+.ripple { position: absolute; border-radius: 50%; border: 3px solid #FF4D79; }
+/* timeline, as .tl in the webapp */
+.trk { position: absolute; left: 100px; width: 840px; top: 880px; height: 22px; border-radius: 11px; background: #ECECF1; }
+#fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 11px; background: linear-gradient(90deg, var(--teal), #34C7B8); }
+.node { position: absolute; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; }
+.nlab { position: absolute; width: 360px; margin-left: -180px; text-align: center; }
+.nlab b { display: block; font-size: 40px; font-weight: 720; letter-spacing: -.02em; }
+.nlab span { display: block; font-size: 30px; color: var(--ink2); margin-top: 2px; }
+/* survival */
+#tabs { position: absolute; top: 318px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; }
+.tab { height: 66px; padding: 0 28px; border-radius: 33px; background: var(--card); display: flex; align-items: center; font-size: 29px; font-weight: 620; color: var(--ink2); }
+#num { position: absolute; left: 430px; top: 392px; font-size: 200px; font-weight: 790; letter-spacing: -.055em; line-height: 1; font-variant-numeric: tabular-nums; }
+#num small { font-size: 96px; letter-spacing: -.02em; margin-left: 10px; }
+#numlab { position: absolute; left: 438px; top: 600px; font-size: 34px; color: var(--ink2); font-weight: 550; }
+.desc { position: absolute; left: 438px; right: 60px; top: 652px; font-size: 33px; font-weight: 620; line-height: 1.25; }
+#grid { position: absolute; left: 300px; top: 760px; width: 480px; height: 480px; }
+#grid i { position: absolute; width: 36px; height: 36px; border-radius: 50%; background: #E4E4EA; }
+#grid i b { position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(140deg, #4CD9C0, #0E8A86); }
+/* people */
+.ppl { position: absolute; width: 150px; height: 210px; }
+.ppl svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.help { position: absolute; left: 90px; right: 90px; display: flex; gap: 22px; align-items: center; border-radius: 30px; background: var(--card); padding: 28px 34px; font-size: 32px; line-height: 1.3; color: var(--ink2); }
+.help b { color: var(--ink); font-weight: 650; }
+.help svg { flex: none; width: 50px; height: 50px; fill: none; stroke: var(--accent); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.btn { display: inline-flex; gap: 14px; align-items: center; height: 104px; padding: 0 52px; border-radius: 52px; background: var(--accent); color: #fff; font-size: 40px; font-weight: 650; }
+.btn svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<i class="blob" id="b1" style="width:700px;height:700px;background:#FF9AB5"></i>
+<i class="blob" id="b2" style="width:640px;height:640px;background:#B6A4FF"></i>
+
+<!-- 0: hook -->
+<section class="scene" id="s0">
+  <i class="ripple" id="r1"></i><i class="ripple" id="r2"></i><i class="orb" id="orb0" data-d=".35"></i>
+  <i class="ripple" id="spotr" style="border-color:#7A0F3C"></i><i class="abs" id="spot" style="border-radius:50%;background:#8E1446"></i>
+  <div class="txt" style="top:190px"><p class="eb" data-d="0">Rakovina prsu</p>
+    <h1 class="st" data-d=".08">Na začátku nebolí.</h1>
+    <p class="sb" data-d=".16">Změnu často nepoznáte sama.</p></div>
+</section>
+
+<!-- 1: earlier than symptoms -->
+<section class="scene" id="s1">
+  <div class="txt"><p class="eb" data-d="0">Proč mamografie</p><h1 class="st" data-d=".08">Mamograf ji zachytí dřív.</h1>
+    <p class="sb" data-d=".16">Dřív, než se objeví příznaky. Změna odhalená včas se léčí úspěšněji.</p></div>
+  <div class="trk" data-d=".3"><i id="fill"></i></div>
+  <i class="node" id="n1" style="left:621px;top:891px;background:var(--accent);box-shadow:0 0 0 12px rgba(217,30,78,.16)"></i>
+  <i class="node" id="n2" style="left:940px;top:891px;background:#fff;border:4px dashed #8E8E93"></i>
+  <div class="nlab" id="l1" style="left:621px;top:748px"><b>Mamograf</b><span>změnu zachytí</span></div>
+  <div class="nlab" id="l2" style="left:940px;top:748px;width:240px;margin-left:-120px"><b>Příznaky</b><span>pokud přijdou</span></div>
+  <p class="abs" data-d=".5" style="left:100px;top:934px;font-size:32px;font-weight:650;color:var(--teal)">Cítím se dobře</p>
+  <svg class="abs" style="left:600px;top:930px;width:360px;height:60px" viewBox="0 0 360 60"><path id="brk" d="M21 6 V30 H340 V6" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
+  <p class="abs" id="brl" style="left:600px;width:360px;top:986px;text-align:center;font-size:34px;font-weight:700;color:var(--accent)">náskok pro léčbu</p>
+</section>
+
+<!-- 2: survival by stage -->
+<section class="scene" id="s2">
+  <div class="txt" style="top:110px"><p class="eb" data-d="0">Kolik žen žije pět let po diagnóze</p><h1 class="st" data-d=".08">Čím dřív, tím líp.</h1></div>
+  <div id="tabs" data-d=".25"></div>
+  <svg class="abs" data-d=".35" style="left:96px;top:410px;width:300px;height:300px;overflow:visible" viewBox="0 0 260 260">
+    <circle cx="110" cy="140" r="88" fill="#FFE3EA" stroke="#FFB3C6" stroke-width="3"/>
+    <g id="d2" stroke="#F0A030" stroke-width="3" stroke-dasharray="5 6" fill="none"><path d="M120 150 L186 64 M120 150 L208 92 M120 150 L172 44"/></g>
+    <g id="d2n" fill="#F0A030"><circle cx="186" cy="64" r="9"/><circle cx="208" cy="92" r="9"/><circle cx="172" cy="44" r="9"/></g>
+    <g id="d3" stroke="#D91E4E" stroke-width="3" stroke-dasharray="5 6" fill="none"><path d="M186 64 L248 6 M120 150 L256 222 M120 150 L22 252"/></g>
+    <g id="d3n" fill="#D91E4E"><circle cx="248" cy="6" r="10"/><circle cx="256" cy="222" r="10"/><circle cx="22" cy="252" r="10"/></g>
+    <circle id="d1r" cx="120" cy="150" r="13" fill="none" stroke="#D91E4E" stroke-width="3"/><circle cx="120" cy="150" r="13" fill="#D91E4E"/>
+  </svg>
+  <div id="num" data-d=".35">0<small>%</small></div>
+  <p id="numlab" data-d=".45">žije po pěti letech</p>
+  <p class="desc" id="de0">Změna je pořád jen v prsu.</p><p class="desc" id="de1">Zasažené jsou i blízké uzliny.</p><p class="desc" id="de2">Nemoc se rozšířila do dalších orgánů.</p>
+  <div id="grid" data-d=".45"></div>
+  <p class="src" data-d=".6" style="top:1262px">Relativní pětileté přežití podle rozsahu nemoci při diagnóze. SEER, USA, diagnózy 2015–2021. Průměr za skupinu žen, ne předpověď pro jednu z nich.</p>
+</section>
+
+<!-- 3: Czech coverage -->
+<section class="scene" id="s3">
+  <div class="txt"><p class="eb" data-d="0">V Česku</p><h1 class="st" data-d=".08">Chodí ale jen polovina žen.</h1>
+    <p class="sb" data-d=".16">Na screening chodí 54 % žen od 45 let.</p></div>
+  <div id="people" data-d=".3" class="abs" style="inset:0"></div>
+  <p class="src" data-d=".6" style="top:1262px">Zdroj: ÚZIS, pokrytí mamografickým screeningem v roce 2024, ženy od 45 let.</p>
+</section>
+
+<!-- 4: end -->
+<section class="scene" id="s4">
+  <i class="orb" id="orb4" data-d=".2"></i>
+  <div class="txt" style="top:170px"><p class="eb" data-d="0">Čím dřív, tím líp</p>
+    <h1 class="st" data-d=".08" style="font-size:116px">Jednou za dva roky.<br><span class="grad">Zdarma od 45 let.</span></h1></div>
+  <div class="help" data-d=".35" style="top:640px"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3zM12 10v4M12 17h.01"/></svg>
+    <p><b>Máte změnu na prsu, bulku, výtok nebo bolest?</b> Nečekejte na screening a jděte k lékaři hned.</p></div>
+  <div class="abs" data-d=".5" style="left:0;right:0;top:880px;text-align:center"><span class="btn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>Objednat se</span></div>
+</section>
+
+<script>
+const T = {
+  s: [0, 4.0, 9.4, 21.6, 25.9, 30.0],  // scene i runs from s[i] to s[i + 1]
+  spot: 2.0, fill: [4.6, 5.9], n1: 5.7, n2: 6.2, brk: 6.9,
+  stages: [10.3, 13.9, 17.5], people: [22.3, 23.7], total: 30.0,
+};
+const SC = T.s.slice(0, -1).map((a, i) => ({ id: "s" + i, a, b: T.s[i + 1] }));
+const STAGES = [
+  { name: "Jen v prsu", v: 100, c1: "#4CD9C0", c2: "#0E8A86" },
+  { name: "Do okolí", v: 87, c1: "#FFD08A", c2: "#F0A030" },
+  { name: "Daleko od prsu", v: 33, c1: "#FF8FA8", c2: "#D91E4E" },
+];
+const COVERAGE = 5.4;  // of 10 women: 54 % in 2024 (data/uzis_mamo_coverage.csv, women 45+)
+
+$("#tabs").innerHTML = STAGES.map((s) => `<div class="tab">${s.name}</div>`).join("");
+$("#grid").innerHTML = Array.from({ length: 100 }, (_, i) => `<i style="left:${(i % 10) * 48 + 6}px;top:${Math.floor(i / 10) * 48 + 6}px"><b></b></i>`).join("");
+const PERSON = (fill, stroke) => `<svg viewBox="0 0 100 140"><circle cx="50" cy="32" r="23" fill="${fill}" stroke="${stroke}" stroke-width="3"/><path d="M10 138 C10 92 28 66 50 66 C72 66 90 92 90 138 Z" fill="${fill}" stroke="${stroke}" stroke-width="3"/></svg>`;
+$("#people").innerHTML = Array.from({ length: 10 }, (_, i) => `<div class="ppl" style="left:${85 + (i % 5) * 190}px;top:${600 + Math.floor(i / 5) * 290}px">
+  ${PERSON("#EEEEF3", "#D2D2DA")}<div class="abs on" style="inset:0">${PERSON("url(#pg)", "transparent")}</div></div>`).join("")
+  + `<svg width="0" height="0" class="abs"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B8E"/><stop offset="1" stop-color="#D91E4E"/></linearGradient></defs></svg>`;
+$$(".sb, .help p, .desc, .src").forEach((e) => (e.innerHTML = nb(e.innerHTML)));
+
+// survival shown in the number and the dots: counts up, then down at each stage
+const value = (t) => K(t, [[T.stages[0], 0], [T.stages[0] + 1.0, 100, "out"], [T.stages[1], 100], [T.stages[1] + 0.9, 87], [T.stages[2], 87], [T.stages[2] + 1.2, 33]]);
+const stage = (t) => (t >= T.stages[2] ? 2 : t >= T.stages[1] ? 1 : t >= T.stages[0] ? 0 : -1);
+
+window.MUSIC = {  // Am7 - Fmaj7 - Cmaj7 - G6, no arpeggio while the 33 % sinks in
+  chords: [[110.0, 164.8, 196.0, 261.6], [87.3, 220.0, 261.6, 329.6], [130.8, 164.8, 196.0, 246.9], [98.0, 246.9, 293.7, 329.6]],
+  rests: [[T.stages[2], T.s[3]]],
+};
+window.CUES = [
+  ["thump", T.spot], ...T.s.slice(1, -1).map((a) => ["whoosh", a - 0.1, 0.5]), ["pop", T.n1], ["pop", T.n2], ["swipe", T.brk],
+  ...T.stages.map((a) => ["pop", a]), ...Array.from({ length: 6 }, (_, i) => ["tick", T.people[0] + (T.people[1] - T.people[0]) * Math.min(1, (i + 1) / COVERAGE) - 0.05]),
+  ["chord", T.s[4]],
+];
+
+function orb(id, x, y, size, t) {
+  css($(id), { left: `${x - size / 2}px`, top: `${y - size / 2}px`, width: `${size}px`, height: `${size}px`, transform: `scale(${1 + 0.03 * Math.sin(t * 1.4)})` });
+}
+
+function render(t) {
+  css($("#b1"), { left: `${-200 + 40 * Math.sin(t * 0.5)}px`, top: `${-120 + 30 * Math.cos(t * 0.4)}px` });
+  css($("#b2"), { left: `${560 + 50 * Math.cos(t * 0.45)}px`, top: `${900 + 40 * Math.sin(t * 0.5)}px` });
+  scenes(t, SC);
+
+  // 0: a calm orb; a small spot appears inside it, quietly
+  orb("#orb0", 540, 920, 460, t);
+  ["#r1", "#r2"].forEach((id, i) => { const k = ((t * 0.5 + i * 0.5) % 1), s = 1 + 0.75 * k;
+    css($(id), { left: `${540 - 230 * s}px`, top: `${920 - 230 * s}px`, width: `${460 * s}px`, height: `${460 * s}px`, opacity: String(0.45 * (1 - k) * P(t, 0.4, 1.0)) }); });
+  const sp = P(t, T.spot, T.spot + 0.5, E.back), sk = ((t - T.spot) * 0.8) % 1;
+  css($("#spot"), { left: "606px", top: "856px", width: "30px", height: "30px", opacity: String(clamp(sp)), transform: `scale(${sp})` });
+  css($("#spotr"), { left: `${621 - 15 * (1 + 2 * sk)}px`, top: `${871 - 15 * (1 + 2 * sk)}px`, width: `${30 * (1 + 2 * sk)}px`, height: `${30 * (1 + 2 * sk)}px`, opacity: String(t > T.spot ? 0.7 * (1 - sk) : 0) });
+
+  // 1: the timeline
+  css($("#fill"), { width: `${840 * 0.62 * P(t, T.fill[0], T.fill[1], E.out)}px` });
+  for (const [n, l, a] of [["#n1", "#l1", T.n1], ["#n2", "#l2", T.n2]]) {
+    const p = P(t, a, a + 0.5, E.back), out = 1 - P(t, T.s[2] - 0.3, T.s[2], E.in);
+    css($(n), { opacity: String(clamp(p) * out), transform: `scale(${p})` });
+    css($(l), { opacity: String(clamp(p) * out), transform: `translateY(${L(16, 0, clamp(p))}px)` });
+  }
+  $("#brk").setAttribute("stroke-dashoffset", 100 - 100 * P(t, T.brk, T.brk + 0.6, E.out));
+  css($("#brl"), { opacity: String(P(t, T.brk + 0.3, T.brk + 0.7) * (1 - P(t, T.s[2] - 0.3, T.s[2], E.in))) });
+  css($("#brk").parentNode, { opacity: String(1 - P(t, T.s[2] - 0.3, T.s[2], E.in)) });
+
+  // 2: survival by stage
+  if (t >= T.s[2] && t < T.s[3]) {
+    const v = value(t), k = stage(t), S = STAGES[Math.max(0, k)];
+    $("#num").firstChild.nodeValue = Math.round(v);
+    css($("#num"), { color: k >= 0 ? S.c2 : "var(--ink)" });
+    $$(".tab").forEach((tb, i) => css(tb, { background: i === k ? `linear-gradient(140deg, ${STAGES[i].c1}, ${STAGES[i].c2})` : "", color: i === k ? "#fff" : "" }));
+    STAGES.forEach((_, i) => {
+      const a = T.stages[i], b = T.stages[i + 1] ?? T.s[3], o = t >= a && t < b + 0.01 ? win(t, a + 0.1, i === 2 ? b + 1 : b, 0.35) : 0;
+      css($("#de" + i), { opacity: String(o), transform: `translateY(${L(14, 0, P(t, a + 0.1, a + 0.5, E.out))}px)` });
+    });
+    $$("#grid i").forEach((d, i) => {
+      const on = clamp(v - i);
+      css($("b", d), { opacity: String(on) });
+      css(d, { transform: `scale(${1 + 0.35 * Math.sin(Math.PI * on) * (on < 1 ? 1 : 0)})` });
+    });
+    const g2 = P(t, T.stages[1] + 0.1, T.stages[1] + 0.7, E.out), g3 = P(t, T.stages[2] + 0.1, T.stages[2] + 0.7, E.out);
+    css($("#d2"), { opacity: String(g2) }); css($("#d2n"), { opacity: String(g2) });
+    css($("#d3"), { opacity: String(g3) }); css($("#d3n"), { opacity: String(g3) });
+    const pk = (t * 0.9) % 1;
+    $("#d1r").setAttribute("r", 13 + 22 * pk); $("#d1r").setAttribute("opacity", 0.8 * (1 - pk));
+  }
+
+  // 3: ten women, 5.4 of them coloured
+  const filled = COVERAGE * P(t, T.people[0], T.people[1], E.io);
+  $$("#people .on").forEach((el, i) => css(el, { clipPath: `inset(0 ${100 - 100 * clamp(filled - i)}% 0 0)` }));
+
+  // 4: end orb
+  orb("#orb4", 880, 1330, 560, t);
+}
+
+window.POSTER = 12.5;  // the 100-dot grid, as the still before play
+boot(render, T.total, [1080, 1350]);
+</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Jak probíhá mamografie</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap">
+<script src="shared.js"></script>
+<style>
+/* 30 s, 1080 x 1350 (4:5, for the webapp on a phone). Content from webapp/index.template.html: the visit steps,
+   the "Bude to bolet" and "Bojím se výsledku" flows, what to bring. Look of the webapp: Inter, orbs, rise-in. */
+:root { --bg: #FBFBFD; --card: #F2F2F6; --ink: #1D1D1F; --ink2: #6E6E73; --line: #D2D2D7; --accent: #D91E4E; --teal: #0E8A86; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1350px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; }
+.grad { background: linear-gradient(90deg, #FF2D55, #FF8A5B); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.blob { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .32; }
+.txt { position: absolute; left: 70px; right: 70px; top: 176px; text-align: center; }
+.eb { font-size: 32px; font-weight: 650; color: var(--accent); }
+.st { font-size: 104px; font-weight: 760; letter-spacing: -.045em; line-height: 1.02; margin-top: 12px; text-wrap: balance; }
+.sb { font-size: 42px; color: var(--ink2); line-height: 1.28; margin-top: 22px; text-wrap: balance; letter-spacing: -.012em; }
+.orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #FFC2D1, #FF4D79 60%, #C2185B); box-shadow: 0 60px 120px -40px rgba(255,45,85,.55); }
+.ripple { position: absolute; border-radius: 50%; border: 3px solid #FF4D79; }
+/* steps */
+#pills { position: absolute; top: 58px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; }
+.pill { height: 66px; padding: 0 26px 0 11px; border-radius: 33px; background: var(--card); display: flex; gap: 12px; align-items: center; font-size: 28px; font-weight: 620; color: var(--ink2); }
+.pill b { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #fff; font-size: 22px; font-weight: 700; }
+.pill.on { background: var(--accent); color: #fff; } .pill.on b { color: var(--accent); }
+.pill.done { background: #E2F4F3; color: var(--teal); } .pill.done b { background: var(--teal); color: #fff; }
+/* rows with an icon square, as .grow in the webapp */
+.row { display: flex; gap: 24px; align-items: center; }
+.sq { flex: none; width: 92px; height: 92px; border-radius: 26px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg, var(--c1), var(--c2)); box-shadow: 0 18px 32px -14px var(--c2); }
+.sq svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.row b { display: block; font-size: 38px; font-weight: 680; letter-spacing: -.02em; }
+.row span { display: block; font-size: 29px; color: var(--ink2); margin-top: 4px; }
+.card { border-radius: 40px; background: var(--card); padding: 40px 44px; }
+.card b { font-size: 44px; } .card span { font-size: 33px; line-height: 1.3; }
+.help { position: absolute; left: 90px; right: 90px; display: flex; gap: 20px; align-items: center; border-radius: 30px; background: var(--card); padding: 24px 32px; font-size: 31px; line-height: 1.3; color: var(--ink2); }
+.help b { color: var(--ink); font-weight: 650; }
+.help svg { flex: none; width: 46px; height: 46px; fill: none; stroke: var(--accent); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+/* changing room */
+#curtain { position: absolute; top: 0; right: 0; height: 100%; border-radius: 0 0 0 0;
+  background: repeating-linear-gradient(90deg, #FF8FA8 0 26px, #FF6F92 26px 40px, #FF8FA8 40px 56px); box-shadow: -10px 0 30px rgba(180,30,80,.18); }
+/* images */
+.th { position: absolute; top: 1176px; width: 212px; height: 128px; border-radius: 22px; border: 3px dashed #D2D2DA; background: #F6F6F9; overflow: hidden; }
+.th .film { position: absolute; inset: -3px; border-radius: 22px; background: radial-gradient(ellipse 60% 42% at 46% 58%, rgba(255,255,255,.8), rgba(255,255,255,.15) 60%, transparent 75%), linear-gradient(160deg, #3A3946, #1E1D26); }
+.th span { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 24px; font-weight: 650; color: var(--ink2); }
+.th small { position: absolute; left: 0; right: 0; top: 16px; text-align: center; font-size: 21px; font-weight: 550; color: #A1A1A6; }
+#count { position: absolute; left: 790px; top: 640px; width: 190px; height: 190px; }
+#count .n { position: absolute; inset: 0; display: grid; place-items: center; font-size: 72px; font-weight: 760; font-variant-numeric: tabular-nums; }
+#count .lab { position: absolute; top: 200px; left: -40px; right: -40px; text-align: center; font-size: 27px; color: var(--ink2); font-weight: 550; }
+/* clock */
+#clock { position: absolute; left: 280px; top: 600px; width: 520px; height: 520px; }
+#clock .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+#clock .c b { font-size: 76px; font-weight: 780; letter-spacing: -.04em; }
+#clock .c span { font-size: 32px; color: var(--ink2); margin-top: 4px; }
+.okb { position: absolute; width: 128px; height: 128px; border-radius: 50%; background: var(--teal); display: grid; place-items: center; box-shadow: 0 20px 40px -14px var(--teal); }
+.okb svg { width: 72px; height: 72px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.btn { display: inline-flex; gap: 14px; align-items: center; height: 104px; padding: 0 52px; border-radius: 52px; background: var(--accent); color: #fff; font-size: 40px; font-weight: 650; }
+.btn svg { width: 40px; height: 40px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<i class="blob" id="b1" style="width:700px;height:700px;background:#FF9AB5"></i>
+<i class="blob" id="b2" style="width:640px;height:640px;background:#B6A4FF"></i>
+
+<!-- 0: title -->
+<section class="scene" id="s0">
+  <i class="ripple" id="r1"></i><i class="ripple" id="r2"></i><i class="orb" id="orb0" data-d=".35"></i>
+  <div class="txt" style="top:190px"><p class="eb" data-d="0">Mamografický screening</p>
+    <h1 class="st" data-d=".08">Jak probíhá mamografie?</h1>
+    <p class="sb" data-d=".16">Celá návštěva trvá do půl hodiny. Samotné snímky jen pár minut.</p></div>
+</section>
+
+<div id="pills"></div>
+
+<!-- 1: arrival -->
+<section class="scene" id="s1">
+  <div class="txt"><p class="eb" data-d="0">Krok 1 · Petra, 46 let, jde poprvé</p><h1 class="st" data-d=".08">Příchod</h1>
+    <p class="sb" data-d=".16">Pár otázek a vysvětlení postupu.</p></div>
+  <div class="abs" data-d=".25" style="left:20px;top:790px;width:420px;height:588px" id="petra1"></div>
+  <p class="abs" data-d=".4" style="left:470px;top:648px;font-size:30px;font-weight:650;color:var(--ink2)">Vezměte si s sebou</p>
+  <div class="abs row" data-d=".6" style="left:470px;top:712px;--c1:#7C8CFF;--c2:#4B5BE0"><div class="sq"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 10h5M7 14h8"/><circle cx="16.5" cy="10" r="1.6"/></svg></div><div><b>Průkaz pojištěnce</b><span>kartičku pojišťovny</span></div></div>
+  <div class="abs row" data-d=".8" style="left:470px;top:852px;--c1:#FF6B8E;--c2:#D91E4E"><div class="sq"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></div><div><b>Pozvánku nebo žádanku</b><span>pokud ji centrum vyžaduje</span></div></div>
+  <div class="abs row" data-d="1.0" style="left:470px;top:992px;--c1:#FFB067;--c2:#F0742B"><div class="sq"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg></div><div><b>Dřívější snímky</b><span>jestli nějaké máte</span></div></div>
+</section>
+
+<!-- 2: changing -->
+<section class="scene" id="s2">
+  <div class="txt"><p class="eb" data-d="0">Krok 2</p><h1 class="st" data-d=".08">Převlečení</h1>
+    <p class="sb" data-d=".16">Jen do pasu, v soukromí kabinky.</p></div>
+  <div class="abs" data-d=".3" style="left:190px;top:600px;width:700px;height:520px;border-radius:40px;background:#F1EDFF;overflow:hidden" id="booth">
+    <i class="abs" style="left:0;right:0;top:0;height:22px;background:#CFC8E8"></i>
+    <svg class="abs" style="left:120px;top:70px;width:250px;height:260px" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#7C6CF0" stroke-width=".9" stroke-linejoin="round"><path d="M12 1.5v1.6M12 3.1L4 7.2h16z" fill="none"/><path d="M8 7.2L3.5 10.5l2.4 2.6 1.6-1v10.4h9V12.1l1.6 1 2.4-2.6L16 7.2a4 4 0 0 1-8 0z"/></svg>
+    <i class="abs" style="left:70px;right:70px;top:420px;height:30px;border-radius:15px;background:#D9D2F2"></i>
+    <div id="curtain"></div>
+  </div>
+  <div class="help" data-d="1.4" style="top:1170px"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/></svg><p><b>Tip:</b> oblečte se dvoudílně. Svlékáte se jen nahoře.</p></div>
+</section>
+
+<!-- 3: four images -->
+<section class="scene" id="s3">
+  <div class="txt"><p class="eb" data-d="0">Krok 3</p><h1 class="st" data-d=".08">Čtyři snímky</h1>
+    <div style="position:relative;height:120px" data-d=".16"><p class="sb abs" id="sbA" style="left:0;right:0;top:0">Každý prs dvakrát, vždy jen na pár sekund.</p>
+      <p class="sb abs" id="sbB" style="left:0;right:0;top:0;opacity:0">Někdy je to nepříjemné, ale jen chvíli. Kdykoli můžete říct, ať se přestane.</p></div></div>
+  <svg class="abs" data-d=".3" style="left:110px;top:500px;width:700px;height:660px;overflow:visible" viewBox="0 0 700 660">
+    <defs><linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD3E0" stop-opacity=".95"/><stop offset="1" stop-color="#FF8FA8" stop-opacity=".25"/></linearGradient>
+      <radialGradient id="bl" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFC2D1"/><stop offset=".75" stop-color="#FF4D79"/></radialGradient></defs>
+    <ellipse cx="420" cy="642" rx="250" ry="14" fill="rgba(60,40,80,.08)"/>
+    <rect x="470" y="10" width="96" height="630" rx="34" fill="#E7E6EE"/><rect x="486" y="30" width="10" height="590" rx="5" fill="#F4F3F8"/>
+    <g id="arm">
+      <rect x="474" y="60" width="74" height="430" rx="24" fill="#D8D7E2"/>
+      <rect x="140" y="40" width="420" height="104" rx="30" fill="#F6F5FA" stroke="#D9D8E2" stroke-width="3"/>
+      <rect x="196" y="82" width="120" height="14" rx="7" fill="#FF8FA8"/>
+      <polygon id="beamp" points="230,144 400,144 470,420 160,420" fill="url(#beam)" opacity="0"/>
+      <ellipse id="blob" cx="305" cy="372" rx="112" ry="48" fill="url(#bl)"/>
+      <g id="paddle"><rect x="160" y="0" width="320" height="18" rx="7" fill="rgba(170,205,255,.6)" stroke="#8FB6EA" stroke-width="3"/><rect x="456" y="-34" width="22" height="40" rx="8" fill="#C9C8D6"/></g>
+      <rect x="140" y="420" width="350" height="46" rx="14" fill="#3B3A46"/><rect x="152" y="424" width="326" height="6" rx="3" fill="#5A596A"/>
+    </g>
+  </svg>
+  <div id="count" data-d=".5"><svg viewBox="0 0 190 190" style="width:190px;height:190px"><circle cx="95" cy="95" r="80" fill="none" stroke="#EDEDF2" stroke-width="16"/>
+    <circle id="cring" cx="95" cy="95" r="80" fill="none" stroke="var(--accent)" stroke-width="16" stroke-linecap="round" transform="rotate(-90 95 95)" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
+    <div class="n" id="cnum"></div><div class="lab" id="clab">pár sekund</div></div>
+  <div id="thumbs"></div>
+</section>
+
+<!-- 4: done -->
+<section class="scene" id="s4">
+  <div class="txt"><p class="eb" data-d="0">Krok 4</p><h1 class="st" data-d=".08">Hotovo</h1>
+    <p class="sb" data-d=".16">Oblečete se a jdete domů. Snímky pak posoudí lékař.</p></div>
+  <div id="clock" data-d=".3"><svg viewBox="0 0 520 520" style="width:520px;height:520px"><circle cx="260" cy="260" r="220" fill="none" stroke="#EDEDF2" stroke-width="36"/>
+    <circle id="kring" cx="260" cy="260" r="220" fill="none" stroke="url(#kg)" stroke-width="36" stroke-linecap="round" transform="rotate(-90 260 260)" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+    <defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4CD9C0"/><stop offset="1" stop-color="#0E8A86"/></linearGradient></defs></svg>
+    <div class="c"><b>do 30 min</b><span>celá návštěva</span></div></div>
+  <div class="okb" id="ok4" style="left:740px;top:570px"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></div>
+</section>
+
+<!-- 5: result -->
+<section class="scene" id="s5">
+  <div class="txt" style="top:150px"><p class="eb" data-d="0">Potom</p><h1 class="st" data-d=".08">Výsledek</h1></div>
+  <div class="abs card row" data-d=".4" style="left:70px;right:70px;top:470px;--c1:#4CD9C0;--c2:#0E8A86"><div class="sq"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg></div>
+    <div><b>Většinou je vše v pořádku.</b><span>Další pozvánka přijde za dva roky.</span></div></div>
+  <div class="abs card row" data-d="1.0" style="left:70px;right:70px;top:730px;--c1:#FFD08A;--c2:#F0A030"><div class="sq"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></div>
+    <div><b>Někdy vás pozvou znovu.</b><span>Na upřesnění, třeba ultrazvukem. Většinou skončí v pořádku.</span></div></div>
+  <p class="abs" data-d="1.6" style="left:70px;right:70px;top:1030px;text-align:center;font-size:52px;font-weight:740;letter-spacing:-.03em">Zavolání zpět <span class="grad">není diagnóza.</span></p>
+</section>
+
+<!-- 6: end -->
+<section class="scene" id="s6">
+  <i class="orb" id="orb6" data-d=".2"></i>
+  <div class="txt" style="top:250px"><p class="eb" data-d="0">Mamografický screening</p>
+    <h1 class="st" data-d=".08" style="font-size:118px">Pár minut pro sebe.<br><span class="grad">Dva roky klidu.</span></h1>
+    <p class="sb" data-d=".2">Zdarma od 45 let, jednou za dva roky.</p>
+    <div data-d=".35" style="margin-top:46px"><span class="btn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>Objednat se</span></div></div>
+</section>
+
+<script>
+const T = {
+  s: [0, 3.7, 8.1, 11.7, 20.8, 24.2, 27.7, 30.0],  // scene i runs from s[i] to s[i + 1]
+  rows: [4.3, 4.5, 4.7], curtain: [9.0, 10.0],
+  // the four images: [press down, hold from, release at, arm angle]
+  shots: [[12.4, 13.3, 15.0, 0], [15.9, 16.4, 17.2, -42], [17.9, 18.3, 18.9, 0], [19.55, 19.9, 20.4, -42]],
+  sbSwap: 16.4, clock: [21.3, 22.6], ok: 22.7, total: 30.0,
+};
+const SC = T.s.slice(0, -1).map((a, i) => ({ id: "s" + i, a, b: T.s[i + 1] }));
+const STEPS = ["Příchod", "Převlečení", "Snímky", "Hotovo"];
+const THUMBS = [["Pravý", "shora"], ["Pravý", "šikmo"], ["Levý", "shora"], ["Levý", "šikmo"]];
+
+$("#pills").innerHTML = STEPS.map((s, i) => `<div class="pill"><b>${i + 1}</b>${s}</div>`).join("");
+$("#thumbs").innerHTML = THUMBS.map(([a, b], i) => `<div class="th" style="left:${84 + i * 232}px"><i class="film"></i><small>${b}</small><span>${a}</span></div>`).join("");
+$("#petra1").innerHTML = woman(PETRA);
+$$(".sb, .help p, .row span").forEach((e) => (e.innerHTML = nb(e.innerHTML)));
+
+// sound cues, read by render.py
+const ARM = (t) => K(t, [[0, 0], ...T.shots.flatMap(([d, , r, a], i) => [[d - 0.45, i ? T.shots[i - 1][3] : 0], [d - 0.05, a]]), [30, -42]]);
+window.CUES = [
+  ...T.s.slice(1, -2).map((a) => ["whoosh", a - 0.1, 0.5]), ...T.rows.map((a) => ["pop", a]), ["swipe", T.curtain[0]], ["pop", T.s[2] + 1.4],
+  ...T.shots.flatMap(([d, h, r]) => [["hum", d, h - d], ["beep", r - 0.25], ["hum", r, 0.35]]),
+  ["success", T.ok], ["pop", T.s[5] + 0.4], ["pop", T.s[5] + 1.0], ["chord", T.s[6]],
+];
+
+// the paddle: rest above, touch, press; the blob flattens under it
+function paddleY(t) {
+  for (const [d, h, r] of T.shots) {
+    if (t >= d - 0.05 && t < r + 0.5) return K(t, [[d, 250], [d + (h - d) * 0.55, 308, "lin"], [h, 344], [r, 344], [r + 0.4, 250]]);
+  }
+  return 250;
+}
+
+function render(t) {
+  css($("#b1"), { left: `${-200 + 40 * Math.sin(t * 0.5)}px`, top: `${-120 + 30 * Math.cos(t * 0.4)}px` });
+  css($("#b2"), { left: `${560 + 50 * Math.cos(t * 0.45)}px`, top: `${900 + 40 * Math.sin(t * 0.5)}px` });
+  scenes(t, SC);
+
+  // title orb, breathing with two ripples
+  const ob = 1 + 0.03 * Math.sin(t * 1.4);
+  css($("#orb0"), { left: "320px", top: "720px", width: "440px", height: "440px", transform: `scale(${ob})` });
+  ["#r1", "#r2"].forEach((id, i) => { const k = ((t * 0.5 + i * 0.5) % 1), s = 1 + 0.75 * k;
+    css($(id), { left: `${540 - 220 * s}px`, top: `${940 - 220 * s}px`, width: `${440 * s}px`, height: `${440 * s}px`, opacity: String(0.5 * (1 - k) * P(t, 0.4, 1.0)) }); });
+
+  // step pills
+  const po = win(t, T.s[1], T.s[5], 0.4);
+  css($("#pills"), { opacity: String(po), transform: `translateY(${L(-20, 0, P(t, T.s[1], T.s[1] + 0.5, E.out))}px)`, display: po > 0 ? "flex" : "none" });
+  const cur = T.s.findLastIndex((a) => t >= a) - 1;
+  $$(".pill").forEach((p, i) => (p.className = "pill" + (i < cur || (i === 3 && t >= T.ok) ? " done" : i === cur ? " on" : "")));
+
+  // 1: Petra blinks and smiles
+  blink($("#petra1 svg"), t, 0.6);
+  $("#petra1 .m1").style.opacity = P(t, 5.4, 5.8); $("#petra1 .m0").style.opacity = 1 - P(t, 5.4, 5.8);
+
+  // 2: the curtain closes
+  css($("#curtain"), { width: `${L(90, 380, P(t, T.curtain[0], T.curtain[1]))}px` });
+
+  // 3: four images
+  if (t >= T.s[3] && t < T.s[4]) {
+    const y = paddleY(t), ry = clamp((420 - (y + 18)) / 2, 30, 48);
+    css($("#paddle"), { transform: `translateY(${y}px)` });
+    $("#blob").setAttribute("ry", ry); $("#blob").setAttribute("rx", 112 + (48 - ry) * 0.9); $("#blob").setAttribute("cy", 420 - ry);
+    css($("#arm"), { transform: `rotate(${ARM(t)}deg)`, transformOrigin: "515px 300px" });
+    let beam = 0, ring = 0, num = "", done = 0;
+    T.shots.forEach(([d, h, r], i) => {
+      beam = Math.max(beam, win(t, r - 0.28, r + 0.05, 0.06));
+      if (t >= h && t < r) { ring = P(t, h, r, E.lin); num = String(Math.ceil((r - t) / (r - h) * 3)); }
+      if (t >= r - 0.25) done = i + 1;
+      const th = $$(".th")[i], k = P(t, r - 0.25, r + 0.1, E.out);
+      css($(".film", th), { opacity: String(k) });
+      css($("span", th), { color: k > 0.5 ? "#fff" : "" }); css($("small", th), { color: k > 0.5 ? "rgba(255,255,255,.7)" : "" });
+      css(th, { transform: `scale(${1 + 0.08 * Math.sin(Math.PI * k)})`, borderColor: k > 0.5 ? "transparent" : "" });
+    });
+    $("#beamp").setAttribute("opacity", beam);
+    $("#cring").setAttribute("stroke-dashoffset", 100 - 100 * ring);
+    $("#cnum").textContent = num || (done ? "✓" : "");
+    css($("#cnum"), { color: num ? "var(--ink)" : "var(--teal)" });
+    $("#clab").textContent = num ? "pár sekund" : done ? `${done} ze 4` : "";
+    const sw = P(t, T.sbSwap, T.sbSwap + 0.5);
+    css($("#sbA"), { opacity: String(1 - sw) }); css($("#sbB"), { opacity: String(sw) });
+  }
+
+  // 4: the half-hour ring, then a check
+  const kp = P(t, T.clock[0], T.clock[1], E.out);
+  $("#kring").setAttribute("stroke-dashoffset", 100 - 100 * kp);
+  const okp = P(t, T.ok, T.ok + 0.5, E.back);
+  css($("#ok4"), { opacity: String(clamp(okp * 2)), transform: `scale(${L(0.4, 1, okp)})` });
+
+  // 6: end orb
+  css($("#orb6"), { left: "230px", top: "930px", width: "620px", height: "620px", transform: `scale(${1 + 0.03 * Math.sin(t * 1.4)})` });
+}
+
+window.POSTER = 2.6;  // the title, as the still before play
+boot(render, T.total, [1080, 1350]);
+</script>
+</body>
+</html>
