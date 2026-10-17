@@ -19,6 +19,10 @@
 .heat th { font-family: var(--body); font-weight: 500; font-size: 11px; color: var(--muted); padding: 4px 6px; text-align: center; vertical-align: bottom; }
 .heat th.rowh { text-align: left; white-space: nowrap; color: var(--fg); font-size: 12px; }
 .heat td { text-align: center; padding: 5px 4px; border: 2px solid var(--surface); min-width: 52px; }
+.funnel { display: grid; grid-template-columns: repeat(5, 1fr); margin: 4px 2% 0 5.2%; gap: 8px; }
+.funnel div { border-top: 2px solid var(--line); padding-top: 8px; text-align: center; font-size: 12px; color: var(--muted); }
+.funnel b { display: block; font-family: var(--mono); font-weight: 500; font-size: 13px; color: var(--fg); margin-bottom: 4px; }
+.funnel .add { color: var(--fg); }
 </style>
 </head>
 <body>
@@ -98,6 +102,11 @@
     <div class="card" style="margin-top:20px"><h3 class="cap">Predictive attributes across the eight models: share of each model's permutation importance</h3>
       <p class="note" id="impNote"></p><div class="scroll"><table class="heat" id="impTable"></table></div>
       <div class="legend" id="impLegend"></div></div>
+    <div class="card" style="margin-top:20px"><h3 class="cap">How few attributes are enough: test ROC AUC as attributes are added</h3>
+      <p class="note" id="funnelNote" style="max-width:none"></p>
+      <div class="scroll"><div style="min-width:720px"><div id="funnelChart"></div><div class="funnel" id="funnelSteps"></div></div></div>
+      <div class="legend" id="funnelLegend"></div>
+      <p class="note">1, 3 and 5 attributes: plain logistic regression on just those columns, a fixed hand-picked set from the ablation study (not a search over all combinations). 19 and 96: the full models from the ablation study, same split, same test women.</p></div>
   </section>
 
   <section id="segments" data-nav="Segments">
@@ -243,6 +252,30 @@ for (const sw of A.sweeps) {
 }
 table($("#ofTable"), ["setting", "train", "test"],
   A.overfit.map((o) => [`<td>${o.k}</td>`, `<td class="hi">${auc(o.train)}</td>`, `<td>${auc(o.test)}</td>`]));
+(function funnelChart() {
+  const F = A.funnel, W = 1000, H = 260, P = { l: 52, r: 20, t: 22, b: 12 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Test ROC AUC by number of attributes" });
+  const X = (i) => P.l + (i + 0.5) * (W - P.l - P.r) / F.length;
+  const Y = frame(svg, P, W, H, 0.76, 0.86, [0.76, 0.78, 0.80, 0.82, 0.84, 0.86]);
+  line(svg, F.map((f, i) => [X(i), Y(f.lr)]), "var(--s4)");
+  const gi = F.map((f, i) => i).filter((i) => F[i].gb != null);
+  line(svg, gi.map((i) => [X(i), Y(F[i].gb)]), "var(--s5)", "6 3");
+  F.forEach((f, i) => {
+    const what = `<b>${f.n} attribute${f.n > 1 ? "s" : ""}</b><br>added: ${f.added.join(", ")}`;
+    dot(svg, X(i), Y(f.lr), "var(--s4)", `${what}<br>logistic regression: ${auc(f.lr)}`);
+    el("text", { x: X(i), y: Y(f.lr) + 20, "text-anchor": "middle", class: "lab" }, svg).textContent = auc(f.lr);
+    if (i) el("text", { x: (X(i - 1) + X(i)) / 2, y: (Y(F[i - 1].lr) + Y(f.lr)) / 2 + 18, "text-anchor": "middle" }, svg).textContent = `+${(f.lr - F[i - 1].lr).toFixed(3)}`;
+    if (f.gb != null) { dot(svg, X(i), Y(f.gb), "var(--s5)", `${what}<br>gradient boosting: ${auc(f.gb)}`);
+      el("text", { x: X(i), y: Y(f.gb) - 10, "text-anchor": "middle", class: "lab" }, svg).textContent = auc(f.gb); }
+  });
+  $("#funnelChart").replaceChildren(svg);
+  $("#funnelSteps").innerHTML = F.map((f) => `<div><b>${f.n} attribute${f.n > 1 ? "s" : ""}</b><span class="add">${f.n === 1 ? "" : "+ "}${f.added.join(", ")}</span></div>`).join("");
+  $("#funnelLegend").innerHTML = `<span><i style="background:var(--s4)"></i>Logistic regression</span><span><i style="background:var(--s5)"></i>Gradient boosting (dashed)</span><span>dotted line: 0.84</span><span>+x: gain over the previous step</span>`;
+  const best = Math.max(...F.map((f) => f.gb ?? f.lr)), lift = (v) => (v - 0.5) / (best - 0.5);
+  $("#funnelNote").innerHTML = `One attribute (${F[0].added[0].toLowerCase()}) already ranks invitations at <b>${auc(F[0].lr)}</b>. ` +
+    `Three attributes reach <b>${auc(F[1].lr)}</b>, <b>${Math.round(100 * lift(F[1].lr))}%</b> of the best model's lift over a coin toss. ` +
+    `The remaining 16 attributes and a flexible model add <b>+${(F[3].gb - F[1].lr).toFixed(3)}</b>, and the whole engineered set only <b>+${(F[4].gb - F[3].gb).toFixed(3)}</b> more.`;
+})();
 table($("#featTable"), ["model", "raw", "engineered", "gain ×100"],
   A.features.map((f) => [`<td>${f.k}</td>`, `<td>${auc(f.raw)}</td>`, `<td>${auc(f.eng)}</td>`, `<td>+${((f.eng - f.raw) * 100).toFixed(2)}</td>`]));
 
